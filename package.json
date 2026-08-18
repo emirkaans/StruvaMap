@@ -1,0 +1,12 @@
+{
+  "name": "struva",
+  "private": true,
+  "version": "0.0.1",
+  "scripts": {
+    "postinstall": "pnpm --filter @struva/shared build",
+    "dev:web": "pnpm --filter @struva/web dev",
+    "dev:api": "pnpm --filter @struva/api start:dev",
+    "build": "pnpm -r build"
+  },
+  "packageManager": "pnpm@10.28.2"
+}
