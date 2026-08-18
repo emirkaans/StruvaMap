@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import type { TestDefinition } from "@struva/shared";
 import { fetchTests } from "../lib/api";
 import { PLAY_STORE_URL } from "../lib/config";
+import { toTurkishUpper } from "../lib/text";
 import heykelRomantic from "../assets/heykel.png";
 import heykelFriendship from "../assets/heykel-arkadaslik.png";
 
@@ -167,7 +168,7 @@ export function LandingPage() {
         )}
 
         <div className="disclaimer">
-          <span className="eyebrow">Teşhis değil</span>
+          <span className="eyebrow">{toTurkishUpper("Teşhis değil")}</span>
           <p>
             Bu skor <em>"%X sağlıklı"</em> anlamına gelmez. İncelenen sosyal-yapısal alanlardaki denge
             ve uyum düzeyini gösterir; tanımlayıcı bir sosyolojik haritadır.
@@ -177,7 +178,7 @@ export function LandingPage() {
         {activeTest && (
           <section className="dims-section" id="ne-olcuyoruz">
             <div className="section-head">
-              <span className="eyebrow">Metodoloji</span>
+              <span className="eyebrow">{toTurkishUpper("Metodoloji")}</span>
               <h2>
                 {Object.keys(activeTest.dimensions).length} boyutu, {Object.keys(activeTest.indices).length} endekste
                 ölçüyoruz.
@@ -197,7 +198,7 @@ export function LandingPage() {
 
         <div className="app-cta">
           <div className="copy">
-            <span className="eyebrow">Mobil uygulama</span>
+            <span className="eyebrow">{toTurkishUpper("Mobil uygulama")}</span>
             <h2>Bu yalnızca başlangıç.</h2>
             <p>
               Ekonomik güç, duygusal emek, yaşam tarzı uyumu, çift karşılaştırması ve "istenen yapı vs

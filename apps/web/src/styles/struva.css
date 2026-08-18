@@ -54,7 +54,13 @@ header.site {
 .logo span { color: var(--accent); }
 
 h1 { font-size: 1.9rem; line-height: 1.2; margin: 0 0 12px; letter-spacing: -0.02em; }
-h2 { font-size: 1.25rem; margin: 32px 0 12px; }
+h2 {
+  font-family: "Archivo", sans-serif;
+  font-weight: 800;
+  font-size: 1.4rem;
+  letter-spacing: -0.01em;
+  margin: 40px 0 16px;
+}
 h3 { font-size: 1.02rem; margin: 0 0 4px; }
 p { margin: 0 0 14px; }
 .muted { color: var(--muted); }
@@ -135,9 +141,11 @@ p { margin: 0 0 14px; }
 .score-hero .big { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 3.4rem; font-weight: 500; letter-spacing: -0.02em; line-height: 1; }
 .score-hero .big small { font-size: 1.1rem; color: var(--muted); font-weight: 600; }
 
-.indices { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 20px 0; }
+/* Grid yerine flex + justify-content:center: sabit boşluklu (gap) ve
+   ortalanmış, 3 kolonun tüm genişliğe gerilip birbirinden uzaklaşmasını önler. */
+.indices { display: flex; justify-content: center; flex-wrap: wrap; gap: 32px; margin: 24px 0; }
 .index-card { text-align: center; }
-.index-card .l { font-size: 0.82rem; color: var(--muted); margin-top: 2px; }
+.index-card .l { font-size: 1.05rem; font-weight: 600; color: var(--text); margin-top: 10px; }
 
 /* --- SVG grafikler (radar / gauge / halkalar) --- */
 .donut { display: block; }
@@ -154,8 +162,10 @@ p { margin: 0 0 14px; }
 }
 
 /* Endeks halkaları */
-.index-card .ring { position: relative; width: 108px; height: 108px; margin: 0 auto; }
-.index-card .ring .overlay {
+/* "ring" değil "donut-ring": Tailwind'in kendi .ring utility'siyle (box-shadow
+   tabanlı bir halka çizer) isim çakışmasını önlemek için. */
+.index-card .donut-ring { position: relative; width: 108px; height: 108px; margin: 0 auto; }
+.index-card .donut-ring .overlay {
   position: absolute; inset: 0;
   display: flex; align-items: center; justify-content: center;
   font-family: "IBM Plex Mono", ui-monospace, monospace;
@@ -172,7 +182,7 @@ p { margin: 0 0 14px; }
   stroke: var(--accent); stroke-width: 2; stroke-linejoin: round;
 }
 .radar-dot { fill: var(--accent); }
-.radar-label { fill: var(--muted); font-size: 12px; }
+.radar-label { fill: var(--muted); font-size: 15px; }
 .radar-val { fill: var(--text); font-weight: 700; font-family: "IBM Plex Mono", ui-monospace, monospace; }
 
 .bar-row { margin-bottom: 14px; }
@@ -190,6 +200,46 @@ p { margin: 0 0 14px; }
 
 .interp-item { padding: 12px 0; border-bottom: 1px solid var(--border); }
 .interp-item:last-child { border-bottom: none; }
+
+/* --- Sonuç/Kıyaslama: sade üst bar (yalnızca logo) --- */
+.page-nav { padding: 4px 0 20px; }
+
+/* --- Sonuç: güçlü/gerilim alanları yan yana, ortada ince ayraç --- */
+.split-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+.split-col { padding: 22px; }
+.split-col + .split-col { border-left: 1px solid var(--border); }
+.split-col h3 { font-size: 1.2rem; margin-bottom: 14px; }
+.split-col ul { margin: 0; padding: 0; list-style: none; }
+.split-col li {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 1.02rem;
+  color: var(--text);
+}
+.split-col li:last-child { border-bottom: none; }
+.split-col li strong {
+  flex: none;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 1.15rem;
+  font-weight: 600;
+}
+.split-col.strengths li strong { color: var(--good); }
+.split-col.tensions li strong { color: var(--bad); }
+@media (max-width: 480px) {
+  .split-row { grid-template-columns: 1fr; }
+  .split-col + .split-col { border-left: none; border-top: 1px solid var(--border); }
+}
 
 .premium {
   background: linear-gradient(135deg, var(--accent), #2b4459);
@@ -214,7 +264,7 @@ p { margin: 0 0 14px; }
 
 @media (max-width: 480px) {
   h1 { font-size: 1.55rem; }
-  .indices { grid-template-columns: 1fr; }
+  .indices { gap: 20px; }
 }
 
 /* --- Landing: marka nav --- */
@@ -374,13 +424,15 @@ p { margin: 0 0 14px; }
   .hero-frame img { height: 100%; width: auto; max-width: 100%; }
 }
 
-/* --- Ortak "gözlem" etiketi: mono, aralıklı, vurgu renginde --- */
+/* --- Ortak "gözlem" etiketi: mono, aralıklı, vurgu renginde ---
+   Büyük harfe çevirme JS'de (toTurkishUpper) yapılıyor — CSS text-transform
+   Türkçe "i" harfini noktasız "I" yapar, burada kasıtlı olarak yok. */
 .eyebrow {
   display: block;
   font-family: "IBM Plex Mono", ui-monospace, monospace;
-  font-size: .68rem;
-  letter-spacing: .14em;
-  text-transform: uppercase;
+  font-size: .92rem;
+  font-weight: 600;
+  letter-spacing: .1em;
   color: var(--accent);
   margin-bottom: 10px;
 }

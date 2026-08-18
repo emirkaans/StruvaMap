@@ -3,6 +3,7 @@ import { Link, useParams, useSearchParams } from "react-router-dom";
 import type { ScoreResult, TestDefinition } from "@struva/shared";
 import { fetchResult, fetchResultHistory, fetchTest, type ResultRow } from "../lib/api";
 import { BRAND, PLAY_STORE_URL } from "../lib/config";
+import { toTurkishUpper } from "../lib/text";
 import { Bar, Donut, Radar, TrendChart, bandHex, bandOf } from "../components/charts";
 
 // Paylaşım görseli — kütüphanesiz SVG, canvas üzerinden PNG'e çevrilir.
@@ -127,8 +128,14 @@ export function ResultPage() {
 
   return (
     <main className="wrap">
-      <div className="card score-hero">
-        <div className="muted small">{test.name}</div>
+      <nav className="page-nav no-print">
+        <Link to="/" className="logo-lg">
+          Struva<span>Map</span>
+        </Link>
+      </nav>
+
+      <div className="score-hero">
+        <span className="eyebrow">{toTurkishUpper(test.name)}</span>
         <div className="gauge">
           <Donut value={r.rsi} size={172} stroke={14} label="İlişki Yapısı Skoru" />
           <div className="overlay" aria-hidden="true">
@@ -199,8 +206,8 @@ export function ResultPage() {
 
       <div className="indices">
         {Object.entries(test.indices).map(([key, idx]) => (
-          <div className="card index-card" key={key}>
-            <div className="ring">
+          <div className="index-card" key={key}>
+            <div className="donut-ring">
               <Donut value={r.indices[key]} size={108} stroke={9} label={idx.name} />
               <div className="overlay" aria-hidden="true">
                 {r.indices[key]}
@@ -224,13 +231,15 @@ export function ResultPage() {
         ))}
       </div>
 
-      <div className="card">
-        <h3 style={{ marginBottom: 8 }}>En güçlü alanlar</h3>
-        <ul style={{ margin: "0 0 4px 18px", padding: 0 }}>{strengthList}</ul>
-      </div>
-      <div className="card">
-        <h3 style={{ marginBottom: 8 }}>Yapısal gerilim alanları</h3>
-        <ul style={{ margin: "0 0 4px 18px", padding: 0 }}>{tensionList}</ul>
+      <div className="split-row">
+        <div className="split-col strengths">
+          <h3>En güçlü alanlar</h3>
+          <ul>{strengthList}</ul>
+        </div>
+        <div className="split-col tensions">
+          <h3>Yapısal gerilim alanları</h3>
+          <ul>{tensionList}</ul>
+        </div>
       </div>
 
       <h2>Sosyolojik Yorum</h2>
@@ -262,17 +271,23 @@ export function ResultPage() {
         )}
       </div>
 
-      <div className="note" style={{ margin: "20px 0" }}>
-        Bu analiz tanımlayıcıdır, teşhis değildir. "Toksik", "sağlıksız" gibi etiketler kullanmaz; yalnızca
-        yapısal denge, asimetri ve sınırları tanımlar.
+      <div className="disclaimer">
+        <span className="eyebrow">{toTurkishUpper("Teşhis değil")}</span>
+        <p>
+          Bu analiz tanımlayıcıdır. <em>"Toksik", "sağlıksız"</em> gibi etiketler kullanmaz; yalnızca
+          yapısal denge, asimetri ve sınırları tanımlar.
+        </p>
       </div>
 
-      <div className="card premium no-print">
-        <h2>Bu yalnızca başlangıç</h2>
-        <p>
-          Ekonomik güç, duygusal emek, yaşam tarzı uyumu ve "istenen yapı vs mevcut yapı" farkı gibi
-          derin analizler mobil uygulamada.
-        </p>
+      <div className="app-cta no-print">
+        <div className="copy">
+          <span className="eyebrow">{toTurkishUpper("Mobil uygulama")}</span>
+          <h2>Bu yalnızca başlangıç.</h2>
+          <p>
+            Ekonomik güç, duygusal emek, yaşam tarzı uyumu ve "istenen yapı vs mevcut yapı" farkı gibi
+            derin analizler mobil uygulamada.
+          </p>
+        </div>
         <a href={PLAY_STORE_URL} className="btn" target="_blank" rel="noopener">
           Google Play'den İndir
         </a>
