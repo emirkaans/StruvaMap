@@ -1,28 +1,66 @@
 # StruvaMap
 
-İlişkilerin görünmeyen sosyal-yapısal dengesini ölçen çoklu test platformu.
-Deterministik puanlama (`packages/shared`), React arayüz, NestJS + Supabase backend.
+İlişkiler yalnızca sevgiden ibaret değildir — aynı zamanda emek, karar, güç ve
+özerklik dengesinden oluşur. StruvaMap, bu görünmeyen yapıyı kısa bir testle
+haritalayan, deterministik puanlama kullanan çoklu ilişki testi platformudur.
 
-## Yapı
+AI hiçbir zaman skor hesaplamaz. Puanlama tamamen `packages/shared` içindeki
+kurallara dayanır; sonuç her zaman tekrarlanabilir ve açıklanabilir.
 
-```
-struva/
-  apps/
-    web/       React + Vite + TypeScript + Tailwind (frontend)
-    api/       NestJS + TypeScript (backend)
-  packages/
-    shared/    Test-agnostik tipler + deterministik puanlama motoru + test tanımları
-  supabase/
-    schema.sql Beklenen tablo şeması (results, comparisons)
-```
+## Özellikler
 
-`packages/shared`, hem `apps/web` hem `apps/api` tarafından `workspace:*` bağımlılığı
-olarak kullanılır. Puanlama mantığı yalnızca burada yaşar; UI ve backend onu import eder.
+- **Çoklu ilişki testi** — Romantik İlişki ve Arkadaşlık testleri yayında;
+  İş ve Aile ilişkileri yol haritada. Her test 6 boyut × 5 soru, 3 üst-endekste
+  gruplanır (ör. romantik testte Güç / Emek / Özerklik).
+- **Deterministik puanlama** — boyut, endeks ve RSI (İlişki Yapısı Skoru)
+  sabit kurallarla hesaplanır; her boyut için "güçlü" / "gerilim" eşiği ve
+  sosyolojik yorum metni test tanımının kendi içinde tutulur.
+- **Anlık görselleştirme** — RSI göstergesi, endeks halkaları, boyut radar
+  grafiği ve barlar; hepsi kütüphanesiz, elle yazılmış SVG.
+- **Kıyaslama** — sonucunu bir davet bağlantısıyla paylaş; karşı taraf testi
+  bitirince ikinizin cevapları yan yana, boyut boyut ve algı farkı
+  yorumlarıyla karşılaştırılır.
+- **Zaman içinde trend** — aynı testi tekrar çözdükçe RSI'nin nasıl değiştiğini
+  gösteren çizgi grafik.
+- **Paylaşım** — sonucu PDF olarak yazdır, PNG görsel olarak indir veya
+  bağlantıyı kopyala.
+- **Kimliksiz** — hesap yok; anonim `session_id` ile çalışır.
 
-Yeni test türü eklemek (iş, aile, arkadaşlık ilişkileri):
-1. `packages/shared/src/tests/` altına yeni bir `TestDefinition` dosyası ekle (örnek: `romantic.ts`).
+## Testler
+
+Yeni bir ilişki türü eklemek yalnızca bir veri tanımı eklemektir, kod
+değişikliği gerekmez:
+
+1. `packages/shared/src/tests/` altına yeni bir `TestDefinition` dosyası ekle
+   (örnek: `romantic.ts`, `friendship.ts`).
 2. `packages/shared/src/tests/index.ts` içindeki `TEST_REGISTRY`'e ekle.
-3. Başka hiçbir yerde kod değişikliği gerekmez — API ve web otomatik olarak listeler/sunar.
+3. `apps/web/src/pages/LandingPage.tsx` içindeki `HERO_CONTENT` kaydına anasayfa
+   başlığı, açıklaması ve görseli için bir giriş ekle.
+
+API ve web tarafı testleri otomatik listeler/sunar; başka hiçbir yerde kod
+değişikliği gerekmez.
+
+## Tasarım dili
+
+Koyu tema, Archivo (başlık) + Source Sans 3 (gövde) + IBM Plex Mono (veri/skor)
+tipografi sistemi, her ilişki türü için kendine özgü mavi-duotone heykel
+görseli. Fontlar Google Fonts'tan self-host edilmiştir (CDN bağımlılığı yok).
+
+## Teknoloji
+
+```
+apps/
+  web/       React + Vite + TypeScript (frontend)
+  api/       NestJS + TypeScript (backend)
+packages/
+  shared/    Test-agnostik tipler + deterministik puanlama motoru + test tanımları
+supabase/
+  schema.sql Beklenen tablo şeması (results, comparisons)
+```
+
+`packages/shared`, hem `apps/web` hem `apps/api` tarafından `workspace:*`
+bağımlılığı olarak kullanılır. Puanlama mantığı yalnızca burada yaşar; UI ve
+backend onu import eder.
 
 ## Kurulum
 
@@ -38,14 +76,11 @@ pnpm dev:web    # http://localhost:5173
 pnpm dev:api    # http://localhost:3000
 ```
 
-## Durum
+## Yol haritası
 
-- ✅ Monorepo iskeleti, `shared` puanlama motoru MVP'den TS'e taşındı (romantik test).
-- ✅ `apps/api`: tests / results / comparisons endpoint'leri, Supabase'e bağlı ve doğrulandı (gerçek yazma/okuma testi yapıldı).
-- ✅ `apps/web`: quiz akışı (`TestPage`, roving-tabindex klavye navigasyonu, shuffle) ve sonuç sayfası (`ResultPage` — RSI gauge, endeks halkaları, radar, bar'lar, güçlü/gerilim listeleri, sosyolojik yorum) MVP'den React'e taşındı; uçtan uca tarayıcıda test edildi (30 soru → sonuç sayfası).
-- ✅ Yazdır (`window.print()`) ve bağlantı kopyalama (artık gerçek `resultId` URL'i — hash-encode gerekmiyor) çalışıyor.
-- ✅ Trend grafiği: `GET /results?sessionId=&testId=` ile geçmiş sonuçlar çekilir, sonuç sayfasında 2+ kayıt varsa "Zamanla Değişim" çizgi grafiği gösterilir. Uçtan uca doğrulandı.
-- ✅ Kıyaslama (partner): sonuç sayfasındaki "Partnerini davet et" bağlantısı `?compareWith=resultId` taşır; davet edilen testi bitirince otomatik `POST /comparisons` çağrılır ve `/comparisons/:id` sayfasına yönlendirilir — RSI + boyut bazında yan yana kıyaslama, algı farkı ≥20 puan rozetlenir. Uçtan uca doğrulandı.
-- ✅ PNG olarak sonuç indirme: "Sonucu görsel indir" butonu, MVP'deki kütüphanesiz SVG→canvas→PNG mantığının birebir taşınmış hali (`struvamap-sonuc.png`).
-- ⏳ İş / aile / arkadaşlık test tanımları henüz eklenmedi.
+- ✅ Romantik İlişki ve Arkadaşlık testleri, uçtan uca (test → sonuç →
+  kıyaslama) çalışır durumda.
+- ✅ Anasayfa: ilişki türü seçici, gerçek test verisinden kurulu istatistik ve
+  metodoloji bölümleri.
+- ⏳ İş ve Aile ilişkileri test tanımları.
 - ⏳ Auth yok (bilinçli — web anonim session, mobil ileride gerçek auth).
