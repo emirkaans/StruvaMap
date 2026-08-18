@@ -1,35 +1,27 @@
+/* StruvaMap tek tema: koyu. Işık/karanlık tercihi sunmuyoruz — heykellerin
+   mavisi ve marka dili koyu zeminde kuruldu. */
 :root {
-  --bg: #f7f7f5;
-  --surface: #ffffff;
-  --text: #1c1c1a;
-  --muted: #6b6b66;
-  --border: #e4e4df;
-  --accent: #3a5a78;
-  --accent-soft: #eaf0f5;
-  --good: #4a8a6f;
-  --warn: #c08a3e;
-  --bad: #b5654a;
+  --bg: #0b0c10;
+  --surface: #181a21;
+  --text: #ecedef;
+  --muted: #9092a0;
+  --border: #26272f;
+  --accent: #5470ff;
+  --accent-soft: #171b30;
+  --on-accent: #050710;
+  --good: #5fbf82;
+  --warn: #d9a441;
+  --bad: #e0715a;
   --radius: 12px;
+  --radius-lg: 22px;
   --maxw: 720px;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #16161a;
-    --surface: #202027;
-    --text: #ececec;
-    --muted: #9a9aa2;
-    --border: #32323b;
-    --accent: #7fa8cc;
-    --accent-soft: #24303c;
-  }
 }
 
 * { box-sizing: border-box; }
 
 body {
   margin: 0;
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-family: "Source Sans 3", -apple-system, "Segoe UI", Roboto, sans-serif;
   background: var(--bg);
   color: var(--text);
   line-height: 1.55;
@@ -79,7 +71,7 @@ p { margin: 0 0 14px; }
 .btn {
   display: inline-block;
   background: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
   text-decoration: none;
   border: none;
   border-radius: 10px;
@@ -140,7 +132,7 @@ p { margin: 0 0 14px; }
 
 /* --- Sonuç --- */
 .score-hero { text-align: center; padding: 28px 20px; }
-.score-hero .big { font-size: 3.4rem; font-weight: 800; letter-spacing: -0.03em; line-height: 1; }
+.score-hero .big { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 3.4rem; font-weight: 500; letter-spacing: -0.02em; line-height: 1; }
 .score-hero .big small { font-size: 1.1rem; color: var(--muted); font-weight: 600; }
 
 .indices { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 20px 0; }
@@ -166,7 +158,8 @@ p { margin: 0 0 14px; }
 .index-card .ring .overlay {
   position: absolute; inset: 0;
   display: flex; align-items: center; justify-content: center;
-  font-size: 1.55rem; font-weight: 700;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 1.55rem; font-weight: 500;
 }
 
 /* Radar */
@@ -180,11 +173,11 @@ p { margin: 0 0 14px; }
 }
 .radar-dot { fill: var(--accent); }
 .radar-label { fill: var(--muted); font-size: 12px; }
-.radar-val { fill: var(--text); font-weight: 700; }
+.radar-val { fill: var(--text); font-weight: 700; font-family: "IBM Plex Mono", ui-monospace, monospace; }
 
 .bar-row { margin-bottom: 14px; }
 .bar-head { display: flex; justify-content: space-between; font-size: 0.92rem; margin-bottom: 5px; }
-.bar-head .val { font-weight: 600; }
+.bar-head .val { font-family: "IBM Plex Mono", ui-monospace, monospace; font-weight: 500; }
 .bar { height: 9px; background: var(--border); border-radius: 99px; overflow: hidden; }
 .bar > span { display: block; height: 100%; border-radius: 99px; }
 .bar.good > span { background: var(--good); }
@@ -222,6 +215,273 @@ p { margin: 0 0 14px; }
 @media (max-width: 480px) {
   h1 { font-size: 1.55rem; }
   .indices { grid-template-columns: 1fr; }
+}
+
+/* --- Landing: marka nav --- */
+.landing-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 20px clamp(16px, 4vw, 24px) 18px;
+  width: 100%;
+  max-width: 1080px;
+  margin: 0 auto;
+}
+.logo-lg {
+  font-family: "Archivo", sans-serif;
+  font-weight: 800;
+  font-size: 1.3rem;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  text-decoration: none;
+}
+.logo-lg span { color: var(--accent); }
+
+/* --- Landing: kayan hero --- */
+.landing-wrap { width: 100%; max-width: 1080px; margin: 0 auto; padding: 0 clamp(16px, 4vw, 24px) 64px; }
+
+.hero-stage { display: grid; margin-top: 22px; }
+.hero-variant {
+  grid-area: 1 / 1;
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 40px;
+  align-items: center;
+  opacity: 0;
+  transform: translateX(28px);
+  pointer-events: none;
+  transition: opacity .5s cubic-bezier(.22,.61,.36,1), transform .5s cubic-bezier(.22,.61,.36,1);
+}
+.hero-variant.is-active { opacity: 1; transform: translateX(0); pointer-events: auto; }
+.hero-variant.is-prev { transform: translateX(-28px); }
+.hero-variant.is-next { transform: translateX(28px); }
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-variant { transition: opacity .01ms; }
+}
+
+.hero-copy h1 {
+  font-family: "Archivo", sans-serif;
+  font-weight: 800;
+  font-size: clamp(2.1rem, 4.4vw, 3.6rem);
+  line-height: .99;
+  letter-spacing: -0.03em;
+  margin: 0;
+}
+.hero-copy p.lead {
+  margin: 22px 0 0;
+  color: var(--muted);
+  font-size: 1.05rem;
+  max-width: 42ch;
+  line-height: 1.6;
+}
+.hero-btn-row { margin-top: 28px; display: flex; gap: 12px; flex-wrap: wrap; }
+.hero-btn-row .btn { border-radius: 10px; }
+
+.hero-visual { position: relative; }
+.hero-frame {
+  position: relative;
+  aspect-ratio: 4 / 5;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+.hero-frame img {
+  width: 82%;
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 26px 34px rgba(0,0,0,.25));
+}
+/* Test istatistikleri: kutu değil, ince çizgilerle bölünmüş bir "özet şerit" —
+   sayfanın diğer yerlerindeki ayraç diline (bkz. .hero-picker) sadık kalır. */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  margin: 8px 0 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+.stats-row .stat {
+  padding: 26px 22px;
+  border-left: 1px solid var(--border);
+}
+.stats-row .stat:first-child { border-left: none; }
+.stats-row .stat b {
+  display: block;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: clamp(2rem, 4vw, 2.6rem);
+  font-weight: 600;
+  line-height: 1;
+  color: var(--text);
+}
+.stats-row .stat span {
+  display: block;
+  font-size: .78rem;
+  color: var(--muted);
+  margin-top: 10px;
+  line-height: 1.4;
+}
+
+/* Seçici nav'ın hemen altında, ince bir çizginin altında — az yer kaplar. */
+.hero-picker { padding: 16px 0 10px; border-top: 1px solid var(--border); }
+.hero-picker-pills { display: flex; flex-wrap: wrap; gap: 6px; }
+.hero-picker-pills button {
+  font-size: .78rem;
+  padding: 6px 13px;
+  border-radius: 99px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .2s, color .2s, border-color .2s;
+}
+.hero-picker-pills button:hover { color: var(--text); }
+.hero-picker-pills button[aria-pressed="true"] {
+  background: var(--accent);
+  color: var(--on-accent);
+  border-color: var(--accent);
+}
+.hero-picker-pills .soon {
+  font-size: .78rem;
+  padding: 6px 13px;
+  border-radius: 99px;
+  color: var(--muted);
+  opacity: .55;
+  font-weight: 600;
+  border: 1px dashed var(--border);
+}
+
+@media (max-width: 760px) {
+  .hero-variant { grid-template-columns: 1fr; }
+  .stats-row { grid-template-columns: 1fr; }
+  .stats-row .stat { border-left: none; border-top: 1px solid var(--border); }
+  .stats-row .stat:first-child { border-top: none; }
+}
+
+/* Genişte: nav + hero tek ekran yüksekliğinde — altındaki içerik kaydırmadan görünmez. */
+@media (min-width: 761px) {
+  .hero-screen { height: 100dvh; display: flex; flex-direction: column; }
+  .hero-screen .landing-wrap { flex: 1; display: flex; flex-direction: column; min-height: 0; padding-bottom: 24px; }
+  .hero-picker { flex: none; }
+  .hero-stage { flex: 1; min-height: 0; grid-template-rows: 1fr; }
+  /* min-height:0, grid/flex öğelerinin içerik boyutuna göre taşmasını (min-height:auto tuzağı) önler. */
+  .hero-variant { height: 100%; min-height: 0; }
+  .hero-copy { min-height: 0; overflow: hidden; }
+  .hero-visual { height: 100%; min-height: 0; display: flex; align-items: center; justify-content: center; }
+  .hero-frame { height: 100%; min-height: 0; aspect-ratio: auto; }
+  .hero-frame img { height: 100%; width: auto; max-width: 100%; }
+}
+
+/* --- Ortak "gözlem" etiketi: mono, aralıklı, vurgu renginde --- */
+.eyebrow {
+  display: block;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: .68rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 10px;
+}
+
+/* --- Landing: uyarı notu — kutu değil, alıntı çizgisi --- */
+.disclaimer {
+  margin: 48px 0;
+  padding-left: 20px;
+  border-left: 2px solid var(--accent);
+}
+.disclaimer p {
+  margin: 0;
+  color: var(--muted);
+  font-size: .96rem;
+  max-width: 62ch;
+  line-height: 1.6;
+}
+.disclaimer p em { color: var(--text); font-style: normal; }
+
+/* --- Landing: "Ne ölçüyoruz" — gerçek boyut verisinden kurulu mozaik grid --- */
+.dims-section { margin: 56px 0; }
+.dims-section .section-head { margin-bottom: 26px; }
+.dims-section .section-head h2 {
+  font-family: "Archivo", sans-serif;
+  font-weight: 800;
+  font-size: clamp(1.4rem, 3vw, 1.9rem);
+  letter-spacing: -.01em;
+  margin: 0;
+  max-width: 34ch;
+  line-height: 1.15;
+  color: var(--text);
+}
+.dims-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+}
+.dim-card { background: var(--bg); padding: 22px 20px; }
+.dim-card .dim-tag {
+  display: inline-block;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: .64rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 10px;
+}
+.dim-card h3 {
+  font-family: "Archivo", sans-serif;
+  font-weight: 700;
+  font-size: 1.02rem;
+  margin: 0 0 8px;
+  color: var(--text);
+}
+.dim-card p { margin: 0; font-size: .86rem; color: var(--muted); line-height: 1.55; }
+
+/* --- Landing: mobil uygulama çağrısı — gradyan kart değil, düz panel + üst çizgi --- */
+.app-cta {
+  margin: 56px 0;
+  padding: 36px clamp(20px, 4vw, 44px);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  border-top: 3px solid var(--accent);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+.app-cta .copy { max-width: 46ch; }
+.app-cta h2 {
+  font-family: "Archivo", sans-serif;
+  font-weight: 800;
+  font-size: clamp(1.4rem, 3vw, 1.9rem);
+  letter-spacing: -.01em;
+  margin: 8px 0 10px;
+  color: var(--text);
+}
+.app-cta p { margin: 0; color: var(--muted); font-size: .94rem; line-height: 1.6; }
+
+/* --- Landing: kapanış şeridi --- */
+.site-footer {
+  margin-top: 64px;
+  padding: 24px clamp(16px, 4vw, 24px) 0;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.site-footer .logo-lg { font-size: 1rem; }
+.site-footer p {
+  margin: 0;
+  font-size: .82rem;
+  color: var(--muted);
+  max-width: 46ch;
 }
 
 /* --- Yazdırma / PDF --- */
