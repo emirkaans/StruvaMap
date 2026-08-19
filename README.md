@@ -1,5 +1,7 @@
 # StruvaMap
 
+🔗 **Canlı:** [struvamap.netlify.app](https://struvamap.netlify.app)
+
 İlişkiler yalnızca sevgiden ibaret değildir — aynı zamanda emek, karar, güç ve
 özerklik dengesinden oluşur. StruvaMap, bu görünmeyen yapıyı kısa bir testle
 haritalayan, deterministik puanlama kullanan çoklu ilişki testi platformudur.
@@ -9,9 +11,9 @@ kurallara dayanır; sonuç her zaman tekrarlanabilir ve açıklanabilir.
 
 ## Özellikler
 
-- **Çoklu ilişki testi** — Romantik İlişki ve Arkadaşlık testleri yayında;
-  İş ve Aile ilişkileri yol haritada. Her test 6 boyut × 5 soru, 3 üst-endekste
-  gruplanır (ör. romantik testte Güç / Emek / Özerklik).
+- **Dört ilişki testi** — Romantik İlişki, Arkadaşlık, İş İlişkisi ve
+  Ebeveyn-Çocuk İlişkisi testleri yayında. Her test 6 boyut, ~30 soru, 3
+  üst-endekste gruplanır (ör. romantik testte Güç / Emek / Özerklik).
 - **Deterministik puanlama** — boyut, endeks ve RSI (İlişki Yapısı Skoru)
   sabit kurallarla hesaplanır; her boyut için "güçlü" / "gerilim" eşiği ve
   sosyolojik yorum metni test tanımının kendi içinde tutulur. Eşik değerleri
@@ -19,6 +21,13 @@ kurallara dayanır; sonuç her zaman tekrarlanabilir ve açıklanabilir.
   araştırmaya değil tasarım kararına dayanır — gerçek psikometrik doğrulama
   (Cronbach's alpha, faktör analizi, pilot çalışma) yapılmamıştır; bu klinik
   ya da tanısal bir araç değildir.
+- **Bağlama duyarlı yorum** — iş ve aile testlerinde cevaplayanın rolü
+  (yönetici/çalışan, ebeveyn/çocuk) ve gerekiyorsa yaş bağlamı sorulur; bazı
+  sorular da bu role göre yeniden yazılır. Yapısal olarak meşru asimetriler
+  (hiyerarşi, yaşa bağlı karar payı) otomatik "sorun" olarak işaretlenmez.
+- **Denge ile memnuniyet ayrımı** — emek dağılımı dengesiz olsa da taraflar bu
+  dağılımdan memnunsa bu ayrıca gösterilir; memnuniyet sinyali ana skora
+  karışmaz.
 - **Anlık görselleştirme** — RSI göstergesi, endeks halkaları, boyut radar
   grafiği ve barlar; hepsi kütüphanesiz, elle yazılmış SVG.
 - **Kıyaslama** — sonucunu bir davet bağlantısıyla paylaş; karşı taraf testi
@@ -82,9 +91,9 @@ pnpm dev:api    # http://localhost:3000
 
 ## Yol haritası
 
-- ✅ Romantik İlişki ve Arkadaşlık testleri, uçtan uca (test → sonuç →
-  kıyaslama) çalışır durumda.
+- ✅ Dört testin hepsi (Romantik, Arkadaşlık, İş, Aile) uçtan uca (test →
+  sonuç → kıyaslama) çalışır durumda, prod'da yayında.
 - ✅ Anasayfa: ilişki türü seçici, gerçek test verisinden kurulu istatistik ve
   metodoloji bölümleri.
-- ⏳ İş ve Aile ilişkileri test tanımları.
+- ✅ Bağlama duyarlı yorum ve denge/memnuniyet ayrımı (iş ve aile testleri).
 - ⏳ Auth yok (bilinçli — web anonim session, mobil ileride gerçek auth).
