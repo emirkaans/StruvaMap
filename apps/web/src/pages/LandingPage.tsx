@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import type { TestDefinition } from "@struva/shared";
 import { fetchTests } from "../lib/api";
@@ -6,6 +6,8 @@ import { PLAY_STORE_URL } from "../lib/config";
 import { toTurkishUpper } from "../lib/text";
 import heykelRomantic from "../assets/heykel.png";
 import heykelFriendship from "../assets/heykel-arkadaslik.png";
+import heykelWork from "../assets/heykel-is.png";
+import heykelFamily from "../assets/heykel-aile.png";
 
 interface HeroContent {
   pillLabel: string;
@@ -43,6 +45,30 @@ const HERO_CONTENT: Record<string, HeroContent> = {
     dimNote: "arkadaşlığı oluşturan alanlar",
     indexNote: "karşılıklılık, destek, güven",
   },
+  work: {
+    pillLabel: "İş",
+    headline: [
+      "Görünmeyen Hiyerarşi.",
+      "Ölçülebilir Güven.",
+      "Konuşulabilir Sınır.",
+    ],
+    lead: "Yönetici-çalışan ilişkinizde de bir katman vardır: karar payı, geri bildirim, emek, güven... StruvaMap bunları birlikte görünür kılar.",
+    image: heykelWork,
+    dimNote: "iş ilişkisini oluşturan alanlar",
+    indexNote: "güç, emek, özerklik",
+  },
+  family: {
+    pillLabel: "Aile",
+    headline: [
+      "Görünmeyen Roller.",
+      "Ölçülebilir Sınır.",
+      "Konuşulabilir Mesafe.",
+    ],
+    lead: "Ebeveyn-çocuk ilişkisinde de bir katman vardır: karar payı, dinlenme, duygusal emek, güven... StruvaMap bunları birlikte görünür kılar.",
+    image: heykelFamily,
+    dimNote: "aile ilişkisini oluşturan alanlar",
+    indexNote: "güç, emek, özerklik",
+  },
 };
 
 function parseMinutes(subtitle: string): string {
@@ -53,11 +79,24 @@ function parseMinutes(subtitle: string): string {
 export function LandingPage() {
   const [tests, setTests] = useState<TestDefinition[] | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [heroVisible, setHeroVisible] = useState(true);
+  const heroScreenRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetchTests()
       .then(setTests)
       .catch(() => setTests([]));
+  }, []);
+
+  useEffect(() => {
+    const el = heroScreenRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setHeroVisible(entry.isIntersecting),
+      { threshold: 0.6 },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
   }, []);
 
   const heroTests = (tests ?? []).filter((t) => HERO_CONTENT[t.id]);
@@ -67,21 +106,21 @@ export function LandingPage() {
   const heroIds = heroTests.map((t) => t.id).join(",");
 
   useEffect(() => {
-    if (heroTests.length < 2) return;
+    if (heroTests.length < 2 || !heroVisible) return;
     const id = setInterval(() => {
       setSelectedId((prev) => {
         const currentId = prev ?? heroTests[0].id;
         const idx = heroTests.findIndex((t) => t.id === currentId);
         return heroTests[(idx + 1) % heroTests.length].id;
       });
-    }, 7000);
+    }, 10000);
     return () => clearInterval(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [heroIds, activeId]);
+  }, [heroIds, activeId, heroVisible]);
 
   return (
     <div>
-      <div className="hero-screen">
+      <div className="hero-screen" ref={heroScreenRef}>
         <nav className="landing-nav">
           <Link to="/" className="logo-lg">
             Struva<span>Map</span>
@@ -131,8 +170,6 @@ export function LandingPage() {
                       {HERO_CONTENT[t.id].pillLabel}
                     </button>
                   ))}
-                  <span className="soon">İş (yakında)</span>
-                  <span className="soon">Aile (yakında)</span>
                 </div>
               </div>
 
