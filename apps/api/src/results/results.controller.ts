@@ -12,7 +12,6 @@ export class ResultsController {
     return this.resultsService.submit(dto);
   }
 
-  // Trend grafiği: /results?sessionId=...&testId=...
   @Get()
   list(@Query() query: ListResultsDto) {
     return this.resultsService.findBySession(query.sessionId, query.testId);

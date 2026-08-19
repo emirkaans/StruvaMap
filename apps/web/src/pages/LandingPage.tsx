@@ -20,8 +20,6 @@ interface HeroContent {
   indexNote: string;
 }
 
-// Test kaydına eklenen her yeni ilişki türü için burada bir giriş gerekir;
-// girişi olmayan testler hero'da değil, sadece backend listesinde görünür.
 const HERO_CONTENT: Record<string, HeroContent> = {
   romantic: {
     pillLabel: "Romantik İlişki",
@@ -82,8 +80,6 @@ export function LandingPage() {
   const [tests, setTests] = useState<TestDefinition[] | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [heroVisible, setHeroVisible] = useState(true);
-  // İlk boyamada yalnızca aktif heykel indirilsin; diğer 3'ü hemen ardından
-  // arka planda yüklensin — 4 görseli aynı anda çekmek ilk yüklemeyi yavaşlatıyordu.
   const [otherImagesReady, setOtherImagesReady] = useState(false);
   const heroScreenRef = useRef<HTMLDivElement>(null);
 
@@ -115,8 +111,6 @@ export function LandingPage() {
   const activeTest = heroTests[activeIndex] ?? null;
   const heroIds = heroTests.map((t) => t.id).join(",");
 
-  // Mobil dokunma cihazlarında hero'yu parmakla kaydırarak değiştirme —
-  // masaüstünde touch event hiç ateşlenmediği için ekstra kontrol gerekmiyor.
   const touchStartX = useRef<number | null>(null);
   const SWIPE_THRESHOLD = 40;
 
@@ -147,7 +141,6 @@ export function LandingPage() {
       });
     }, 10000);
     return () => clearInterval(id);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [heroIds, activeId, heroVisible]);
 
   return (

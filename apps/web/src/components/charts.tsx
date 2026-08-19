@@ -1,6 +1,3 @@
-// StruvaMap — kütüphanesiz SVG grafikler (MVP'deki js/result.js'in React'e taşınmış hali).
-// Renkler css/struva.css'teki .c-good/.c-mid/.c-low sınıflarından gelir.
-
 import { DEFAULT_THRESHOLDS } from "@struva/shared";
 
 export type Band = "good" | "mid" | "low";
@@ -11,8 +8,6 @@ export function bandOf(score: number): Band {
   return "low";
 }
 
-// css/struva.css'teki --good/--warn/--bad ile aynı (light tema) tonlar —
-// canvas'a çizilen PNG için sabit hex gerekir, CSS değişkeni okunamaz.
 const BAND_HEX: Record<Band, string> = { good: "#4a8a6f", mid: "#c08a3e", low: "#b5654a" };
 
 export function bandHex(score: number): string {
@@ -101,8 +96,6 @@ export function Radar({
 }) {
   const keys = Object.keys(dimensions);
   const n = keys.length;
-  // W/H ve cx/cy, etiketlerin (ör. "Dürüstlük 100") viewBox dışına taşıp
-  // kırpılmaması için R+labelR'e göre yeterli boşluk bırakacak şekilde ayarlı.
   const W = 520;
   const H = 400;
   const cx = 260;

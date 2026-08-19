@@ -1,14 +1,3 @@
-// StruvaMap — İş İlişkisi Testi (yönetici-çalışan)
-// 6 boyut, 31 soru (recognition'da bir memnuniyet sorusu fazladan), 3
-// üst-endekse gruplu: power | labour | autonomy
-// Sorular "biz" çerçeveli ve roller açısından nötr yazıldı: hem yönetici hem
-// çalışan aynı soru setini kendi bakış açısından cevaplayabilir.
-//
-// Yönetici-çalışan ilişkisi hiyerarşik olarak yapısal biçimde asimetriktir
-// (yöneticinin son sözü olması meşrudur); contextQuestions ile cevaplayanın
-// rolü sorulur, decision/feedback'in "düşük" yorumuna role göre koşullu not
-// eklenir (bkz. conditionalNotes, family.ts ile aynı test-agnostik altyapı).
-
 import type {
   ContextQuestion,
   Dimension,
@@ -31,8 +20,6 @@ const contextQuestions: ContextQuestion[] = [
   },
 ];
 
-// "balance" sorularında ortak option-sets.ts "partnerim" ifadesini kullanıyor;
-// yönetici-çalışan ilişkisi asimetrik roller içerdiği için nötr "diğer taraf" gerekli.
 const WORK_BALANCE: Option[] = [
   { label: "Neredeyse her zaman ben", score: 0 },
   { label: "Çoğunlukla ben", score: 50 },
@@ -159,7 +146,6 @@ const RAW_QUESTIONS: {
   satisfactionQuestion?: boolean;
   textByRole?: Record<string, string>;
 }[] = [
-  // --- Karar Payı (power) ---
   {
     dim: "decision",
     type: "likert",
@@ -186,7 +172,6 @@ const RAW_QUESTIONS: {
     text: "Toplantılarda gündemi ve yönü genellikle kim belirler?",
   },
 
-  // --- Geri Bildirim Yönü (power) ---
   {
     dim: "feedback",
     type: "likert",
@@ -213,7 +198,6 @@ const RAW_QUESTIONS: {
     text: "Bir şeyi eleştirmek istediğimde sonuçlarından çekindiğim için sessiz kalırım.",
   },
 
-  // --- İş Yükü Adaleti (labour) ---
   {
     dim: "workload",
     type: "likert",
@@ -241,7 +225,6 @@ const RAW_QUESTIONS: {
     text: "İş dağılımı yapılırken herkesin mevcut yükü dikkate alınır.",
   },
 
-  // --- Görünürlük ve Takdir (labour) ---
   {
     dim: "recognition",
     type: "likert",
@@ -274,7 +257,6 @@ const RAW_QUESTIONS: {
     satisfactionQuestion: true,
   },
 
-  // --- Güven ve Mikro-yönetim (autonomy) ---
   {
     dim: "trust",
     type: "likert",
@@ -323,7 +305,6 @@ const RAW_QUESTIONS: {
     },
   },
 
-  // --- Sınırlar (autonomy) ---
   {
     dim: "boundaries",
     type: "likert",

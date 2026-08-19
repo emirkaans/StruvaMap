@@ -37,8 +37,6 @@ export function TestPage() {
       .catch(() => setError("Test yüklenemedi."));
   }, [testId]);
 
-  // Gösterim sırası oturum boyunca sabit kalır. Puanlama q.id/q.dim üzerinden
-  // çalıştığı için sıra skoru etkilemez.
   const displayQuestions = useMemo<Question[]>(
     () => (test ? shuffled(test.questions) : []),
     [test],
@@ -110,8 +108,6 @@ export function TestPage() {
 
   function choose(idx: number) {
     setAnswers((prev) => ({ ...prev, [q.id]: idx }));
-    // Seçim vurgusunu bir an gösterip otomatik sonraki soruya geç; son soruda
-    // kullanıcı "Sonucu Gör" ile bilinçli olarak göndersin.
     if (!isLast) {
       setTimeout(() => setI((prev) => prev + 1), 220);
     }
@@ -128,12 +124,10 @@ export function TestPage() {
         contextAnswers: contextQuestions.length ? contextAnswers : undefined,
       });
       if (compareWith) {
-        // Önce kendi sonuç ekranını görsün; kıyaslama oradaki bağlantıdan ayrıca açılır.
         let comparisonId: string | null = null;
         try {
           comparisonId = (await createComparison(compareWith, row.id)).id;
         } catch {
-          // Kıyaslama oluşturulamasa bile kendi sonucunu görebilmeli.
         }
         navigate(comparisonId ? `/result/${row.id}?comparisonId=${comparisonId}` : `/result/${row.id}`);
       } else {
@@ -149,7 +143,6 @@ export function TestPage() {
     if (i > 0) setI((prev) => prev - 1);
   }
 
-  // Radyo grubu içinde ok tuşlarıyla gezinme (roving tabindex).
   function onOptionsKeyDown(e: React.KeyboardEvent) {
     if (!["ArrowDown", "ArrowRight", "ArrowUp", "ArrowLeft"].includes(e.key)) return;
     const buttons = Array.from(optionsRef.current?.querySelectorAll<HTMLButtonElement>(".option") ?? []);

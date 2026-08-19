@@ -9,7 +9,6 @@ import { Donut, bandOf } from "../components/charts";
 import { Header } from "../components/Header";
 import { Footer } from "../components/Footer";
 
-// Algı farkı bu eşiğin üstündeyse "algı farkı" olarak işaretlenir.
 const PERCEPTION_GAP_THRESHOLD = 20;
 
 function gapBand(gap: number): "good" | "mid" | "low" {

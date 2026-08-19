@@ -1,14 +1,3 @@
-// StruvaMap — Romantik İlişki Testi (MVP'deki V1 ücretsiz test, birebir taşındı)
-// 6 boyut, 32 soru (mental ve digital'da birer memnuniyet sorusu fazladan),
-// 3 üst-endekse gruplu: power | labour | autonomy
-//
-// domestic/mental/digital'daki memnuniyet sorularının (satisfactionQuestion)
-// amacı: dengesiz dağılım rızaya dayalıysa bunu ayrıca görünür kılmak. Bu
-// sorular boyut ortalamasını değiştirmez, ScoreResult.satisfaction'a ayrı
-// bir sinyal olarak eklenir. Romantik/arkadaşlık akran ilişkisi olduğu için
-// (aksine work.ts/family.ts'teki hiyerarşik ilişkilerin) contextQuestions
-// mekanizması burada kullanılmaz — simetri beklentisi burada savunulabilir.
-
 import type { Dimension, IndexDef, Question, QuestionType, TestDefinition } from "../types.js";
 import { OPTION_SETS } from "../option-sets.js";
 
@@ -88,21 +77,18 @@ const indices: Record<string, IndexDef> = {
 };
 
 const RAW_QUESTIONS: { dim: string; type: QuestionType; text: string; satisfactionQuestion?: boolean }[] = [
-  // --- Karar Paylaşımı (power) ---
   { dim: "decision", type: "likert", text: "Önemli kararlarımızda her iki tarafın görüşü yaklaşık eşit ağırlıktadır." },
   { dim: "decision", type: "likert_reverse", text: "Bir konuda anlaşamadığımızda genellikle aynı kişi son sözü söyler." },
   { dim: "decision", type: "likert_reverse", text: "Partnerimin ihtiyaçları benimkilerden daha sık öncelik kazanır." },
   { dim: "decision", type: "balance", text: "Tatil, taşınma gibi büyük kararları çoğunlukla kim verir?" },
   { dim: "decision", type: "balance", text: "Büyük harcamalarla ilgili son kararı genellikle kim verir?" },
 
-  // --- Ev İçi Emek (labour) ---
   { dim: "domestic", type: "balance", text: "Yemek hazırlama işini genellikle kim yapar?" },
   { dim: "domestic", type: "balance", text: "Ev temizliğini çoğunlukla kim yapar?" },
   { dim: "domestic", type: "balance", text: "Çamaşır ve ütü işlerini çoğunlukla kim yapar?" },
   { dim: "domestic", type: "balance", text: "Günlük market alışverişini genellikle kim yapar?" },
   { dim: "domestic", type: "likert", text: "Ev işlerinin aramızdaki dağılımını adil buluyorum.", satisfactionQuestion: true },
 
-  // --- Zihinsel Yük (labour) ---
   { dim: "mental", type: "balance", text: "Evde nelerin eksildiğini / ihtiyaç olduğunu çoğunlukla kim fark eder?" },
   { dim: "mental", type: "balance", text: "Faturaların ödenmesini ve takibini çoğunlukla kim üstlenir?" },
   { dim: "mental", type: "balance", text: "Randevu, doğum günü gibi tarihleri çoğunlukla kim hatırlar?" },
@@ -110,7 +96,6 @@ const RAW_QUESTIONS: { dim: string; type: QuestionType; text: string; satisfacti
   { dim: "mental", type: "likert_reverse", text: "Evle ilgili aklımda tutmam gereken çok fazla şey olduğunu hissederim." },
   { dim: "mental", type: "likert", text: "Zihinsel yükün (planlama, hatırlama, koordinasyon) aramızdaki dağılımından memnunum.", satisfactionQuestion: true },
 
-  // --- Dijital Emek (labour) ---
   { dim: "digital", type: "balance", text: "Restoran, tatil veya etkinlik araştırmalarını çoğunlukla kim yapar?" },
   { dim: "digital", type: "balance", text: "Online alışveriş ve rezervasyonları çoğunlukla kim yönetir?" },
   { dim: "digital", type: "balance", text: "Ortak sosyal hayatımızla ilgili mesajlaşmaları çoğunlukla kim yürütür?" },
@@ -118,14 +103,12 @@ const RAW_QUESTIONS: { dim: string; type: QuestionType; text: string; satisfacti
   { dim: "digital", type: "balance", text: "Ortak takvim ve planları dijital olarak çoğunlukla kim takip eder?" },
   { dim: "digital", type: "likert", text: "Dijital koordinasyon emeğinin (araştırma, rezervasyon, mesajlaşma) dağılımından memnunum.", satisfactionQuestion: true },
 
-  // --- Sosyal Özerklik (autonomy) ---
   { dim: "social", type: "likert", text: "Partnerim olmadan arkadaşlarımla vakit geçirmekte kendimi özgür hissederim." },
   { dim: "social", type: "likert_reverse", text: "İlişkim başladıktan sonra yakın arkadaşlarımla görüşme sıklığım belirgin biçimde azaldı." },
   { dim: "social", type: "likert", text: "Ayrı hobilerimizin olması ilişkimizde sorun yaratmaz." },
   { dim: "social", type: "likert_reverse", text: "Partnerimden bağımsız bir plan yaptığımda suçluluk hissederim." },
   { dim: "social", type: "likert", text: "Partnerim sosyal ilişkilerimi kontrol etmeye çalışmaz." },
 
-  // --- Aile Sınırları (autonomy) ---
   { dim: "family", type: "likert_reverse", text: "Önemli kararlarımızda ailelerimizin görüşü belirleyici olur." },
   { dim: "family", type: "likert", text: "Hangi aileyi ne sıklıkta ziyaret edeceğimiz konusunda dengeli bir düzenimiz var." },
   { dim: "family", type: "balance", text: "Ailelerin ilişkimiz üzerindeki etkisi kimin tarafında daha ağır basar?" },

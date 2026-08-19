@@ -1,18 +1,6 @@
-// StruvaMap — Arkadaşlık İlişkisi Testi
-// 6 boyut, 31 soru (effort'ta bir memnuniyet sorusu fazladan), 3 üst-endekse
-// gruplu: reciprocity | support | trust
-//
-// effort/practical'daki memnuniyet sorularının (satisfactionQuestion) amacı:
-// dengesiz dağılım rızaya dayalıysa bunu ayrıca görünür kılmak (bkz.
-// ScoreResult.satisfaction). Bu sorular boyut ortalamasını değiştirmez.
-// Arkadaşlık akran ilişkisi olduğu için (aksine work.ts/family.ts'teki
-// hiyerarşik ilişkilerin) contextQuestions mekanizması burada kullanılmaz.
-
 import type { Dimension, IndexDef, Option, Question, QuestionType, TestDefinition } from "../types.js";
 import { OPTION_SETS } from "../option-sets.js";
 
-// "balance" sorularında ortak option-sets.ts "partnerim" ifadesini kullanıyor
-// (romantik testten birebir taşındı); arkadaşlık bağlamında "arkadaşım" gerekli.
 const FRIEND_BALANCE: Option[] = [
   { label: "Neredeyse her zaman ben", score: 0 },
   { label: "Çoğunlukla ben", score: 50 },
@@ -97,14 +85,12 @@ const indices: Record<string, IndexDef> = {
 };
 
 const RAW_QUESTIONS: { dim: string; type: QuestionType; text: string; satisfactionQuestion?: boolean }[] = [
-  // --- İletişim Girişimi (reciprocity) ---
   { dim: "initiative", type: "balance", text: "Buluşma/görüşme teklifini genellikle kim yapar?" },
   { dim: "initiative", type: "balance", text: "Mesajlaşmayı genellikle kim başlatır?" },
   { dim: "initiative", type: "likert", text: "Aramızdaki iletişimin başlatılma sorumluluğunu dengeli buluyorum." },
   { dim: "initiative", type: "likert_reverse", text: "Ben aramazsam/yazmazsam uzun süre haber alamayacağımızı hissederim." },
   { dim: "initiative", type: "balance", text: "Plan yapma ve organizasyonu genellikle kim üstlenir?" },
 
-  // --- Emek Dengesi (reciprocity) ---
   { dim: "effort", type: "likert", text: "İkimiz de bu arkadaşlık için benzer düzeyde zaman ayırıyoruz." },
   { dim: "effort", type: "likert_reverse", text: "Bu arkadaşlığa kattığım çabanın karşılığından daha fazla olduğunu hissediyorum." },
   { dim: "effort", type: "balance", text: "Buluşma yeri/zamanı gibi pratik detayları genellikle kim ayarlar?" },
@@ -112,28 +98,24 @@ const RAW_QUESTIONS: { dim: string; type: QuestionType; text: string; satisfacti
   { dim: "effort", type: "likert", text: "Zor bir dönemimde bile bu arkadaşlığa yatırım yapmaya değer görürüm ve karşılığını alırım." },
   { dim: "effort", type: "likert", text: "Bu arkadaşlığa harcanan çabanın dağılımından memnunum, dengesiz olsa bile bu bana sorun yaratmıyor.", satisfactionQuestion: true },
 
-  // --- Duygusal Destek (support) ---
   { dim: "emotional", type: "likert", text: "Zor bir şey yaşadığımda arkadaşıma açılabileceğimi hissederim." },
   { dim: "emotional", type: "likert", text: "Arkadaşım beni yargılamadan dinler." },
   { dim: "emotional", type: "likert_reverse", text: "Duygusal olarak zorlandığımda arkadaşıma yük olmaktan çekinirim." },
   { dim: "emotional", type: "balance", text: "İkimizden biri moralsizken, destek olma çabası genellikle kimden gelir?" },
   { dim: "emotional", type: "likert", text: "Arkadaşım sevindiğimde de zorlandığımda da yanımda oluyor." },
 
-  // --- Pratik Destek (support) ---
   { dim: "practical", type: "balance", text: "Pratik bir yardıma ihtiyaç olduğunda (taşınma, iş, tavsiye) genellikle kim kimden yardım ister?" },
   { dim: "practical", type: "likert", text: "Bir şeye ihtiyacım olduğunda arkadaşımdan yardım istemekte tereddüt etmem." },
   { dim: "practical", type: "likert_reverse", text: "Arkadaşımın benden istediği yardımların benim istediklerimden daha sık olduğunu hissediyorum." },
   { dim: "practical", type: "likert", text: "Aramızda kaynak (bilgi, bağlantı, eşya, zaman) paylaşımı dengelidir.", satisfactionQuestion: true },
   { dim: "practical", type: "balance", text: "Kriz anında (acil durum, taşınma, hastalık) ilk aranan taraf genellikle hangimiz oluyor?" },
 
-  // --- Dürüstlük ve Çatışma (trust) ---
   { dim: "honesty", type: "likert", text: "Aramızda bir sorun olduğunda bunu açıkça konuşabiliriz." },
   { dim: "honesty", type: "likert_reverse", text: "Kırgınlıklarımı arkadaşıma söylemek yerine içimde tutarım." },
   { dim: "honesty", type: "likert", text: "Fikir ayrılığında birbirimizin görüşüne saygı duyarız." },
   { dim: "honesty", type: "likert_reverse", text: "Bu arkadaşlıkta genellikle aynı kişi özür diler ya da geri adım atar." },
   { dim: "honesty", type: "likert", text: "Arkadaşımın bana karşı dürüst olduğuna güvenirim." },
 
-  // --- Özerklik (trust) ---
   { dim: "autonomy", type: "likert", text: "Arkadaşımın başka arkadaşlıkları/ilişkileri olması beni rahatsız etmez." },
   { dim: "autonomy", type: "likert_reverse", text: "Arkadaşım başka biriyle vakit geçirdiğinde kendimi dışlanmış hissederim." },
   { dim: "autonomy", type: "likert", text: "Ayrı zevklerimiz/çevrelerimiz olması arkadaşlığımıza zarar vermez." },

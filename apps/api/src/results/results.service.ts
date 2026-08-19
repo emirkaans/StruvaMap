@@ -4,7 +4,6 @@ import { SupabaseService } from '../supabase/supabase.service';
 import { TestsService } from '../tests/tests.service';
 import { SubmitResultDto } from './submit-result.dto';
 
-// results tablosu satırı — bkz. supabase/schema.sql
 export interface ResultRow {
   id: string;
   test_id: string;
@@ -51,7 +50,6 @@ export class ResultsService {
     return data as ResultRow;
   }
 
-  // Trend grafiği için: aynı oturumun aynı testteki geçmiş sonuçları, eskiden yeniye.
   async findBySession(sessionId: string, testId: string, limit = 20): Promise<ResultRow[]> {
     const { data, error } = await this.supabase.client
       .from('results')

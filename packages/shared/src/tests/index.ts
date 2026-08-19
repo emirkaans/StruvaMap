@@ -1,8 +1,3 @@
-// Test kayıt defteri. Yeni test türü eklerken (iş, aile, arkadaşlık ilişkileri):
-// 1) bu klasöre yeni bir dosya ekle (work.ts, family.ts, friendship.ts ...)
-// 2) TestDefinition örneğini burada TEST_REGISTRY'e ekle.
-// scoring.ts ve tüm apps katmanı otomatik olarak destekler; kod değişikliği gerekmez.
-
 import type { TestDefinition } from "../types.js";
 import { romanticTest } from "./romantic.js";
 import { friendshipTest } from "./friendship.js";

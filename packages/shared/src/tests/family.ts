@@ -1,22 +1,3 @@
-// StruvaMap — Ebeveyn-Çocuk İlişkisi Testi
-// 6 boyut, 31 soru (emotionalLabour ve practicalSupport'ta birer memnuniyet
-// sorusu fazladan), 3 üst-endekse gruplu: power | labour | autonomy
-// Sorular "biz" çerçeveli ve roller açısından nötr yazıldı: hem ebeveyn hem
-// çocuk (yetişkin çocuk dahil) aynı soru setini kendi bakış açısından cevaplayabilir.
-//
-// decision (karar) ve listening (dinlenme) ikisi de "power" altında ama farklı
-// şeyi ölçer: decision somut kararlarda son sözün kimde olduğu, listening ise
-// günlük konuşmada sözün kesilip kesilmediği / istenmeyen öğüt alınıp
-// alınmadığı — karar mekanizması değil, konuşma gücü.
-// emotionalLabour (kriz/moral anında yanında olma) ile practicalSupport
-// (somut zaman/para/iş yardımı) ayrı tutuldu ki iki emek türü karışmasın.
-//
-// Ebeveyn-çocuk ilişkisi yaşa/role bağlı olarak yapısal olarak asimetriktir
-// (küçük çocukta düşük karar payı normaldir); bu yüzden contextQuestions ile
-// cevaplayanın rolü ve çocuğun yaşı sorulur, decision/listening'in "düşük"
-// yorumuna buna göre koşullu bir not eklenir (bkz. conditionalNotes). Bu
-// context-question altyapısı test-agnostiktir, work.ts de aynısını kullanır.
-
 import type {
   ContextQuestion,
   Dimension,
@@ -47,8 +28,6 @@ const contextQuestions: ContextQuestion[] = [
   },
 ];
 
-// "balance" sorularında ortak option-sets.ts "partnerim" ifadesini kullanıyor;
-// ebeveyn-çocuk ilişkisi asimetrik roller içerdiği için nötr "diğer taraf" gerekli.
 const FAMILY_BALANCE: Option[] = [
   { label: "Neredeyse her zaman ben", score: 0 },
   { label: "Çoğunlukla ben", score: 50 },
@@ -177,7 +156,6 @@ const RAW_QUESTIONS: {
   satisfactionQuestion?: boolean;
   textByRole?: Record<string, string>;
 }[] = [
-  // --- Karar Payı (power) — somut kararlarda son söz kimde ---
   {
     dim: "decision",
     type: "likert",
@@ -214,7 +192,6 @@ const RAW_QUESTIONS: {
     text: "Aile kuralları ya da beklentiler değiştiğinde bunu genellikle kim başlatır?",
   },
 
-  // --- Sözün Dinlenmesi (power) — konuşma gücü, karar değil ---
   {
     dim: "listening",
     type: "likert",
@@ -241,7 +218,6 @@ const RAW_QUESTIONS: {
     text: "Sohbetlerde konuşma süresi ve yönü genellikle kim belirler?",
   },
 
-  // --- Duygusal Emek (labour) — moral/kriz desteği ---
   {
     dim: "emotionalLabour",
     type: "likert",
@@ -274,7 +250,6 @@ const RAW_QUESTIONS: {
     satisfactionQuestion: true,
   },
 
-  // --- Pratik Destek (labour) — somut zaman/para/iş yardımı ---
   {
     dim: "practicalSupport",
     type: "likert",
@@ -302,7 +277,6 @@ const RAW_QUESTIONS: {
     text: "Acil bir durumda (hastalık, kriz, ani ihtiyaç) ilk koşan genellikle kim olur?",
   },
 
-  // --- Güven ve Kontrol (autonomy) ---
   {
     dim: "trust",
     type: "likert",
@@ -351,7 +325,6 @@ const RAW_QUESTIONS: {
     },
   },
 
-  // --- Özel Alan (autonomy) ---
   {
     dim: "privacy",
     type: "likert",

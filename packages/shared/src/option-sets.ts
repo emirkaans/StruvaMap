@@ -1,8 +1,3 @@
-// Ortak seçenek setleri — tüm testler bu üç tipten birini kullanır.
-//   likert         -> Katılım = yüksek sağlık  (5=100 ... 1=0)
-//   likert_reverse -> Katılım = düşük sağlık   (5=0   ... 1=100)
-//   balance        -> Denge = yüksek sağlık    (eşit=100, uçlar=0)
-
 import type { Option, QuestionType } from "./types.js";
 
 export const LIKERT: Option[] = [
@@ -21,8 +16,6 @@ export const LIKERT_REVERSE: Option[] = [
   { label: "Kesinlikle katılmıyorum", score: 100 },
 ];
 
-// "balance" tipinde önemli olan işin kimde olduğu değil, ne kadar dengesiz
-// olduğudur — bu yüzden iki uç da düşük puan alır, "yaklaşık eşit" en yüksek.
 export const BALANCE: Option[] = [
   { label: "Neredeyse her zaman ben", score: 0 },
   { label: "Çoğunlukla ben", score: 50 },

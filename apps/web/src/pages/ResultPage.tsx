@@ -8,7 +8,6 @@ import { Bar, Donut, Radar, TrendChart, bandHex, bandOf } from "../components/ch
 import { Header } from "../components/Header";
 import { Footer } from "../components/Footer";
 
-// Paylaşım görseli — kütüphanesiz SVG, canvas üzerinden PNG'e çevrilir.
 function buildShareSvg(test: TestDefinition, r: ScoreResult): string {
   const W = 600;
   const H = 240 + Object.keys(test.dimensions).length * 46 + 20;
