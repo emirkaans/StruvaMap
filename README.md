@@ -4,7 +4,8 @@
 
 İlişkiler yalnızca sevgiden ibaret değildir, aynı zamanda emek, karar, güç ve
 özerklik dengesinden oluşur. StruvaMap, bu görünmeyen yapıyı kısa bir testle
-haritalayan, deterministik puanlama kullanan çoklu ilişki testi platformudur.
+haritalayan ve deterministik puanlama kullanan bir çoklu ilişki testi
+platformudur.
 
 AI hiçbir zaman skor hesaplamaz. Puanlama tamamen `packages/shared` içindeki
 kurallara dayanır; sonuç her zaman tekrarlanabilir ve açıklanabilir.
@@ -24,16 +25,16 @@ kurallara dayanır; sonuç her zaman tekrarlanabilir ve açıklanabilir.
 - **Bağlama duyarlı yorum**: iş ve aile testlerinde cevaplayanın rolü
   (yönetici/çalışan, ebeveyn/çocuk) ve gerekiyorsa yaş bağlamı sorulur; bazı
   sorular da bu role göre yeniden yazılır. Yapısal olarak meşru asimetriler
-  (hiyerarşi, yaşa bağlı karar payı) otomatik "sorun" olarak işaretlenmez.
+  (hiyerarşi, yaşa bağlı karar payı) otomatik olarak "sorun" sayılmaz.
 - **Denge ile memnuniyet ayrımı**: emek dağılımı dengesiz olsa da taraflar bu
   dağılımdan memnunsa bu ayrıca gösterilir; memnuniyet sinyali ana skora
   karışmaz.
 - **Anlık görselleştirme**: RSI göstergesi, endeks halkaları, boyut radar
-  grafiği ve barlar; hepsi kütüphanesiz, elle yazılmış SVG.
+  grafiği ve barlar; hepsi kütüphane kullanılmadan, elle yazılmış SVG.
 - **Kıyaslama**: sonucunu bir davet bağlantısıyla paylaş; karşı taraf testi
   bitirince ikinizin cevapları yan yana, boyut boyut ve algı farkı
   yorumlarıyla karşılaştırılır.
-- **Zaman içinde trend**: aynı testi tekrar çözdükçe RSI'nin nasıl değiştiğini
+- **Zamanla değişim**: aynı testi tekrar çözdükçe RSI'nin nasıl değiştiğini
   gösteren çizgi grafik.
 - **Paylaşım**: sonucu PDF olarak yazdır, PNG görsel olarak indir veya
   bağlantıyı kopyala.
@@ -50,14 +51,15 @@ değişikliği gerekmez:
 3. `apps/web/src/pages/LandingPage.tsx` içindeki `HERO_CONTENT` kaydına anasayfa
    başlığı, açıklaması ve görseli için bir giriş ekle.
 
-API ve web tarafı testleri otomatik listeler/sunar; başka hiçbir yerde kod
-değişikliği gerekmez.
+API ve web tarafı, testleri otomatik olarak listeler ve sunar; başka hiçbir
+yerde kod değişikliği gerekmez.
 
 ## Tasarım dili
 
 Koyu tema, Archivo (başlık) + Source Sans 3 (gövde) + IBM Plex Mono (veri/skor)
 tipografi sistemi, her ilişki türü için kendine özgü mavi-duotone heykel
-görseli. Fontlar Google Fonts'tan self-host edilmiştir (CDN bağımlılığı yok).
+görseli. Fontlar Google Fonts'tan indirilip doğrudan projeye gömülmüştür (CDN
+bağımlılığı yok).
 
 ## Teknoloji
 
@@ -72,8 +74,8 @@ supabase/
 ```
 
 `packages/shared`, hem `apps/web` hem `apps/api` tarafından `workspace:*`
-bağımlılığı olarak kullanılır. Puanlama mantığı yalnızca burada yaşar; UI ve
-backend onu import eder.
+bağımlılığı olarak kullanılır. Puanlama mantığının tek kaynağı burasıdır; hem
+arayüz hem backend bu paketten beslenir.
 
 ## Kurulum
 
