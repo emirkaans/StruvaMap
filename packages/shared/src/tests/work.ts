@@ -1,10 +1,35 @@
 // StruvaMap — İş İlişkisi Testi (yönetici-çalışan)
-// 6 boyut × 5 soru = 30 soru, 3 üst-endekse gruplu: power | labour | autonomy
+// 6 boyut, 31 soru (recognition'da bir memnuniyet sorusu fazladan), 3
+// üst-endekse gruplu: power | labour | autonomy
 // Sorular "biz" çerçeveli ve roller açısından nötr yazıldı: hem yönetici hem
 // çalışan aynı soru setini kendi bakış açısından cevaplayabilir.
+//
+// Yönetici-çalışan ilişkisi hiyerarşik olarak yapısal biçimde asimetriktir
+// (yöneticinin son sözü olması meşrudur); contextQuestions ile cevaplayanın
+// rolü sorulur, decision/feedback'in "düşük" yorumuna role göre koşullu not
+// eklenir (bkz. conditionalNotes, family.ts ile aynı test-agnostik altyapı).
 
-import type { Dimension, IndexDef, Option, Question, QuestionType, TestDefinition } from "../types.js";
+import type {
+  ContextQuestion,
+  Dimension,
+  IndexDef,
+  Option,
+  Question,
+  QuestionType,
+  TestDefinition,
+} from "../types.js";
 import { OPTION_SETS } from "../option-sets.js";
+
+const contextQuestions: ContextQuestion[] = [
+  {
+    id: "role",
+    text: "Bu testi kim dolduruyor?",
+    options: [
+      { label: "Yönetici", value: "manager" },
+      { label: "Çalışan", value: "employee" },
+    ],
+  },
+];
 
 // "balance" sorularında ortak option-sets.ts "partnerim" ifadesini kullanıyor;
 // yönetici-çalışan ilişkisi asimetrik roller içerdiği için nötr "diğer taraf" gerekli.
@@ -27,6 +52,14 @@ const dimensions: Record<string, Dimension> = {
       orta: "Kararlar çoğunlukla paylaşılıyor, ancak bazı konularda söz hakkı tek tarafta yoğunlaşabiliyor.",
       düşük: "Kararların belirgin biçimde tek tarafta toplandığı görülüyor. Bu bir 'karar asimetrisi' işaretidir.",
     },
+    conditionalNotes: [
+      {
+        contextQuestionId: "role",
+        whenValue: "employee",
+        band: "düşük",
+        note: "Not: yöneticinin son sözü olması meşru bir hiyerarşik yapının parçası olabilir; bu tek başına sorun anlamına gelmez.",
+      },
+    ],
   },
   feedback: {
     id: "feedback",
@@ -38,6 +71,14 @@ const dimensions: Record<string, Dimension> = {
       orta: "Geri bildirim çoğunlukla akıyor, ancak yön çoğu zaman aynı taraftan diğerine doğru.",
       düşük: "Geri bildirim büyük ölçüde tek yönlü görünüyor. Bu, sessiz kalan tarafın görünmez kaldığı bir yapı olabilir.",
     },
+    conditionalNotes: [
+      {
+        contextQuestionId: "role",
+        whenValue: "employee",
+        band: "düşük",
+        note: "Not: hiyerarşik yapılarda geri bildirimin ağırlıklı olarak yönetici-çalışan yönünde akması beklenen bir durum olabilir; tek başına sorun anlamına gelmez.",
+      },
+    ],
   },
   workload: {
     id: "workload",
@@ -91,7 +132,7 @@ const indices: Record<string, IndexDef> = {
   autonomy: { id: "autonomy", name: "Özerklik", desc: "Güven, kontrol ve kişisel sınırlar." },
 };
 
-const RAW_QUESTIONS: { dim: string; type: QuestionType; text: string }[] = [
+const RAW_QUESTIONS: { dim: string; type: QuestionType; text: string; satisfactionQuestion?: boolean }[] = [
   // --- Karar Payı (power) ---
   { dim: "decision", type: "likert", text: "Bu iş ilişkisinde önemli kararlar genellikle birlikte alınır." },
   { dim: "decision", type: "likert_reverse", text: "Bir konuda görüş ayrılığı olduğunda son sözü hep aynı taraf söyler." },
@@ -107,7 +148,7 @@ const RAW_QUESTIONS: { dim: string; type: QuestionType; text: string }[] = [
   { dim: "feedback", type: "likert_reverse", text: "Bir şeyi eleştirmek istediğimde sonuçlarından çekindiğim için sessiz kalırım." },
 
   // --- İş Yükü Adaleti (labour) ---
-  { dim: "workload", type: "likert", text: "İş yükü ve sorumluluk dağılımını adil buluyorum." },
+  { dim: "workload", type: "likert", text: "İş yükü ve sorumluluk dağılımını adil buluyorum.", satisfactionQuestion: true },
   { dim: "workload", type: "balance", text: "Ani ya da ek işler çıktığında bunu genellikle kim üstlenir?" },
   { dim: "workload", type: "likert_reverse", text: "İş yükümün kapasitemin üzerinde olduğunu sık sık hissederim." },
   { dim: "workload", type: "balance", text: "Yoğun dönemlerde fazla mesaiyi ya da ek yükü genellikle kim taşır?" },
@@ -119,6 +160,7 @@ const RAW_QUESTIONS: { dim: string; type: QuestionType; text: string }[] = [
   { dim: "recognition", type: "balance", text: "Bir işin başarısı konuşulduğunda kimin katkısı daha çok öne çıkar?" },
   { dim: "recognition", type: "likert", text: "Başarı kadar emek de görülür; sadece sonuç değil çaba da fark edilir." },
   { dim: "recognition", type: "likert_reverse", text: "Teşekkür ya da takdir hep aynı taraftan diğerine gider, karşılığı gelmez." },
+  { dim: "recognition", type: "likert", text: "Emeğimin görünürlüğü ve takdir edilme biçiminden memnunum.", satisfactionQuestion: true },
 
   // --- Güven ve Mikro-yönetim (autonomy) ---
   { dim: "trust", type: "likert", text: "Bu ilişkide iş, sürekli kontrol yerine güvenle devredilir." },
@@ -141,14 +183,18 @@ const questions: Question[] = RAW_QUESTIONS.map((q, i) => ({
   type: q.type,
   text: q.text,
   options: q.type === "balance" ? WORK_BALANCE : OPTION_SETS[q.type],
+  satisfactionQuestion: q.satisfactionQuestion,
 }));
 
 export const workTest: TestDefinition = {
   id: "work",
   slug: "is-iliskisi-testi",
   name: "İş İlişkisi Yapısı Anlık Görünümü",
-  subtitle: "6 boyut · 30 soru · ~6 dakika",
+  subtitle: "6 boyut · 31 soru · ~7 dakika",
   inviteCta: "Yöneticini ya da çalışanını davet et",
+  contextQuestions,
+  disclaimerNote:
+    "İş ilişkisinde bazı asimetriler (ör. yöneticinin son sözü olması) meşru hiyerarşinin parçasıdır; her asimetri sorun anlamına gelmez.",
   dimensions,
   indices,
   questions,

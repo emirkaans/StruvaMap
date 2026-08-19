@@ -1,5 +1,13 @@
 // StruvaMap — Romantik İlişki Testi (MVP'deki V1 ücretsiz test, birebir taşındı)
-// 6 boyut × 5 soru = 30 soru, 3 üst-endekse gruplu: power | labour | autonomy
+// 6 boyut, 32 soru (mental ve digital'da birer memnuniyet sorusu fazladan),
+// 3 üst-endekse gruplu: power | labour | autonomy
+//
+// domestic/mental/digital'daki memnuniyet sorularının (satisfactionQuestion)
+// amacı: dengesiz dağılım rızaya dayalıysa bunu ayrıca görünür kılmak. Bu
+// sorular boyut ortalamasını değiştirmez, ScoreResult.satisfaction'a ayrı
+// bir sinyal olarak eklenir. Romantik/arkadaşlık akran ilişkisi olduğu için
+// (aksine work.ts/family.ts'teki hiyerarşik ilişkilerin) contextQuestions
+// mekanizması burada kullanılmaz — simetri beklentisi burada savunulabilir.
 
 import type { Dimension, IndexDef, Question, QuestionType, TestDefinition } from "../types.js";
 import { OPTION_SETS } from "../option-sets.js";
@@ -79,7 +87,7 @@ const indices: Record<string, IndexDef> = {
   autonomy: { id: "autonomy", name: "Özerklik", desc: "Bireysel sosyal alan ve aile sınırları." },
 };
 
-const RAW_QUESTIONS: { dim: string; type: QuestionType; text: string }[] = [
+const RAW_QUESTIONS: { dim: string; type: QuestionType; text: string; satisfactionQuestion?: boolean }[] = [
   // --- Karar Paylaşımı (power) ---
   { dim: "decision", type: "likert", text: "Önemli kararlarımızda her iki tarafın görüşü yaklaşık eşit ağırlıktadır." },
   { dim: "decision", type: "likert_reverse", text: "Bir konuda anlaşamadığımızda genellikle aynı kişi son sözü söyler." },
@@ -92,7 +100,7 @@ const RAW_QUESTIONS: { dim: string; type: QuestionType; text: string }[] = [
   { dim: "domestic", type: "balance", text: "Ev temizliğini çoğunlukla kim yapar?" },
   { dim: "domestic", type: "balance", text: "Çamaşır ve ütü işlerini çoğunlukla kim yapar?" },
   { dim: "domestic", type: "balance", text: "Günlük market alışverişini genellikle kim yapar?" },
-  { dim: "domestic", type: "likert", text: "Ev işlerinin aramızdaki dağılımını adil buluyorum." },
+  { dim: "domestic", type: "likert", text: "Ev işlerinin aramızdaki dağılımını adil buluyorum.", satisfactionQuestion: true },
 
   // --- Zihinsel Yük (labour) ---
   { dim: "mental", type: "balance", text: "Evde nelerin eksildiğini / ihtiyaç olduğunu çoğunlukla kim fark eder?" },
@@ -100,6 +108,7 @@ const RAW_QUESTIONS: { dim: string; type: QuestionType; text: string }[] = [
   { dim: "mental", type: "balance", text: "Randevu, doğum günü gibi tarihleri çoğunlukla kim hatırlar?" },
   { dim: "mental", type: "balance", text: "Yapılması gereken işleri çoğunlukla kim planlar ve organize eder?" },
   { dim: "mental", type: "likert_reverse", text: "Evle ilgili aklımda tutmam gereken çok fazla şey olduğunu hissederim." },
+  { dim: "mental", type: "likert", text: "Zihinsel yükün (planlama, hatırlama, koordinasyon) aramızdaki dağılımından memnunum.", satisfactionQuestion: true },
 
   // --- Dijital Emek (labour) ---
   { dim: "digital", type: "balance", text: "Restoran, tatil veya etkinlik araştırmalarını çoğunlukla kim yapar?" },
@@ -107,6 +116,7 @@ const RAW_QUESTIONS: { dim: string; type: QuestionType; text: string }[] = [
   { dim: "digital", type: "balance", text: "Ortak sosyal hayatımızla ilgili mesajlaşmaları çoğunlukla kim yürütür?" },
   { dim: "digital", type: "balance", text: "Fotoğrafları saklama ve paylaşma işini çoğunlukla kim yapar?" },
   { dim: "digital", type: "balance", text: "Ortak takvim ve planları dijital olarak çoğunlukla kim takip eder?" },
+  { dim: "digital", type: "likert", text: "Dijital koordinasyon emeğinin (araştırma, rezervasyon, mesajlaşma) dağılımından memnunum.", satisfactionQuestion: true },
 
   // --- Sosyal Özerklik (autonomy) ---
   { dim: "social", type: "likert", text: "Partnerim olmadan arkadaşlarımla vakit geçirmekte kendimi özgür hissederim." },
@@ -129,13 +139,14 @@ const questions: Question[] = RAW_QUESTIONS.map((q, i) => ({
   type: q.type,
   text: q.text,
   options: OPTION_SETS[q.type],
+  satisfactionQuestion: q.satisfactionQuestion,
 }));
 
 export const romanticTest: TestDefinition = {
   id: "romantic",
   slug: "romantik-iliski-testi",
   name: "İlişki Yapısı Anlık Görünümü",
-  subtitle: "6 boyut · 30 soru · ~6 dakika",
+  subtitle: "6 boyut · 32 soru · ~7 dakika",
   inviteCta: "Partnerini davet et",
   dimensions,
   indices,

@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsObject, IsString } from 'class-validator';
+import { IsNotEmpty, IsObject, IsOptional, IsString } from 'class-validator';
 
 export class SubmitResultDto {
   @IsString()
@@ -13,4 +13,10 @@ export class SubmitResultDto {
   // questionId -> seçilen option index
   @IsObject()
   answers!: Record<number, number>;
+
+  // contextQuestion.id -> seçilen option.value; puanlamaya girmez, sadece
+  // yorum metni seçiminde kullanılır (bkz. computeScores).
+  @IsObject()
+  @IsOptional()
+  contextAnswers?: Record<string, string>;
 }

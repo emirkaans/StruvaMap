@@ -1,5 +1,12 @@
 // StruvaMap — Arkadaşlık İlişkisi Testi
-// 6 boyut × 5 soru = 30 soru, 3 üst-endekse gruplu: reciprocity | support | trust
+// 6 boyut, 31 soru (effort'ta bir memnuniyet sorusu fazladan), 3 üst-endekse
+// gruplu: reciprocity | support | trust
+//
+// effort/practical'daki memnuniyet sorularının (satisfactionQuestion) amacı:
+// dengesiz dağılım rızaya dayalıysa bunu ayrıca görünür kılmak (bkz.
+// ScoreResult.satisfaction). Bu sorular boyut ortalamasını değiştirmez.
+// Arkadaşlık akran ilişkisi olduğu için (aksine work.ts/family.ts'teki
+// hiyerarşik ilişkilerin) contextQuestions mekanizması burada kullanılmaz.
 
 import type { Dimension, IndexDef, Option, Question, QuestionType, TestDefinition } from "../types.js";
 import { OPTION_SETS } from "../option-sets.js";
@@ -89,7 +96,7 @@ const indices: Record<string, IndexDef> = {
   trust: { id: "trust", name: "Güven ve Sınırlar", desc: "Dürüstlük, çatışma yönetimi ve özerklik." },
 };
 
-const RAW_QUESTIONS: { dim: string; type: QuestionType; text: string }[] = [
+const RAW_QUESTIONS: { dim: string; type: QuestionType; text: string; satisfactionQuestion?: boolean }[] = [
   // --- İletişim Girişimi (reciprocity) ---
   { dim: "initiative", type: "balance", text: "Buluşma/görüşme teklifini genellikle kim yapar?" },
   { dim: "initiative", type: "balance", text: "Mesajlaşmayı genellikle kim başlatır?" },
@@ -103,6 +110,7 @@ const RAW_QUESTIONS: { dim: string; type: QuestionType; text: string }[] = [
   { dim: "effort", type: "balance", text: "Buluşma yeri/zamanı gibi pratik detayları genellikle kim ayarlar?" },
   { dim: "effort", type: "balance", text: "Uzak kaldığımız dönemlerde iletişimi canlı tutmak için çoğunlukla kim çaba gösterir?" },
   { dim: "effort", type: "likert", text: "Zor bir dönemimde bile bu arkadaşlığa yatırım yapmaya değer görürüm ve karşılığını alırım." },
+  { dim: "effort", type: "likert", text: "Bu arkadaşlığa harcanan çabanın dağılımından memnunum, dengesiz olsa bile bu bana sorun yaratmıyor.", satisfactionQuestion: true },
 
   // --- Duygusal Destek (support) ---
   { dim: "emotional", type: "likert", text: "Zor bir şey yaşadığımda arkadaşıma açılabileceğimi hissederim." },
@@ -115,7 +123,7 @@ const RAW_QUESTIONS: { dim: string; type: QuestionType; text: string }[] = [
   { dim: "practical", type: "balance", text: "Pratik bir yardıma ihtiyaç olduğunda (taşınma, iş, tavsiye) genellikle kim kimden yardım ister?" },
   { dim: "practical", type: "likert", text: "Bir şeye ihtiyacım olduğunda arkadaşımdan yardım istemekte tereddüt etmem." },
   { dim: "practical", type: "likert_reverse", text: "Arkadaşımın benden istediği yardımların benim istediklerimden daha sık olduğunu hissediyorum." },
-  { dim: "practical", type: "likert", text: "Aramızda kaynak (bilgi, bağlantı, eşya, zaman) paylaşımı dengelidir." },
+  { dim: "practical", type: "likert", text: "Aramızda kaynak (bilgi, bağlantı, eşya, zaman) paylaşımı dengelidir.", satisfactionQuestion: true },
   { dim: "practical", type: "balance", text: "Kriz anında (acil durum, taşınma, hastalık) ilk aranan taraf genellikle hangimiz oluyor?" },
 
   // --- Dürüstlük ve Çatışma (trust) ---
@@ -139,13 +147,14 @@ const questions: Question[] = RAW_QUESTIONS.map((q, i) => ({
   type: q.type,
   text: q.text,
   options: q.type === "balance" ? FRIEND_BALANCE : OPTION_SETS[q.type],
+  satisfactionQuestion: q.satisfactionQuestion,
 }));
 
 export const friendshipTest: TestDefinition = {
   id: "friendship",
   slug: "arkadaslik-iliskisi-testi",
   name: "Arkadaşlık Yapısı Anlık Görünümü",
-  subtitle: "6 boyut · 30 soru · ~6 dakika",
+  subtitle: "6 boyut · 31 soru · ~7 dakika",
   inviteCta: "Arkadaşını davet et",
   dimensions,
   indices,

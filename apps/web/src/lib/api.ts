@@ -32,6 +32,7 @@ export function submitResult(payload: {
   testId: string;
   sessionId: string;
   answers: Answers;
+  contextAnswers?: Record<string, string>;
 }): Promise<ResultRow> {
   return request("/results", { method: "POST", body: JSON.stringify(payload) });
 }

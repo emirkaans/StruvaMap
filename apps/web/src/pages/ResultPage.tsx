@@ -227,9 +227,22 @@ export function ResultPage() {
         />
       </div>
       <div className="card">
-        {Object.keys(test.dimensions).map((dim) => (
-          <Bar key={dim} name={test.dimensions[dim].name} score={r.dimensions[dim]} />
-        ))}
+        {Object.keys(test.dimensions).map((dim) => {
+          const satisfaction = r.satisfaction?.[dim];
+          const imbalancedButSatisfied =
+            satisfaction != null && bandOf(r.dimensions[dim]) === "low" && bandOf(satisfaction) === "good";
+          return (
+            <div key={dim}>
+              <Bar name={test.dimensions[dim].name} score={r.dimensions[dim]} />
+              {satisfaction != null && (
+                <p className="small muted" style={{ margin: "-8px 0 12px" }}>
+                  Memnuniyet: {satisfaction}/100
+                  {imbalancedButSatisfied && " — dağılım dengesiz görünüyor, ama memnuniyet yüksek; bu rızaya dayalı bir tercih olabilir."}
+                </p>
+              )}
+            </div>
+          );
+        })}
       </div>
 
       <div className="split-row">
@@ -278,6 +291,11 @@ export function ResultPage() {
           Bu analiz tanımlayıcıdır. <em>"Toksik", "sağlıksız"</em> gibi etiketler kullanmaz; yalnızca
           yapısal denge, asimetri ve sınırları tanımlar.
         </p>
+        <p className="small muted">
+          Eşik değerleri (55/75) ve eşit ağırlıklandırma (boyut→endeks, endeks→RSI) ampirik
+          araştırmaya değil tasarım kararına dayanır; bu klinik ya da tanısal bir araç değildir.
+        </p>
+        {test.disclaimerNote && <p className="small muted">{test.disclaimerNote}</p>}
       </div>
 
       <div className="app-cta no-print">

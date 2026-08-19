@@ -23,7 +23,7 @@ export class ResultsService {
 
   async submit(dto: SubmitResultDto): Promise<ResultRow> {
     const test = this.tests.getById(dto.testId); // testId geçersizse NotFoundException fırlatır
-    const score = computeScores(test, dto.answers);
+    const score = computeScores(test, dto.answers, undefined, dto.contextAnswers);
 
     const { data, error } = await this.supabase.client
       .from('results')

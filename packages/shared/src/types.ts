@@ -16,7 +16,27 @@ export interface Question {
   type: QuestionType;
   text: string;
   options: Option[];
+  // true ise bu soru boyutun ana ortalamasına ek olarak ayrı bir "memnuniyet"
+  // göstergesine de katkı sağlar (bkz. ScoreResult.satisfaction). Ana boyut
+  // skorunu değiştirmez — sadece paralel, ayrı gösterilen bir sinyaldir.
+  satisfactionQuestion?: boolean;
 }
+
+// Cevaplayanın rolü/bağlamı gibi puanlamaya girmeyen meta sorular. Sadece
+// yorum metni seçiminde kullanılır (bkz. Dimension.conditionalNotes).
+export interface ContextQuestionOption {
+  label: string;
+  value: string;
+}
+
+export interface ContextQuestion {
+  id: string;
+  text: string;
+  options: ContextQuestionOption[];
+}
+
+// contextQuestions cevapları: contextQuestion.id -> seçilen option.value
+export type ContextAnswers = Record<string, string>;
 
 export type Band = "yüksek" | "orta" | "düşük";
 
@@ -27,6 +47,17 @@ export interface Dimension {
   index: string; // hangi üst-endekse ait
   // Bandına göre deterministik yorum metni.
   interpretation: Record<Band, string>;
+  // Belirli bir context cevabı verildiğinde, ilgili banda ek olarak eklenen
+  // koşullu not (ör. "çocuk 18 altıysa düşük karar payı yaşa uygun olabilir").
+  // Ana yorum metnini değiştirmez, sonuna eklenir.
+  conditionalNotes?: ConditionalNote[];
+}
+
+export interface ConditionalNote {
+  contextQuestionId: string;
+  whenValue: string;
+  band: Band;
+  note: string;
 }
 
 export interface IndexDef {
@@ -44,6 +75,11 @@ export interface TestDefinition {
   dimensions: Record<string, Dimension>;
   indices: Record<string, IndexDef>;
   questions: Question[];
+  // Cevaplayanın rolü/yaşı gibi puanlamaya girmeyen meta sorular (opsiyonel).
+  contextQuestions?: ContextQuestion[];
+  // "Teşhis değil" uyarısına eklenen, teste özgü ek not (ör. meşru hiyerarşik
+  // asimetri uyarısı). Romantik/arkadaşlık testlerinde kullanılmaz.
+  disclaimerNote?: string;
 }
 
 // answers: questionId -> seçilen option index
@@ -65,6 +101,10 @@ export interface ScoreResult {
   strengths: string[];
   tensions: string[];
   interpretation: DimensionInterpretation[];
+  // satisfactionQuestion işaretli sorulardan hesaplanan, dimensions/indices/rsi'ye
+  // karışmayan ayrı memnuniyet göstergesi. Sadece bu tür soruya sahip ve
+  // cevaplanmış boyutlar için anahtar içerir.
+  satisfaction?: Record<string, number>;
 }
 
 export interface ScoringThresholds {

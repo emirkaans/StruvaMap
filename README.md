@@ -14,7 +14,11 @@ kurallara dayanır; sonuç her zaman tekrarlanabilir ve açıklanabilir.
   gruplanır (ör. romantik testte Güç / Emek / Özerklik).
 - **Deterministik puanlama** — boyut, endeks ve RSI (İlişki Yapısı Skoru)
   sabit kurallarla hesaplanır; her boyut için "güçlü" / "gerilim" eşiği ve
-  sosyolojik yorum metni test tanımının kendi içinde tutulur.
+  sosyolojik yorum metni test tanımının kendi içinde tutulur. Eşik değerleri
+  (55/75) ve eşit ağırlıklandırma (boyut→endeks, endeks→RSI) ampirik
+  araştırmaya değil tasarım kararına dayanır — gerçek psikometrik doğrulama
+  (Cronbach's alpha, faktör analizi, pilot çalışma) yapılmamıştır; bu klinik
+  ya da tanısal bir araç değildir.
 - **Anlık görselleştirme** — RSI göstergesi, endeks halkaları, boyut radar
   grafiği ve barlar; hepsi kütüphanesiz, elle yazılmış SVG.
 - **Kıyaslama** — sonucunu bir davet bağlantısıyla paylaş; karşı taraf testi

@@ -9,6 +9,7 @@
 import type {
   Answers,
   Band,
+  ContextAnswers,
   DimensionInterpretation,
   ScoreResult,
   ScoringThresholds,
@@ -24,6 +25,7 @@ export function computeScores(
   test: TestDefinition,
   answers: Answers,
   thresholds: ScoringThresholds = DEFAULT_THRESHOLDS,
+  contextAnswers?: ContextAnswers,
 ): ScoreResult {
   const dimIds = Object.keys(test.dimensions);
 
@@ -31,12 +33,25 @@ export function computeScores(
   const buckets: Record<string, number[]> = {};
   for (const dimId of dimIds) buckets[dimId] = [];
 
+  // satisfactionQuestion işaretli sorular ayrı bir bucket'a da düşer; bu,
+  // dimensions/indices/rsi hesabını etkilemez (aynı soru her iki bucket'a girer).
+  const satisfactionBuckets: Record<string, number[]> = {};
+
   for (const q of test.questions) {
     const chosen = answers[q.id];
     if (chosen == null) continue; // cevaplanmamış soruyu atla
     const score = q.options[chosen]?.score;
     if (score == null) continue;
     buckets[q.dim].push(score);
+    if (q.satisfactionQuestion) {
+      (satisfactionBuckets[q.dim] ??= []).push(score);
+    }
+  }
+
+  const satisfaction: Record<string, number> = {};
+  for (const dimId of Object.keys(satisfactionBuckets)) {
+    const arr = satisfactionBuckets[dimId];
+    if (arr.length) satisfaction[dimId] = Math.round(mean(arr));
   }
 
   // 2) Boyut skoru = o boyuttaki soru puanlarının ortalaması
@@ -75,10 +90,20 @@ export function computeScores(
     const score = dimensions[dimId];
     const band = bandOf(score);
     const dim = test.dimensions[dimId];
-    return { dim: dimId, name: dim.name, score, band, text: dim.interpretation[band] };
+    let text = dim.interpretation[band];
+    if (contextAnswers && dim.conditionalNotes) {
+      for (const cn of dim.conditionalNotes) {
+        if (cn.band === band && contextAnswers[cn.contextQuestionId] === cn.whenValue) {
+          text += ` ${cn.note}`;
+        }
+      }
+    }
+    return { dim: dimId, name: dim.name, score, band, text };
   });
 
-  return { testId: test.id, rsi, dimensions, indices, strengths, tensions, interpretation };
+  const result: ScoreResult = { testId: test.id, rsi, dimensions, indices, strengths, tensions, interpretation };
+  if (Object.keys(satisfaction).length) result.satisfaction = satisfaction;
+  return result;
 }
 
 function mean(arr: number[]): number {

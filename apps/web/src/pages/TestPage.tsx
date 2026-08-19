@@ -24,6 +24,8 @@ export function TestPage() {
   const [test, setTest] = useState<TestDefinition | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [answers, setAnswers] = useState<Answers>({});
+  const [contextAnswers, setContextAnswers] = useState<Record<string, string>>({});
+  const [ci, setCi] = useState(0); // contextQuestions ilerlemesi
   const [i, setI] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const optionsRef = useRef<HTMLDivElement>(null);
@@ -61,6 +63,46 @@ export function TestPage() {
     );
   }
 
+  const contextQuestions = test.contextQuestions ?? [];
+  const inContextPhase = ci < contextQuestions.length;
+
+  function chooseContext(idx: number) {
+    const cq = contextQuestions[ci];
+    setContextAnswers((prev) => ({ ...prev, [cq.id]: cq.options[idx].value }));
+    setTimeout(() => setCi((prev) => prev + 1), 220);
+  }
+
+  if (inContextPhase) {
+    const cq = contextQuestions[ci];
+    const selectedContext = contextAnswers[cq.id];
+    return (
+      <main className="wrap">
+        <Header />
+        <div className="q-count">
+          Ek soru {ci + 1} / {contextQuestions.length}
+        </div>
+        <h1 className="q-text" tabIndex={-1} aria-live="polite">
+          {cq.text}
+        </h1>
+        <div className="options" role="radiogroup">
+          {cq.options.map((opt, idx) => (
+            <button
+              key={idx}
+              type="button"
+              role="radio"
+              aria-checked={selectedContext === opt.value}
+              className={`option${selectedContext === opt.value ? " selected" : ""}`}
+              onClick={() => chooseContext(idx)}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+        <Footer />
+      </main>
+    );
+  }
+
   const q = displayQuestions[i];
   const selected = answers[q.id];
   const isLast = i === displayQuestions.length - 1;
@@ -82,6 +124,7 @@ export function TestPage() {
         testId: test!.id,
         sessionId: getOrCreateSessionId(),
         answers,
+        contextAnswers: contextQuestions.length ? contextAnswers : undefined,
       });
       if (compareWith) {
         // Önce kendi sonuç ekranını görsün; kıyaslama oradaki bağlantıdan ayrıca açılır.

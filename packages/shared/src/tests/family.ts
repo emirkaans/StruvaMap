@@ -1,5 +1,6 @@
 // StruvaMap — Ebeveyn-Çocuk İlişkisi Testi
-// 6 boyut × 5 soru = 30 soru, 3 üst-endekse gruplu: power | labour | autonomy
+// 6 boyut, 31 soru (emotionalLabour ve practicalSupport'ta birer memnuniyet
+// sorusu fazladan), 3 üst-endekse gruplu: power | labour | autonomy
 // Sorular "biz" çerçeveli ve roller açısından nötr yazıldı: hem ebeveyn hem
 // çocuk (yetişkin çocuk dahil) aynı soru setini kendi bakış açısından cevaplayabilir.
 //
@@ -9,9 +10,42 @@
 // alınmadığı — karar mekanizması değil, konuşma gücü.
 // emotionalLabour (kriz/moral anında yanında olma) ile practicalSupport
 // (somut zaman/para/iş yardımı) ayrı tutuldu ki iki emek türü karışmasın.
+//
+// Ebeveyn-çocuk ilişkisi yaşa/role bağlı olarak yapısal olarak asimetriktir
+// (küçük çocukta düşük karar payı normaldir); bu yüzden contextQuestions ile
+// cevaplayanın rolü ve çocuğun yaşı sorulur, decision/listening'in "düşük"
+// yorumuna buna göre koşullu bir not eklenir (bkz. conditionalNotes). Bu
+// context-question altyapısı test-agnostiktir, work.ts de aynısını kullanır.
 
-import type { Dimension, IndexDef, Option, Question, QuestionType, TestDefinition } from "../types.js";
+import type {
+  ContextQuestion,
+  Dimension,
+  IndexDef,
+  Option,
+  Question,
+  QuestionType,
+  TestDefinition,
+} from "../types.js";
 import { OPTION_SETS } from "../option-sets.js";
+
+const contextQuestions: ContextQuestion[] = [
+  {
+    id: "role",
+    text: "Bu testi kim dolduruyor?",
+    options: [
+      { label: "Ebeveyn", value: "parent" },
+      { label: "Çocuk (yetişkin çocuk dahil)", value: "child" },
+    ],
+  },
+  {
+    id: "childAge",
+    text: "Çocuk (sen ya da testteki çocuk) 18 yaşından küçük mü?",
+    options: [
+      { label: "Evet, 18 yaşından küçük", value: "under18" },
+      { label: "Hayır, 18 yaşında ya da daha büyük", value: "over18" },
+    ],
+  },
+];
 
 // "balance" sorularında ortak option-sets.ts "partnerim" ifadesini kullanıyor;
 // ebeveyn-çocuk ilişkisi asimetrik roller içerdiği için nötr "diğer taraf" gerekli.
@@ -34,6 +68,14 @@ const dimensions: Record<string, Dimension> = {
       orta: "Kararlar çoğunlukla paylaşılıyor, ancak bazı konularda söz hakkı tek tarafta yoğunlaşabiliyor.",
       düşük: "Kararların belirgin biçimde tek tarafta toplandığı görülüyor. Bu bir 'karar asimetrisi' işaretidir.",
     },
+    conditionalNotes: [
+      {
+        contextQuestionId: "childAge",
+        whenValue: "under18",
+        band: "düşük",
+        note: "Not: çocuk 18 yaşından küçükse düşük karar payı yaşa uygun, gelişimsel olarak beklenen bir durum olabilir; tek başına sorun anlamına gelmez.",
+      },
+    ],
   },
   listening: {
     id: "listening",
@@ -45,6 +87,14 @@ const dimensions: Record<string, Dimension> = {
       orta: "Dinlenme çoğunlukla var, ancak zaman zaman söz kesilebiliyor ya da istenmeyen öğüt gelebiliyor.",
       düşük: "Konuşmada belirgin bir taraf hep konuşan, diğeri hep dinleyen konumda kalıyor.",
     },
+    conditionalNotes: [
+      {
+        contextQuestionId: "childAge",
+        whenValue: "under18",
+        band: "düşük",
+        note: "Not: çocuk 18 yaşından küçükse ebeveynin yönlendirici konuşması (öğüt, yönlendirme) yaşa uygun bir ebeveynlik biçimi olabilir; tek başına sorun anlamına gelmez.",
+      },
+    ],
   },
   emotionalLabour: {
     id: "emotionalLabour",
@@ -98,7 +148,7 @@ const indices: Record<string, IndexDef> = {
   autonomy: { id: "autonomy", name: "Özerklik", desc: "Güven, kontrol ve kişisel sınırlar." },
 };
 
-const RAW_QUESTIONS: { dim: string; type: QuestionType; text: string }[] = [
+const RAW_QUESTIONS: { dim: string; type: QuestionType; text: string; satisfactionQuestion?: boolean }[] = [
   // --- Karar Payı (power) — somut kararlarda son söz kimde ---
   { dim: "decision", type: "likert", text: "Beni ilgilendiren kararlarda (iş, sağlık, ilişki, para) görüşüm sorulur." },
   { dim: "decision", type: "likert_reverse", text: "Hayatımla ilgili kararlar bana danışılmadan, benim adıma alınır." },
@@ -119,12 +169,13 @@ const RAW_QUESTIONS: { dim: string; type: QuestionType; text: string }[] = [
   { dim: "emotionalLabour", type: "likert", text: "Üzgün ya da kaygılı olduğumda yanımda birinin olacağını bilirim." },
   { dim: "emotionalLabour", type: "balance", text: "Gerginlik ya da tartışma sonrası ortamı yatıştırma çabasını genellikle kim gösterir?" },
   { dim: "emotionalLabour", type: "likert_reverse", text: "Kendi duygusal yükümü paylaşmak, karşı tarafı üzeceğim kaygısıyla zorlaşıyor." },
+  { dim: "emotionalLabour", type: "likert", text: "Duygusal desteğin aramızdaki dağılımından memnunum.", satisfactionQuestion: true },
 
   // --- Pratik Destek (labour) — somut zaman/para/iş yardımı ---
   { dim: "practicalSupport", type: "likert", text: "İhtiyaç olduğunda (para, zaman, iş gücü) destek karşılıklı akar." },
   { dim: "practicalSupport", type: "balance", text: "Pratik bir yardım gerektiğinde (taşınma, tamir, iş takibi, bakım) bunu genellikle kim üstlenir?" },
   { dim: "practicalSupport", type: "likert_reverse", text: "Hep ben yardım ediyorum, karşılığında aynı desteği görmüyorum." },
-  { dim: "practicalSupport", type: "likert", text: "Maddi ya da pratik konularda yük adil paylaşılıyor." },
+  { dim: "practicalSupport", type: "likert", text: "Maddi ya da pratik konularda yük adil paylaşılıyor.", satisfactionQuestion: true },
   { dim: "practicalSupport", type: "balance", text: "Acil bir durumda (hastalık, kriz, ani ihtiyaç) ilk koşan genellikle kim olur?" },
 
   // --- Güven ve Kontrol (autonomy) ---
@@ -148,14 +199,18 @@ const questions: Question[] = RAW_QUESTIONS.map((q, i) => ({
   type: q.type,
   text: q.text,
   options: q.type === "balance" ? FAMILY_BALANCE : OPTION_SETS[q.type],
+  satisfactionQuestion: q.satisfactionQuestion,
 }));
 
 export const familyTest: TestDefinition = {
   id: "family",
   slug: "aile-iliskisi-testi",
   name: "Ebeveyn-Çocuk İlişkisi Yapısı Anlık Görünümü",
-  subtitle: "6 boyut · 30 soru · ~6 dakika",
+  subtitle: "6 boyut · 31 soru · ~7 dakika",
   inviteCta: "Ebeveynini ya da çocuğunu davet et",
+  contextQuestions,
+  disclaimerNote:
+    "Ebeveyn-çocuk ilişkisinde bazı asimetriler (ör. yaşa bağlı karar payı farkı) yapısal olarak meşrudur; her asimetri sorun anlamına gelmez.",
   dimensions,
   indices,
   questions,
