@@ -115,6 +115,28 @@ export function LandingPage() {
   const activeTest = heroTests[activeIndex] ?? null;
   const heroIds = heroTests.map((t) => t.id).join(",");
 
+  // Mobil dokunma cihazlarında hero'yu parmakla kaydırarak değiştirme —
+  // masaüstünde touch event hiç ateşlenmediği için ekstra kontrol gerekmiyor.
+  const touchStartX = useRef<number | null>(null);
+  const SWIPE_THRESHOLD = 40;
+
+  function handleHeroTouchStart(e: React.TouchEvent) {
+    touchStartX.current = e.touches[0].clientX;
+  }
+
+  function handleHeroTouchEnd(e: React.TouchEvent) {
+    if (touchStartX.current == null || heroTests.length < 2) return;
+    const dx = e.changedTouches[0].clientX - touchStartX.current;
+    touchStartX.current = null;
+    if (Math.abs(dx) < SWIPE_THRESHOLD) return;
+    const idx = activeIndex === -1 ? 0 : activeIndex;
+    const nextIdx =
+      dx < 0
+        ? (idx + 1) % heroTests.length
+        : (idx - 1 + heroTests.length) % heroTests.length;
+    setSelectedId(heroTests[nextIdx].id);
+  }
+
   useEffect(() => {
     if (heroTests.length < 2 || !heroVisible) return;
     const id = setInterval(() => {
@@ -182,7 +204,11 @@ export function LandingPage() {
                 </div>
               </div>
 
-              <div className="hero-stage">
+              <div
+                className="hero-stage"
+                onTouchStart={handleHeroTouchStart}
+                onTouchEnd={handleHeroTouchEnd}
+              >
                 {heroTests.map((t, i) => {
                   const content = HERO_CONTENT[t.id];
                   const cls =

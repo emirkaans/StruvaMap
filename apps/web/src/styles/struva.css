@@ -21,6 +21,10 @@
   box-sizing: border-box;
 }
 
+html {
+  overflow-x: hidden;
+}
+
 body {
   margin: 0;
   font-family:
@@ -33,6 +37,9 @@ body {
   color: var(--text);
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
+  /* Hero crossfade'de is-prev/is-next translateX(±28px) alıyor — bu, sayfada
+     yatay scroll alanı açmasın diye site genelinde güvenlik önlemi. */
+  overflow-x: hidden;
 }
 
 .wrap {
@@ -757,6 +764,9 @@ p {
   .stats-row .stat {
     border-left: none;
     border-top: 1px solid var(--border);
+  }
+  .dims-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
   .stats-row .stat:first-child {
     border-top: none;
