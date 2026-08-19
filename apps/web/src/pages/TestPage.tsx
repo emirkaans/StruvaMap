@@ -104,6 +104,7 @@ export function TestPage() {
   }
 
   const q = displayQuestions[i];
+  const qText = q.textByRole?.[contextAnswers["role"]] ?? q.text;
   const selected = answers[q.id];
   const isLast = i === displayQuestions.length - 1;
 
@@ -183,7 +184,7 @@ export function TestPage() {
       </div>
 
       <h1 className="q-text" tabIndex={-1} aria-live="polite">
-        {q.text}
+        {qText}
       </h1>
 
       <div className="options" role="radiogroup" ref={optionsRef} onKeyDown={onOptionsKeyDown}>

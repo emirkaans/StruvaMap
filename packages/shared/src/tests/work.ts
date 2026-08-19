@@ -132,7 +132,13 @@ const indices: Record<string, IndexDef> = {
   autonomy: { id: "autonomy", name: "Özerklik", desc: "Güven, kontrol ve kişisel sınırlar." },
 };
 
-const RAW_QUESTIONS: { dim: string; type: QuestionType; text: string; satisfactionQuestion?: boolean }[] = [
+const RAW_QUESTIONS: {
+  dim: string;
+  type: QuestionType;
+  text: string;
+  satisfactionQuestion?: boolean;
+  textByRole?: Record<string, string>;
+}[] = [
   // --- Karar Payı (power) ---
   { dim: "decision", type: "likert", text: "Bu iş ilişkisinde önemli kararlar genellikle birlikte alınır." },
   { dim: "decision", type: "likert_reverse", text: "Bir konuda görüş ayrılığı olduğunda son sözü hep aynı taraf söyler." },
@@ -163,11 +169,43 @@ const RAW_QUESTIONS: { dim: string; type: QuestionType; text: string; satisfacti
   { dim: "recognition", type: "likert", text: "Emeğimin görünürlüğü ve takdir edilme biçiminden memnunum.", satisfactionQuestion: true },
 
   // --- Güven ve Mikro-yönetim (autonomy) ---
-  { dim: "trust", type: "likert", text: "Bu ilişkide iş, sürekli kontrol yerine güvenle devredilir." },
-  { dim: "trust", type: "likert_reverse", text: "Aynı işin durumu gün içinde birkaç kez sorulur ya da kontrol edilir." },
+  {
+    dim: "trust",
+    type: "likert",
+    text: "Bu ilişkide iş, sürekli kontrol yerine güvenle devredilir.",
+    textByRole: {
+      manager: "Bu ilişkide işi çalışanıma sürekli kontrol yerine güvenle devrederim.",
+      employee: "Bu ilişkide iş, sürekli kontrol yerine güvenle devredilir.",
+    },
+  },
+  {
+    dim: "trust",
+    type: "likert_reverse",
+    text: "Aynı işin durumu gün içinde birkaç kez sorulur ya da kontrol edilir.",
+    textByRole: {
+      manager: "Aynı işin durumunu gün içinde birkaç kez sorar ya da kontrol ederim.",
+      employee: "Aynı işin durumu gün içinde birkaç kez sorulur ya da kontrol edilir.",
+    },
+  },
   { dim: "trust", type: "balance", text: "Bir işin nasıl yapılacağına dair son sözü genellikle kim söyler?" },
-  { dim: "trust", type: "likert", text: "Hata yapma alanı tanınır; her adım mikroskop altında değildir." },
-  { dim: "trust", type: "likert_reverse", text: "Onay almadan atılan adımlar genellikle sorgulanır." },
+  {
+    dim: "trust",
+    type: "likert",
+    text: "Hata yapma alanı tanınır; her adım mikroskop altında değildir.",
+    textByRole: {
+      manager: "Çalışanıma hata yapma alanı tanırım; her adımını mikroskop altına almam.",
+      employee: "Hata yapma alanı tanınır; her adım mikroskop altında değildir.",
+    },
+  },
+  {
+    dim: "trust",
+    type: "likert_reverse",
+    text: "Onay almadan atılan adımlar genellikle sorgulanır.",
+    textByRole: {
+      manager: "Çalışanımın onay almadan attığı adımları genellikle sorgularım.",
+      employee: "Onay almadan atılan adımlar genellikle sorgulanır.",
+    },
+  },
 
   // --- Sınırlar (autonomy) ---
   { dim: "boundaries", type: "likert", text: "Mesai dışı saatlerde iş mesajlarına anında yanıt verme baskısı hissetmem." },
@@ -184,6 +222,7 @@ const questions: Question[] = RAW_QUESTIONS.map((q, i) => ({
   text: q.text,
   options: q.type === "balance" ? WORK_BALANCE : OPTION_SETS[q.type],
   satisfactionQuestion: q.satisfactionQuestion,
+  textByRole: q.textByRole,
 }));
 
 export const workTest: TestDefinition = {

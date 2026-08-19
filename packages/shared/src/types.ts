@@ -20,6 +20,11 @@ export interface Question {
   // göstergesine de katkı sağlar (bkz. ScoreResult.satisfaction). Ana boyut
   // skorunu değiştirmez — sadece paralel, ayrı gösterilen bir sinyaldir.
   satisfactionQuestion?: boolean;
+  // Soru metni role göre gerçekçi değilse (ör. bir ebeveynin çocuğunun
+  // eşyasını karıştırması ile çocuğun ebeveynin eşyasını karıştırması aynı
+  // olasılıkta değil), contextQuestions'taki "role" cevabına göre alternatif
+  // metin. Puanlama ve options aynı kalır, sadece görünen cümle değişir.
+  textByRole?: Record<string, string>;
 }
 
 // Cevaplayanın rolü/bağlamı gibi puanlamaya girmeyen meta sorular. Sadece

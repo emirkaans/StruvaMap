@@ -148,10 +148,32 @@ const indices: Record<string, IndexDef> = {
   autonomy: { id: "autonomy", name: "Özerklik", desc: "Güven, kontrol ve kişisel sınırlar." },
 };
 
-const RAW_QUESTIONS: { dim: string; type: QuestionType; text: string; satisfactionQuestion?: boolean }[] = [
+const RAW_QUESTIONS: {
+  dim: string;
+  type: QuestionType;
+  text: string;
+  satisfactionQuestion?: boolean;
+  textByRole?: Record<string, string>;
+}[] = [
   // --- Karar Payı (power) — somut kararlarda son söz kimde ---
-  { dim: "decision", type: "likert", text: "Beni ilgilendiren kararlarda (iş, sağlık, ilişki, para) görüşüm sorulur." },
-  { dim: "decision", type: "likert_reverse", text: "Hayatımla ilgili kararlar bana danışılmadan, benim adıma alınır." },
+  {
+    dim: "decision",
+    type: "likert",
+    text: "Beni ilgilendiren kararlarda (iş, sağlık, ilişki, para) görüşüm sorulur.",
+    textByRole: {
+      parent: "Çocuğumu ilgilendiren kararlarda (okul, sağlık, arkadaşlıkları, harçlığı) görüşünü alırım.",
+      child: "Beni ilgilendiren kararlarda (iş, sağlık, ilişki, para) görüşüm sorulur.",
+    },
+  },
+  {
+    dim: "decision",
+    type: "likert_reverse",
+    text: "Hayatımla ilgili kararlar bana danışılmadan, benim adıma alınır.",
+    textByRole: {
+      parent: "Çocuğumla ilgili kararları ona danışmadan, onun adına alırım.",
+      child: "Hayatımla ilgili kararlar bana danışılmadan, benim adıma alınır.",
+    },
+  },
   { dim: "decision", type: "balance", text: "Görüşme sıklığı, tatil planı gibi ortak konularda son kararı genellikle kim verir?" },
   { dim: "decision", type: "likert", text: "Farklı düşündüğümde bunu söylemekten çekinmem." },
   { dim: "decision", type: "balance", text: "Aile kuralları ya da beklentiler değiştiğinde bunu genellikle kim başlatır?" },
@@ -179,16 +201,64 @@ const RAW_QUESTIONS: { dim: string; type: QuestionType; text: string; satisfacti
   { dim: "practicalSupport", type: "balance", text: "Acil bir durumda (hastalık, kriz, ani ihtiyaç) ilk koşan genellikle kim olur?" },
 
   // --- Güven ve Kontrol (autonomy) ---
-  { dim: "trust", type: "likert", text: "Kararlarıma ve seçimlerime güvenilir; sürekli sorgulanmam." },
-  { dim: "trust", type: "likert_reverse", text: "Yaptığım her şey denetlenir ya da hesap sorulur gibi hissettirir." },
+  {
+    dim: "trust",
+    type: "likert",
+    text: "Kararlarıma ve seçimlerime güvenilir; sürekli sorgulanmam.",
+    textByRole: {
+      parent: "Çocuğumun kararlarına ve seçimlerine güvenirim; onu sürekli sorgulamam.",
+      child: "Kararlarıma ve seçimlerime güvenilir; sürekli sorgulanmam.",
+    },
+  },
+  {
+    dim: "trust",
+    type: "likert_reverse",
+    text: "Yaptığım her şey denetlenir ya da hesap sorulur gibi hissettirir.",
+    textByRole: {
+      parent: "Çocuğumun yaptığı her şeyi denetleme ya da hesap sorma ihtiyacı hissederim.",
+      child: "Yaptığım her şey denetlenir ya da hesap sorulur gibi hissettirir.",
+    },
+  },
   { dim: "trust", type: "balance", text: "Bir konuda 'doğrusu budur' diyerek son sözü genellikle kim söyler?" },
-  { dim: "trust", type: "likert", text: "Hata yapma alanım var; her adımım mercek altında değil." },
-  { dim: "trust", type: "likert_reverse", text: "Farklı bir yol denemem ya da fikrimi değiştirmem onay gerektirir gibi hissettirir." },
+  {
+    dim: "trust",
+    type: "likert",
+    text: "Hata yapma alanım var; her adımım mercek altında değil.",
+    textByRole: {
+      parent: "Çocuğuma hata yapma alanı tanırım; her adımını mercek altına almam.",
+      child: "Hata yapma alanım var; her adımım mercek altında değil.",
+    },
+  },
+  {
+    dim: "trust",
+    type: "likert_reverse",
+    text: "Farklı bir yol denemem ya da fikrimi değiştirmem onay gerektirir gibi hissettirir.",
+    textByRole: {
+      parent: "Çocuğumun farklı bir yol denemesi ya da fikrini değiştirmesi için onayımı şart koşarım.",
+      child: "Farklı bir yol denemem ya da fikrimi değiştirmem onay gerektirir gibi hissettirir.",
+    },
+  },
 
   // --- Özel Alan (autonomy) ---
   { dim: "privacy", type: "likert", text: "Kişisel alanım (evim, eşyalarım, zamanım) bu ilişkide gözetilir." },
-  { dim: "privacy", type: "likert_reverse", text: "İzinsiz eşyalarıma bakılır ya da özel alanıma girilir." },
-  { dim: "privacy", type: "likert_reverse", text: "Kişisel tercihlerime (kiminle görüştüğüm, zamanımı nasıl geçirdiğim, param) izinsiz karışılır." },
+  {
+    dim: "privacy",
+    type: "likert_reverse",
+    text: "İzinsiz eşyalarıma bakılır ya da özel alanıma girilir.",
+    textByRole: {
+      parent: "Çocuğumun eşyalarına ya da özel alanına izinsiz girdiğim oluyor.",
+      child: "İzinsiz eşyalarıma bakılır ya da özel alanıma girilir.",
+    },
+  },
+  {
+    dim: "privacy",
+    type: "likert_reverse",
+    text: "Kişisel tercihlerime (kiminle görüştüğüm, zamanımı nasıl geçirdiğim, param) izinsiz karışılır.",
+    textByRole: {
+      parent: "Çocuğumun kişisel tercihlerine (kiminle görüştüğü, zamanını nasıl geçirdiği, parası) izinsiz karışırım.",
+      child: "Kişisel tercihlerime (kiminle görüştüğüm, zamanımı nasıl geçirdiğim, param) izinsiz karışılır.",
+    },
+  },
   { dim: "privacy", type: "likert", text: "Hayır demek ya da sınır koymak bu ilişkide bedelli hissettirmez." },
   { dim: "privacy", type: "likert_reverse", text: "Mahremiyetimle ilgili sorular ya da müdahaleler rahatsız edici sıklıkta oluyor." },
 ];
@@ -200,6 +270,7 @@ const questions: Question[] = RAW_QUESTIONS.map((q, i) => ({
   text: q.text,
   options: q.type === "balance" ? FAMILY_BALANCE : OPTION_SETS[q.type],
   satisfactionQuestion: q.satisfactionQuestion,
+  textByRole: q.textByRole,
 }));
 
 export const familyTest: TestDefinition = {
