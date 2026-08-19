@@ -2,7 +2,7 @@
 
 🔗 **Canlı:** [struvamap.netlify.app](https://struvamap.netlify.app)
 
-İlişkiler yalnızca sevgiden ibaret değildir — aynı zamanda emek, karar, güç ve
+İlişkiler yalnızca sevgiden ibaret değildir, aynı zamanda emek, karar, güç ve
 özerklik dengesinden oluşur. StruvaMap, bu görünmeyen yapıyı kısa bir testle
 haritalayan, deterministik puanlama kullanan çoklu ilişki testi platformudur.
 
@@ -11,33 +11,33 @@ kurallara dayanır; sonuç her zaman tekrarlanabilir ve açıklanabilir.
 
 ## Özellikler
 
-- **Dört ilişki testi** — Romantik İlişki, Arkadaşlık, İş İlişkisi ve
+- **Dört ilişki testi**: Romantik İlişki, Arkadaşlık, İş İlişkisi ve
   Ebeveyn-Çocuk İlişkisi testleri yayında. Her test 6 boyut, ~30 soru, 3
   üst-endekste gruplanır (ör. romantik testte Güç / Emek / Özerklik).
-- **Deterministik puanlama** — boyut, endeks ve RSI (İlişki Yapısı Skoru)
+- **Deterministik puanlama**: boyut, endeks ve RSI (İlişki Yapısı Skoru)
   sabit kurallarla hesaplanır; her boyut için "güçlü" / "gerilim" eşiği ve
   sosyolojik yorum metni test tanımının kendi içinde tutulur. Eşik değerleri
   (55/75) ve eşit ağırlıklandırma (boyut→endeks, endeks→RSI) ampirik
-  araştırmaya değil tasarım kararına dayanır — gerçek psikometrik doğrulama
+  araştırmaya değil tasarım kararına dayanır. Gerçek psikometrik doğrulama
   (Cronbach's alpha, faktör analizi, pilot çalışma) yapılmamıştır; bu klinik
   ya da tanısal bir araç değildir.
-- **Bağlama duyarlı yorum** — iş ve aile testlerinde cevaplayanın rolü
+- **Bağlama duyarlı yorum**: iş ve aile testlerinde cevaplayanın rolü
   (yönetici/çalışan, ebeveyn/çocuk) ve gerekiyorsa yaş bağlamı sorulur; bazı
   sorular da bu role göre yeniden yazılır. Yapısal olarak meşru asimetriler
   (hiyerarşi, yaşa bağlı karar payı) otomatik "sorun" olarak işaretlenmez.
-- **Denge ile memnuniyet ayrımı** — emek dağılımı dengesiz olsa da taraflar bu
+- **Denge ile memnuniyet ayrımı**: emek dağılımı dengesiz olsa da taraflar bu
   dağılımdan memnunsa bu ayrıca gösterilir; memnuniyet sinyali ana skora
   karışmaz.
-- **Anlık görselleştirme** — RSI göstergesi, endeks halkaları, boyut radar
+- **Anlık görselleştirme**: RSI göstergesi, endeks halkaları, boyut radar
   grafiği ve barlar; hepsi kütüphanesiz, elle yazılmış SVG.
-- **Kıyaslama** — sonucunu bir davet bağlantısıyla paylaş; karşı taraf testi
+- **Kıyaslama**: sonucunu bir davet bağlantısıyla paylaş; karşı taraf testi
   bitirince ikinizin cevapları yan yana, boyut boyut ve algı farkı
   yorumlarıyla karşılaştırılır.
-- **Zaman içinde trend** — aynı testi tekrar çözdükçe RSI'nin nasıl değiştiğini
+- **Zaman içinde trend**: aynı testi tekrar çözdükçe RSI'nin nasıl değiştiğini
   gösteren çizgi grafik.
-- **Paylaşım** — sonucu PDF olarak yazdır, PNG görsel olarak indir veya
+- **Paylaşım**: sonucu PDF olarak yazdır, PNG görsel olarak indir veya
   bağlantıyı kopyala.
-- **Kimliksiz** — hesap yok; anonim `session_id` ile çalışır.
+- **Kimliksiz**: hesap yok; anonim `session_id` ile çalışır.
 
 ## Testler
 
@@ -96,4 +96,4 @@ pnpm dev:api    # http://localhost:3000
 - ✅ Anasayfa: ilişki türü seçici, gerçek test verisinden kurulu istatistik ve
   metodoloji bölümleri.
 - ✅ Bağlama duyarlı yorum ve denge/memnuniyet ayrımı (iş ve aile testleri).
-- ⏳ Auth yok (bilinçli — web anonim session, mobil ileride gerçek auth).
+- ⏳ Auth yok (bilinçli: web anonim session, mobil ileride gerçek auth).
