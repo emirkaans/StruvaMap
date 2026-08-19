@@ -914,56 +914,143 @@ p {
   line-height: 1.55;
 }
 
-/* --- Landing: mobil uygulama çağrısı — gradyan kart değil, düz panel + üst çizgi --- */
+/* --- Landing: mobil uygulama çağrısı — .split-row'daki ince ayraç dilinin
+   tekrarı: web/uygulama sütunları gerçek bir kıyaslama, dekoratif kart değil. */
 .app-cta {
   margin: 56px 0;
-  padding: 36px clamp(20px, 4vw, 44px);
-  border-radius: var(--radius-lg);
-  background: var(--surface);
-  border-top: 3px solid var(--accent);
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 24px;
 }
-.app-cta .copy {
-  max-width: 46ch;
+.app-cta-head {
+  margin-bottom: 22px;
 }
-.app-cta h2 {
+.app-cta-head h2 {
   font-family: "Archivo", sans-serif;
   font-weight: 800;
   font-size: clamp(1.4rem, 3vw, 1.9rem);
   letter-spacing: -0.01em;
-  margin: 8px 0 10px;
+  margin: 8px 0 0;
   color: var(--text);
 }
-.app-cta p {
-  margin: 0;
+.app-cta-cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.app-cta-col {
+  padding: 22px;
+}
+.app-cta-col + .app-cta-col {
+  border-left: 1px solid var(--border);
+}
+.app-cta-label {
+  display: block;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
   color: var(--muted);
+  margin-bottom: 14px;
+}
+.app-cta-col.is-upgrade .app-cta-label {
+  color: var(--accent);
+}
+.app-cta-col ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.app-cta-col li {
+  padding: 9px 0;
+  border-bottom: 1px solid var(--border);
   font-size: 0.94rem;
-  line-height: 1.6;
+  color: var(--muted);
+  line-height: 1.4;
+}
+.app-cta-col li:last-child {
+  border-bottom: none;
+}
+.app-cta-col.is-upgrade li {
+  color: var(--text);
+  font-weight: 600;
+}
+.app-cta-btn {
+  margin-top: 22px;
+}
+@media (max-width: 480px) {
+  .app-cta-cols {
+    grid-template-columns: 1fr;
+  }
+  .app-cta-col + .app-cta-col {
+    border-left: none;
+    border-top: 1px solid var(--border);
+  }
 }
 
-/* --- Landing: kapanış şeridi --- */
+/* --- Kapanış şeridi: marka + testler + bağlantılar, üstte ince ayraç --- */
 .site-footer {
   margin-top: 64px;
-  padding: 24px clamp(16px, 4vw, 24px) 0;
+  padding: 40px clamp(16px, 4vw, 24px) 24px;
   border-top: 1px solid var(--border);
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
 }
-.site-footer .logo-lg {
+.site-footer-cols {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr 1fr;
+  gap: 32px;
+  padding-bottom: 28px;
+}
+.site-footer-brand .logo-lg {
   font-size: 1rem;
 }
-.site-footer p {
-  margin: 0;
+.site-footer-brand p {
+  margin: 12px 0 0;
   font-size: 0.82rem;
   color: var(--muted);
-  max-width: 46ch;
+  max-width: 42ch;
+  line-height: 1.6;
+}
+.site-footer-label {
+  display: block;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 12px;
+}
+.site-footer-col {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+.site-footer-col a {
+  font-size: 0.88rem;
+  color: var(--text);
+  text-decoration: none;
+  width: fit-content;
+}
+.site-footer-col a:hover {
+  color: var(--accent);
+}
+.site-footer-bottom {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+@media (max-width: 620px) {
+  .site-footer-cols {
+    grid-template-columns: 1fr 1fr;
+  }
+  .site-footer-brand {
+    grid-column: 1 / -1;
+  }
 }
 
 /* --- Kıyaslama: iki taraf yüz yüze, ortada FARK — sayfanın imza öğesi --- */

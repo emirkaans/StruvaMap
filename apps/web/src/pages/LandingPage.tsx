@@ -314,22 +314,35 @@ export function LandingPage() {
         )}
 
         <div className="app-cta">
-          <div className="copy">
+          <div className="app-cta-head">
             <span className="eyebrow">{toTurkishUpper("Mobil uygulama")}</span>
-            <h2>Bu yalnızca başlangıç.</h2>
-            <p>
-              Ekonomik güç, duygusal emek, yaşam tarzı uyumu, çift
-              karşılaştırması ve "istenen yapı vs mevcut yapı" analizi gibi
-              derin testler mobil uygulamada.
-            </p>
+            <h2>Web Yüzeyi Ölçer. Uygulama Derini.</h2>
+          </div>
+          <div className="app-cta-cols">
+            <div className="app-cta-col">
+              <span className="app-cta-label">Web</span>
+              <ul>
+                <li>{heroTests.length || 4} ilişki testi</li>
+                <li>Anlık skor, radar, trend grafiği</li>
+                <li>Bağlantıyla kıyaslama</li>
+              </ul>
+            </div>
+            <div className="app-cta-col is-upgrade">
+              <span className="app-cta-label">Uygulama</span>
+              <ul>
+                <li>Ekonomik güç &amp; duygusal emek</li>
+                <li>Yaşam tarzı uyumu</li>
+                <li>"İstenen yapı vs mevcut yapı" farkı</li>
+              </ul>
+            </div>
           </div>
           <a
             href={PLAY_STORE_URL}
-            className="btn"
+            className="btn app-cta-btn"
             target="_blank"
             rel="noopener"
           >
-            Google Play'den İndir
+            Google Play'den İndir →
           </a>
         </div>
 
