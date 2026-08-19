@@ -12,8 +12,8 @@ import { familyTest } from "./family.js";
 export const TEST_REGISTRY: Record<string, TestDefinition> = {
   [romanticTest.id]: romanticTest,
   [friendshipTest.id]: friendshipTest,
-  [workTest.id]: workTest,
   [familyTest.id]: familyTest,
+  [workTest.id]: workTest,
 };
 
 export function getTestById(id: string): TestDefinition | undefined {

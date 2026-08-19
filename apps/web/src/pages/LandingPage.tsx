@@ -4,7 +4,7 @@ import type { TestDefinition } from "@struva/shared";
 import { fetchTests } from "../lib/api";
 import { PLAY_STORE_URL } from "../lib/config";
 import { toTurkishUpper } from "../lib/text";
-import heykelRomantic from "../assets/heykel.png";
+import heykelRomantic from "../assets/heykel-romantik.png";
 import heykelFriendship from "../assets/heykel-arkadaslik.png";
 import heykelWork from "../assets/heykel-is.png";
 import heykelFamily from "../assets/heykel-aile.png";
@@ -48,11 +48,11 @@ const HERO_CONTENT: Record<string, HeroContent> = {
   work: {
     pillLabel: "İş",
     headline: [
-      "Görünmeyen Hiyerarşi.",
-      "Ölçülebilir Güven.",
-      "Konuşulabilir Sınır.",
+      "Örtük Hiyerarşi.",
+      "Hesaplanabilir Güven.",
+      "Tartışılabilir Sınır.",
     ],
-    lead: "Yönetici-çalışan ilişkinizde de bir katman vardır: karar payı, geri bildirim, emek, güven... StruvaMap bunları birlikte görünür kılar.",
+    lead: "Terfi baskısı, mikro yönetim, mesai dışı mesajlar... Yönetici-çalışan ilişkisi de karar payı, emek ve güvenle örülüdür. StruvaMap bu dinamiği ölçülebilir kılar.",
     image: heykelWork,
     dimNote: "iş ilişkisini oluşturan alanlar",
     indexNote: "güç, emek, özerklik",
@@ -60,11 +60,11 @@ const HERO_CONTENT: Record<string, HeroContent> = {
   family: {
     pillLabel: "Aile",
     headline: [
-      "Görünmeyen Roller.",
-      "Ölçülebilir Sınır.",
-      "Konuşulabilir Mesafe.",
+      "Saklı Roller.",
+      "Somutlaşabilir Fark.",
+      "Dillendirilebilir Mesafe.",
     ],
-    lead: "Ebeveyn-çocuk ilişkisinde de bir katman vardır: karar payı, dinlenme, duygusal emek, güven... StruvaMap bunları birlikte görünür kılar.",
+    lead: "Çocukluk biter, alışkanlıklar bitmez. Ebeveyn-çocuk ilişkisi de karar payı, dinlenme ve güvenle şekillenir. StruvaMap bu örüntüyü gün yüzüne çıkarır.",
     image: heykelFamily,
     dimNote: "aile ilişkisini oluşturan alanlar",
     indexNote: "güç, emek, özerklik",
