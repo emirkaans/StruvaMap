@@ -765,9 +765,6 @@ p {
     border-left: none;
     border-top: 1px solid var(--border);
   }
-  .dims-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
   .stats-row .stat:first-child {
     border-top: none;
   }
@@ -884,6 +881,11 @@ p {
   border: 1px solid var(--border);
   border-radius: 14px;
   overflow: hidden;
+}
+@media (max-width: 760px) {
+  .dims-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 .dim-card {
   background: var(--bg);
