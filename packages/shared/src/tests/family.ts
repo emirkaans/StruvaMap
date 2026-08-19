@@ -64,9 +64,11 @@ const dimensions: Record<string, Dimension> = {
     short: "Hayatını ilgilendiren kararlarda sözün geçiyor mu?",
     index: "power",
     interpretation: {
-      yüksek: "Kararlar büyük ölçüde birlikte alınıyor; söz hakkı dengeli paylaşılmış görünüyor.",
+      yüksek:
+        "Kararlar büyük ölçüde birlikte alınıyor; söz hakkı dengeli paylaşılmış görünüyor.",
       orta: "Kararlar çoğunlukla paylaşılıyor, ancak bazı konularda söz hakkı tek tarafta yoğunlaşabiliyor.",
-      düşük: "Kararların belirgin biçimde tek tarafta toplandığı görülüyor. Bu bir 'karar asimetrisi' işaretidir.",
+      düşük:
+        "Kararların belirgin biçimde tek tarafta toplandığı görülüyor. Bu bir 'karar asimetrisi' işaretidir.",
     },
     conditionalNotes: [
       {
@@ -80,12 +82,15 @@ const dimensions: Record<string, Dimension> = {
   listening: {
     id: "listening",
     name: "Sözün Dinlenmesi",
-    short: "Konuşurken sözün kesilmeden, öğüt yağmuruna tutulmadan dinleniyor musun?",
+    short:
+      "Konuşurken sözün kesilmeden, öğüt yağmuruna tutulmadan dinleniyor musun?",
     index: "power",
     interpretation: {
-      yüksek: "Konuşma karşılıklı akıyor; taraflar birbirini sözünü kesmeden dinliyor.",
+      yüksek:
+        "Konuşma karşılıklı akıyor; taraflar birbirini sözünü kesmeden dinliyor.",
       orta: "Dinlenme çoğunlukla var, ancak zaman zaman söz kesilebiliyor ya da istenmeyen öğüt gelebiliyor.",
-      düşük: "Konuşmada belirgin bir taraf hep konuşan, diğeri hep dinleyen konumda kalıyor.",
+      düşük:
+        "Konuşmada belirgin bir taraf hep konuşan, diğeri hep dinleyen konumda kalıyor.",
     },
     conditionalNotes: [
       {
@@ -102,9 +107,11 @@ const dimensions: Record<string, Dimension> = {
     short: "Zor anda moral desteği kimden kime akıyor?",
     index: "labour",
     interpretation: {
-      yüksek: "Duygusal destek karşılıklı akıyor; teselli etme emeği tek tarafta yığılmıyor.",
+      yüksek:
+        "Duygusal destek karşılıklı akıyor; teselli etme emeği tek tarafta yığılmıyor.",
       orta: "Destek çoğunlukla karşılıklı, ancak bazı dönemlerde bir taraf daha çok veren konumda kalıyor.",
-      düşük: "Duygusal emeğin belirgin biçimde bir tarafta yoğunlaştığı görülüyor.",
+      düşük:
+        "Duygusal emeğin belirgin biçimde bir tarafta yoğunlaştığı görülüyor.",
     },
   },
   practicalSupport: {
@@ -113,7 +120,8 @@ const dimensions: Record<string, Dimension> = {
     short: "Zaman, para, iş gücü gibi somut yardım nasıl dağılıyor?",
     index: "labour",
     interpretation: {
-      yüksek: "Somut destek (zaman, para, iş gücü) iki yönlü akıyor; yük tek tarafta yığılmıyor.",
+      yüksek:
+        "Somut destek (zaman, para, iş gücü) iki yönlü akıyor; yük tek tarafta yığılmıyor.",
       orta: "Somut destek çoğunlukla karşılıklı, ancak bazı dönemlerde yük bir tarafa kayabiliyor.",
       düşük: "Pratik yükün belirgin biçimde bir tarafta toplandığı görülüyor.",
     },
@@ -124,9 +132,11 @@ const dimensions: Record<string, Dimension> = {
     short: "İlişki güvenle mi, kontrolle mi yürüyor?",
     index: "autonomy",
     interpretation: {
-      yüksek: "Güven baskın; sürekli kontrol ya da denetleme ihtiyacı hissedilmiyor.",
+      yüksek:
+        "Güven baskın; sürekli kontrol ya da denetleme ihtiyacı hissedilmiyor.",
       orta: "Güven çoğunlukla var, ancak bazı konularda kontrol öne çıkabiliyor.",
-      düşük: "Kontrol eğilimi belirgin; güven yerine sürekli denetim öne çıkıyor görünüyor.",
+      düşük:
+        "Kontrol eğilimi belirgin; güven yerine sürekli denetim öne çıkıyor görünüyor.",
     },
   },
   privacy: {
@@ -143,9 +153,21 @@ const dimensions: Record<string, Dimension> = {
 };
 
 const indices: Record<string, IndexDef> = {
-  power: { id: "power", name: "Güç", desc: "Karar mekanizması ve konuşmadaki söz dengesi." },
-  labour: { id: "labour", name: "Emek", desc: "Duygusal ve pratik desteğin dağılımı." },
-  autonomy: { id: "autonomy", name: "Özerklik", desc: "Güven, kontrol ve kişisel sınırlar." },
+  power: {
+    id: "power",
+    name: "Güç",
+    desc: "Karar mekanizması ve konuşmadaki söz dengesi.",
+  },
+  labour: {
+    id: "labour",
+    name: "Emek",
+    desc: "Duygusal ve pratik desteğin dağılımı.",
+  },
+  autonomy: {
+    id: "autonomy",
+    name: "Özerklik",
+    desc: "Güven, kontrol ve kişisel sınırlar.",
+  },
 };
 
 const RAW_QUESTIONS: {
@@ -161,8 +183,10 @@ const RAW_QUESTIONS: {
     type: "likert",
     text: "Beni ilgilendiren kararlarda (iş, sağlık, ilişki, para) görüşüm sorulur.",
     textByRole: {
-      parent: "Çocuğumu ilgilendiren kararlarda (okul, sağlık, arkadaşlıkları, harçlığı) görüşünü alırım.",
-      child: "Beni ilgilendiren kararlarda (iş, sağlık, ilişki, para) görüşüm sorulur.",
+      parent:
+        "Çocuğumu ilgilendiren kararlarda (okul, sağlık, arkadaşlıkları, harçlığı) görüşünü alırım.",
+      child:
+        "Beni ilgilendiren kararlarda (iş, sağlık, ilişki, para) görüşüm sorulur.",
     },
   },
   {
@@ -174,31 +198,109 @@ const RAW_QUESTIONS: {
       child: "Hayatımla ilgili kararlar bana danışılmadan, benim adıma alınır.",
     },
   },
-  { dim: "decision", type: "balance", text: "Görüşme sıklığı, tatil planı gibi ortak konularda son kararı genellikle kim verir?" },
-  { dim: "decision", type: "likert", text: "Farklı düşündüğümde bunu söylemekten çekinmem." },
-  { dim: "decision", type: "balance", text: "Aile kuralları ya da beklentiler değiştiğinde bunu genellikle kim başlatır?" },
+  {
+    dim: "decision",
+    type: "balance",
+    text: "Görüşme sıklığı, tatil planı gibi ortak konularda son kararı genellikle kim verir?",
+  },
+  {
+    dim: "decision",
+    type: "likert",
+    text: "Farklı düşündüğümde bunu söylemekten çekinmem.",
+  },
+  {
+    dim: "decision",
+    type: "balance",
+    text: "Aile kuralları ya da beklentiler değiştiğinde bunu genellikle kim başlatır?",
+  },
 
   // --- Sözün Dinlenmesi (power) — konuşma gücü, karar değil ---
-  { dim: "listening", type: "likert", text: "Bir konuyu anlatırken sözüm kesilmeden sonuna kadar dinlenirim." },
-  { dim: "listening", type: "likert_reverse", text: "Bir şey anlattığımda önce dinlenmek yerine hemen öğüt ya da eleştiriyle karşılaşırım." },
-  { dim: "listening", type: "likert_reverse", text: "İstemediğim halde sürekli tavsiye ya da yönlendirme alırım." },
-  { dim: "listening", type: "likert", text: "Farklı düşündüğümde, tartışmaya dönmeden önce görüşüm gerçekten dinlenir." },
-  { dim: "listening", type: "balance", text: "Sohbetlerde konuşma süresi ve yönü genellikle kim belirler?" },
+  {
+    dim: "listening",
+    type: "likert",
+    text: "Bir konuyu anlatırken sözüm kesilmeden sonuna kadar dinlenirim.",
+  },
+  {
+    dim: "listening",
+    type: "likert_reverse",
+    text: "Bir şey anlattığımda önce dinlenmek yerine hemen öğüt ya da eleştiriyle karşılaşırım.",
+  },
+  {
+    dim: "listening",
+    type: "likert_reverse",
+    text: "İstemediğim halde sürekli tavsiye ya da yönlendirme alırım.",
+  },
+  {
+    dim: "listening",
+    type: "likert",
+    text: "Farklı düşündüğümde, tartışmaya dönmeden önce görüşüm gerçekten dinlenir.",
+  },
+  {
+    dim: "listening",
+    type: "balance",
+    text: "Sohbetlerde konuşma süresi ve yönü genellikle kim belirler?",
+  },
 
   // --- Duygusal Emek (labour) — moral/kriz desteği ---
-  { dim: "emotionalLabour", type: "likert", text: "Zor bir dönemde moral desteği karşılıklı işler." },
-  { dim: "emotionalLabour", type: "likert_reverse", text: "Duygusal olarak hep ben teselli ediyorum, bana aynı şekilde davranılmıyor." },
-  { dim: "emotionalLabour", type: "likert", text: "Üzgün ya da kaygılı olduğumda yanımda birinin olacağını bilirim." },
-  { dim: "emotionalLabour", type: "balance", text: "Gerginlik ya da tartışma sonrası ortamı yatıştırma çabasını genellikle kim gösterir?" },
-  { dim: "emotionalLabour", type: "likert_reverse", text: "Kendi duygusal yükümü paylaşmak, karşı tarafı üzeceğim kaygısıyla zorlaşıyor." },
-  { dim: "emotionalLabour", type: "likert", text: "Duygusal desteğin aramızdaki dağılımından memnunum.", satisfactionQuestion: true },
+  {
+    dim: "emotionalLabour",
+    type: "likert",
+    text: "Zor bir dönemde moral desteği karşılıklı işler.",
+  },
+  {
+    dim: "emotionalLabour",
+    type: "likert_reverse",
+    text: "Duygusal olarak hep ben teselli ediyorum, bana aynı şekilde davranılmıyor.",
+  },
+  {
+    dim: "emotionalLabour",
+    type: "likert",
+    text: "Üzgün ya da kaygılı olduğumda yanımda birinin olacağını bilirim.",
+  },
+  {
+    dim: "emotionalLabour",
+    type: "balance",
+    text: "Gerginlik ya da tartışma sonrası ortamı yatıştırma çabasını genellikle kim gösterir?",
+  },
+  {
+    dim: "emotionalLabour",
+    type: "likert_reverse",
+    text: "Kendi duygusal yükümü paylaşmak, karşı tarafı üzeceğim kaygısıyla zorlaşıyor.",
+  },
+  {
+    dim: "emotionalLabour",
+    type: "likert",
+    text: "Duygusal desteğin aramızdaki dağılımından memnunum.",
+    satisfactionQuestion: true,
+  },
 
   // --- Pratik Destek (labour) — somut zaman/para/iş yardımı ---
-  { dim: "practicalSupport", type: "likert", text: "İhtiyaç olduğunda (para, zaman, iş gücü) destek karşılıklı akar." },
-  { dim: "practicalSupport", type: "balance", text: "Pratik bir yardım gerektiğinde (taşınma, tamir, iş takibi, bakım) bunu genellikle kim üstlenir?" },
-  { dim: "practicalSupport", type: "likert_reverse", text: "Hep ben yardım ediyorum, karşılığında aynı desteği görmüyorum." },
-  { dim: "practicalSupport", type: "likert", text: "Maddi ya da pratik konularda yük adil paylaşılıyor.", satisfactionQuestion: true },
-  { dim: "practicalSupport", type: "balance", text: "Acil bir durumda (hastalık, kriz, ani ihtiyaç) ilk koşan genellikle kim olur?" },
+  {
+    dim: "practicalSupport",
+    type: "likert",
+    text: "İhtiyaç olduğunda (para, zaman, iş gücü) her iki taraf da birbirine destek olur.",
+  },
+  {
+    dim: "practicalSupport",
+    type: "balance",
+    text: "Pratik bir yardım gerektiğinde (taşınma, tamir, iş takibi, bakım) bunu genellikle kim üstlenir?",
+  },
+  {
+    dim: "practicalSupport",
+    type: "likert_reverse",
+    text: "Hep ben yardım ediyorum, karşılığında aynı desteği görmüyorum.",
+  },
+  {
+    dim: "practicalSupport",
+    type: "likert",
+    text: "Maddi ya da pratik konularda yük adil paylaşılıyor.",
+    satisfactionQuestion: true,
+  },
+  {
+    dim: "practicalSupport",
+    type: "balance",
+    text: "Acil bir durumda (hastalık, kriz, ani ihtiyaç) ilk koşan genellikle kim olur?",
+  },
 
   // --- Güven ve Kontrol (autonomy) ---
   {
@@ -206,7 +308,8 @@ const RAW_QUESTIONS: {
     type: "likert",
     text: "Kararlarıma ve seçimlerime güvenilir; sürekli sorgulanmam.",
     textByRole: {
-      parent: "Çocuğumun kararlarına ve seçimlerine güvenirim; onu sürekli sorgulamam.",
+      parent:
+        "Çocuğumun kararlarına ve seçimlerine güvenirim; onu sürekli sorgulamam.",
       child: "Kararlarıma ve seçimlerime güvenilir; sürekli sorgulanmam.",
     },
   },
@@ -215,17 +318,24 @@ const RAW_QUESTIONS: {
     type: "likert_reverse",
     text: "Yaptığım her şey denetlenir ya da hesap sorulur gibi hissettirir.",
     textByRole: {
-      parent: "Çocuğumun yaptığı her şeyi denetleme ya da hesap sorma ihtiyacı hissederim.",
-      child: "Yaptığım her şey denetlenir ya da hesap sorulur gibi hissettirir.",
+      parent:
+        "Çocuğumun yaptığı her şeyi denetleme ya da hesap sorma ihtiyacı hissederim.",
+      child:
+        "Yaptığım her şey denetlenir ya da hesap sorulur gibi hissettirir.",
     },
   },
-  { dim: "trust", type: "balance", text: "Bir konuda 'doğrusu budur' diyerek son sözü genellikle kim söyler?" },
+  {
+    dim: "trust",
+    type: "balance",
+    text: "Bir konuda 'doğrusu budur' diyerek son sözü genellikle kim söyler?",
+  },
   {
     dim: "trust",
     type: "likert",
     text: "Hata yapma alanım var; her adımım mercek altında değil.",
     textByRole: {
-      parent: "Çocuğuma hata yapma alanı tanırım; her adımını mercek altına almam.",
+      parent:
+        "Çocuğuma hata yapma alanı tanırım; her adımını mercek altına almam.",
       child: "Hata yapma alanım var; her adımım mercek altında değil.",
     },
   },
@@ -234,19 +344,26 @@ const RAW_QUESTIONS: {
     type: "likert_reverse",
     text: "Farklı bir yol denemem ya da fikrimi değiştirmem onay gerektirir gibi hissettirir.",
     textByRole: {
-      parent: "Çocuğumun farklı bir yol denemesi ya da fikrini değiştirmesi için onayımı şart koşarım.",
-      child: "Farklı bir yol denemem ya da fikrimi değiştirmem onay gerektirir gibi hissettirir.",
+      parent:
+        "Çocuğumun farklı bir yol denemesi ya da fikrini değiştirmesi için onayımı şart koşarım.",
+      child:
+        "Farklı bir yol denemem ya da fikrimi değiştirmem onay gerektirir gibi hissettirir.",
     },
   },
 
   // --- Özel Alan (autonomy) ---
-  { dim: "privacy", type: "likert", text: "Kişisel alanım (evim, eşyalarım, zamanım) bu ilişkide gözetilir." },
+  {
+    dim: "privacy",
+    type: "likert",
+    text: "Kişisel alanım (evim, eşyalarım, zamanım) bu ilişkide gözetilir.",
+  },
   {
     dim: "privacy",
     type: "likert_reverse",
     text: "İzinsiz eşyalarıma bakılır ya da özel alanıma girilir.",
     textByRole: {
-      parent: "Çocuğumun eşyalarına ya da özel alanına izinsiz girdiğim oluyor.",
+      parent:
+        "Çocuğumun eşyalarına ya da özel alanına izinsiz girdiğim oluyor.",
       child: "İzinsiz eşyalarıma bakılır ya da özel alanıma girilir.",
     },
   },
@@ -255,12 +372,22 @@ const RAW_QUESTIONS: {
     type: "likert_reverse",
     text: "Kişisel tercihlerime (kiminle görüştüğüm, zamanımı nasıl geçirdiğim, param) izinsiz karışılır.",
     textByRole: {
-      parent: "Çocuğumun kişisel tercihlerine (kiminle görüştüğü, zamanını nasıl geçirdiği, parası) izinsiz karışırım.",
-      child: "Kişisel tercihlerime (kiminle görüştüğüm, zamanımı nasıl geçirdiğim, param) izinsiz karışılır.",
+      parent:
+        "Çocuğumun kişisel tercihlerine (kiminle görüştüğü, zamanını nasıl geçirdiği, parası) izinsiz karışırım.",
+      child:
+        "Kişisel tercihlerime (kiminle görüştüğüm, zamanımı nasıl geçirdiğim, param) izinsiz karışılır.",
     },
   },
-  { dim: "privacy", type: "likert", text: "Hayır demek ya da sınır koymak bu ilişkide bedelli hissettirmez." },
-  { dim: "privacy", type: "likert_reverse", text: "Mahremiyetimle ilgili sorular ya da müdahaleler rahatsız edici sıklıkta oluyor." },
+  {
+    dim: "privacy",
+    type: "likert",
+    text: "Bu ilişkide hayır dediğimde ya da sınır koyduğumda kendimi suçlu veya kötü hissetmiyorum.",
+  },
+  {
+    dim: "privacy",
+    type: "likert_reverse",
+    text: "Mahremiyetimle ilgili sorular ya da müdahaleler rahatsız edici sıklıkta oluyor.",
+  },
 ];
 
 const questions: Question[] = RAW_QUESTIONS.map((q, i) => ({
