@@ -86,6 +86,10 @@ const DIM_SHORT: Record<string, string> = {
   practicalSupport: "Destek",
   trust: "Güven",
   privacy: "Mahrem",
+  feedback: "Bildirim",
+  workload: "İş Yükü",
+  recognition: "Takdir",
+  boundaries: "Sınır",
 };
 
 export function Radar({
