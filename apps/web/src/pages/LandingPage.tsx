@@ -6,10 +6,10 @@ import { PLAY_STORE_URL } from "../lib/config";
 import { toTurkishUpper } from "../lib/text";
 import { Header } from "../components/Header";
 import { Footer } from "../components/Footer";
-import heykelRomantic from "../assets/heykel-romantik.png";
-import heykelFriendship from "../assets/heykel-arkadaslik.png";
-import heykelWork from "../assets/heykel-is.png";
-import heykelFamily from "../assets/heykel-aile.png";
+import heykelRomantic from "../assets/heykel-romantik.webp";
+import heykelFriendship from "../assets/heykel-arkadaslik.webp";
+import heykelWork from "../assets/heykel-is.webp";
+import heykelFamily from "../assets/heykel-aile.webp";
 
 interface HeroContent {
   pillLabel: string;
