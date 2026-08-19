@@ -82,12 +82,20 @@ export function LandingPage() {
   const [tests, setTests] = useState<TestDefinition[] | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [heroVisible, setHeroVisible] = useState(true);
+  // İlk boyamada yalnızca aktif heykel indirilsin; diğer 3'ü hemen ardından
+  // arka planda yüklensin — 4 görseli aynı anda çekmek ilk yüklemeyi yavaşlatıyordu.
+  const [otherImagesReady, setOtherImagesReady] = useState(false);
   const heroScreenRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetchTests()
       .then(setTests)
       .catch(() => setTests([]));
+  }, []);
+
+  useEffect(() => {
+    const id = setTimeout(() => setOtherImagesReady(true), 150);
+    return () => clearTimeout(id);
   }, []);
 
   useEffect(() => {
@@ -212,10 +220,12 @@ export function LandingPage() {
                       </div>
                       <div className="hero-visual">
                         <div className="hero-frame">
-                          <img
-                            src={content.image}
-                            alt={`${content.pillLabel} testini simgeleyen heykel görseli`}
-                          />
+                          {(i === activeIndex || otherImagesReady) && (
+                            <img
+                              src={content.image}
+                              alt={`${content.pillLabel} testini simgeleyen heykel görseli`}
+                            />
+                          )}
                         </div>
                       </div>
                     </div>
