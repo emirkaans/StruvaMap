@@ -6,6 +6,8 @@ import { fetchComparison, fetchTest, type ComparisonRow } from "../lib/api";
 import { PLAY_STORE_URL } from "../lib/config";
 import { toTurkishUpper } from "../lib/text";
 import { Donut, bandOf } from "../components/charts";
+import { Header } from "../components/Header";
+import { Footer } from "../components/Footer";
 
 // Algı farkı bu eşiğin üstündeyse "algı farkı" olarak işaretlenir.
 const PERCEPTION_GAP_THRESHOLD = 20;
@@ -58,11 +60,7 @@ export function ComparisonPage() {
 
   return (
     <main className="wrap">
-      <nav className="page-nav no-print">
-        <Link to="/" className="logo-lg">
-          Struva<span>Map</span>
-        </Link>
-      </nav>
+      <Header className="no-print" />
 
       <div className="score-hero">
         <span className="eyebrow">{toTurkishUpper("Kıyaslama")}</span>
@@ -100,6 +98,9 @@ export function ComparisonPage() {
 
       <div className="card actions-card no-print">
         <div className="actions-row">
+          <Link to="/" className="btn secondary">
+            Anasayfaya Dön
+          </Link>
           <button
             type="button"
             className="btn secondary"
@@ -181,15 +182,7 @@ export function ComparisonPage() {
         </a>
       </div>
 
-      <footer className="site-footer">
-        <Link to="/" className="logo-lg">
-          Struva<span>Map</span>
-        </Link>
-        <p>
-          Cevaplarınız puanlama için sunucuya gönderilir; hesap oluşturulmaz, kimlik bilgisi
-          toplanmaz.
-        </p>
-      </footer>
+      <Footer />
     </main>
   );
 }

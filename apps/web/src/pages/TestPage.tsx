@@ -3,6 +3,8 @@ import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import type { Answers, Question, TestDefinition } from "@struva/shared";
 import { createComparison, fetchTest, submitResult } from "../lib/api";
 import { getOrCreateSessionId } from "../lib/session";
+import { Header } from "../components/Header";
+import { Footer } from "../components/Footer";
 
 function shuffled<T>(arr: T[]): T[] {
   const out = arr.slice();
@@ -40,9 +42,23 @@ export function TestPage() {
     [test],
   );
 
-  if (error) return <main className="wrap"><div className="card">{error}</div></main>;
+  if (error) {
+    return (
+      <main className="wrap">
+        <Header />
+        <div className="card">{error}</div>
+        <Footer />
+      </main>
+    );
+  }
   if (!test || displayQuestions.length === 0) {
-    return <main className="wrap"><div className="card muted">Yükleniyor…</div></main>;
+    return (
+      <main className="wrap">
+        <Header />
+        <div className="card muted">Yükleniyor…</div>
+        <Footer />
+      </main>
+    );
   }
 
   const q = displayQuestions[i];
@@ -103,6 +119,7 @@ export function TestPage() {
 
   return (
     <main className="wrap">
+      <Header />
       {compareWith && (
         <div className="note" style={{ marginBottom: 16 }}>
           Bu testi tamamladığında cevapların, seni davet eden kişinin sonucuyla kıyaslama
@@ -156,6 +173,8 @@ export function TestPage() {
           </button>
         )}
       </div>
+
+      <Footer />
     </main>
   );
 }

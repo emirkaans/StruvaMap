@@ -4,6 +4,8 @@ import type { TestDefinition } from "@struva/shared";
 import { fetchTests } from "../lib/api";
 import { PLAY_STORE_URL } from "../lib/config";
 import { toTurkishUpper } from "../lib/text";
+import { Header } from "../components/Header";
+import { Footer } from "../components/Footer";
 import heykelRomantic from "../assets/heykel-romantik.png";
 import heykelFriendship from "../assets/heykel-arkadaslik.png";
 import heykelWork from "../assets/heykel-is.png";
@@ -121,24 +123,23 @@ export function LandingPage() {
   return (
     <div>
       <div className="hero-screen" ref={heroScreenRef}>
-        <nav className="landing-nav">
-          <Link to="/" className="logo-lg">
-            Struva<span>Map</span>
-          </Link>
-          {activeTest && (
-            <Link
-              to={`/test/${activeTest.id}`}
-              className="btn"
-              style={{
-                borderRadius: 99,
-                padding: "11px 20px",
-                fontSize: ".86rem",
-              }}
-            >
-              Ücretsiz Başla
-            </Link>
-          )}
-        </nav>
+        <Header
+          cta={
+            activeTest && (
+              <Link
+                to={`/test/${activeTest.id}`}
+                className="btn"
+                style={{
+                  borderRadius: 99,
+                  padding: "11px 20px",
+                  fontSize: ".86rem",
+                }}
+              >
+                Ücretsiz Başla
+              </Link>
+            )
+          }
+        />
 
         <div className="landing-wrap">
           {!tests && (
@@ -296,15 +297,7 @@ export function LandingPage() {
           </a>
         </div>
 
-        <footer className="site-footer">
-          <Link to="/" className="logo-lg">
-            Struva<span>Map</span>
-          </Link>
-          <p>
-            Cevaplarınız puanlama için sunucuya gönderilir; hesap oluşturulmaz,
-            kimlik bilgisi toplanmaz.
-          </p>
-        </footer>
+        <Footer />
       </div>
     </div>
   );

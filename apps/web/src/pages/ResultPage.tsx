@@ -5,6 +5,8 @@ import { fetchResult, fetchResultHistory, fetchTest, type ResultRow } from "../l
 import { BRAND, PLAY_STORE_URL } from "../lib/config";
 import { toTurkishUpper } from "../lib/text";
 import { Bar, Donut, Radar, TrendChart, bandHex, bandOf } from "../components/charts";
+import { Header } from "../components/Header";
+import { Footer } from "../components/Footer";
 
 // Paylaşım görseli — kütüphanesiz SVG, canvas üzerinden PNG'e çevrilir.
 function buildShareSvg(test: TestDefinition, r: ScoreResult): string {
@@ -128,11 +130,7 @@ export function ResultPage() {
 
   return (
     <main className="wrap">
-      <nav className="page-nav no-print">
-        <Link to="/" className="logo-lg">
-          Struva<span>Map</span>
-        </Link>
-      </nav>
+      <Header className="no-print" />
 
       <div className="score-hero">
         <span className="eyebrow">{toTurkishUpper(test.name)}</span>
@@ -162,6 +160,9 @@ export function ResultPage() {
 
       <div className="card actions-card no-print">
         <div className="actions-row">
+          <Link to="/" className="btn secondary">
+            Anasayfaya Dön
+          </Link>
           <button type="button" className="btn secondary" onClick={() => window.print()}>
             PDF olarak indir / Yazdır
           </button>
@@ -292,6 +293,8 @@ export function ResultPage() {
           Google Play'den İndir
         </a>
       </div>
+
+      <Footer />
     </main>
   );
 }
