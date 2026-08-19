@@ -1,18 +1,27 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import type { TestDefinition } from "@struva/shared";
 import { bandOf as interpBandOf } from "@struva/shared";
 import { fetchComparison, fetchTest, type ComparisonRow } from "../lib/api";
+import { PLAY_STORE_URL } from "../lib/config";
+import { toTurkishUpper } from "../lib/text";
 import { Donut, bandOf } from "../components/charts";
 
 // Algı farkı bu eşiğin üstündeyse "algı farkı" olarak işaretlenir.
 const PERCEPTION_GAP_THRESHOLD = 20;
+
+function gapBand(gap: number): "good" | "mid" | "low" {
+  if (gap >= PERCEPTION_GAP_THRESHOLD) return "low";
+  if (gap >= PERCEPTION_GAP_THRESHOLD / 2) return "mid";
+  return "good";
+}
 
 export function ComparisonPage() {
   const { comparisonId } = useParams<{ comparisonId: string }>();
   const [comparison, setComparison] = useState<ComparisonRow | null>(null);
   const [test, setTest] = useState<TestDefinition | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     if (!comparisonId) return;
@@ -49,55 +58,61 @@ export function ComparisonPage() {
 
   return (
     <main className="wrap">
-      <div className="card score-hero">
-        <div className="muted small">{test.name} — Kıyaslama</div>
-        <div style={{ display: "flex", justifyContent: "center", gap: 32, marginTop: 14, flexWrap: "wrap" }}>
-          <div style={{ textAlign: "center" }}>
-            <div style={{ position: "relative", width: 132, height: 132 }}>
+      <nav className="page-nav no-print">
+        <Link to="/" className="logo-lg">
+          Struva<span>Map</span>
+        </Link>
+      </nav>
+
+      <div className="score-hero">
+        <span className="eyebrow">{toTurkishUpper("Kıyaslama")}</span>
+        <p className="muted small" style={{ marginBottom: 0 }}>{test.name}</p>
+
+        <div className="duel">
+          <div className="duel-side">
+            <div className="duel-donut">
               <Donut value={a.score.rsi} size={132} stroke={11} label="Davet eden — İlişki Yapısı Skoru" />
-              <div
-                aria-hidden="true"
-                style={{
-                  position: "absolute",
-                  inset: 0,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: "1.4rem",
-                  fontWeight: 700,
-                }}
-              >
-                {a.score.rsi}
-              </div>
+              <div className="overlay" aria-hidden="true">{a.score.rsi}</div>
             </div>
-            <div className="l" style={{ marginTop: 6 }}>Davet eden</div>
+            <div className="l">Davet eden</div>
           </div>
-          <div style={{ textAlign: "center" }}>
-            <div style={{ position: "relative", width: 132, height: 132 }}>
+
+          <div className="duel-delta">
+            <span className="duel-delta-label">{toTurkishUpper("Fark")}</span>
+            <span className={`duel-delta-val ${gapBand(rsiGap)}`}>{rsiGap}</span>
+          </div>
+
+          <div className="duel-side">
+            <div className="duel-donut">
               <Donut value={b.score.rsi} size={132} stroke={11} label="Katılan — İlişki Yapısı Skoru" />
-              <div
-                aria-hidden="true"
-                style={{
-                  position: "absolute",
-                  inset: 0,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: "1.4rem",
-                  fontWeight: 700,
-                }}
-              >
-                {b.score.rsi}
-              </div>
+              <div className="overlay" aria-hidden="true">{b.score.rsi}</div>
             </div>
-            <div className="l" style={{ marginTop: 6 }}>Katılan</div>
+            <div className="l">Katılan</div>
           </div>
         </div>
+
         <p className="small muted" style={{ maxWidth: 460, margin: "16px auto 0" }}>
           {rsiGap >= PERCEPTION_GAP_THRESHOLD
             ? `İki taraf arasında ${rsiGap} puanlık belirgin bir genel algı farkı var.`
             : "Genel skorlar birbirine yakın; büyük bir algı farkı görünmüyor."}
         </p>
+      </div>
+
+      <div className="card actions-card no-print">
+        <div className="actions-row">
+          <button
+            type="button"
+            className="btn secondary"
+            onClick={() => {
+              navigator.clipboard.writeText(window.location.href).then(() => {
+                setCopied(true);
+                setTimeout(() => setCopied(false), 1800);
+              });
+            }}
+          >
+            {copied ? "Kopyalandı!" : "Bağlantıyı kopyala"}
+          </button>
+        </div>
       </div>
 
       <h2>Boyut Bazında Kıyaslama</h2>
@@ -114,8 +129,8 @@ export function ComparisonPage() {
           ? `${lowerLabel} bu alanı daha dengesiz algılıyor: ${test.dimensions[dim].interpretation[interpBandOf(lowerScore)]}`
           : `İki taraf bu alanı benzer algılıyor (${gap} puan fark): ${test.dimensions[dim].interpretation[interpBandOf(avgScore)]}`;
         return (
-          <div className="card" key={dim}>
-            <h3 style={{ marginBottom: 10 }}>
+          <div className="card compare-dim" key={dim}>
+            <h3>
               {test.dimensions[dim].name}
               {hasGap && <span className="tag low">algı farkı {gap}</span>}
             </h3>
@@ -128,7 +143,7 @@ export function ComparisonPage() {
                 <span style={{ width: `${aScore}%` }} />
               </div>
             </div>
-            <div className="bar-row" style={{ marginBottom: 0 }}>
+            <div className="bar-row">
               <div className="bar-head">
                 <span>Katılan</span>
                 <span className="val">{bScore}</span>
@@ -144,10 +159,37 @@ export function ComparisonPage() {
         );
       })}
 
-      <div className="note" style={{ margin: "20px 0" }}>
-        Bu kıyaslama teşhis değildir; yalnızca iki tarafın aynı ilişkiyi ne kadar benzer ya da farklı
-        algıladığını gösterir. Büyük farklar konuşmaya değer bir başlangıç noktasıdır.
+      <div className="disclaimer">
+        <span className="eyebrow">{toTurkishUpper("Teşhis değil")}</span>
+        <p>
+          Bu kıyaslama teşhis değildir; yalnızca iki tarafın aynı ilişkiyi ne kadar benzer ya da
+          farklı algıladığını gösterir. Büyük farklar konuşmaya değer bir başlangıç noktasıdır.
+        </p>
       </div>
+
+      <div className="app-cta no-print">
+        <div className="copy">
+          <span className="eyebrow">{toTurkishUpper("Mobil uygulama")}</span>
+          <h2>Bu yalnızca başlangıç.</h2>
+          <p>
+            Ekonomik güç, duygusal emek, yaşam tarzı uyumu ve "istenen yapı vs mevcut yapı" farkı
+            gibi derin analizler mobil uygulamada.
+          </p>
+        </div>
+        <a href={PLAY_STORE_URL} className="btn" target="_blank" rel="noopener">
+          Google Play'den İndir
+        </a>
+      </div>
+
+      <footer className="site-footer">
+        <Link to="/" className="logo-lg">
+          Struva<span>Map</span>
+        </Link>
+        <p>
+          Cevaplarınız puanlama için sunucuya gönderilir; hesap oluşturulmaz, kimlik bilgisi
+          toplanmaz.
+        </p>
+      </footer>
     </main>
   );
 }
