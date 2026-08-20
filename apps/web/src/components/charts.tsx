@@ -85,6 +85,11 @@ const DIM_SHORT: Record<string, string> = {
   workload: "İş Yükü",
   recognition: "Takdir",
   boundaries: "Sınır",
+  chores: "Ev İşi",
+  expenses: "Masraf",
+  standards: "Düzen",
+  communication: "İletişim",
+  guests: "Misafir",
 };
 
 export function Radar({
