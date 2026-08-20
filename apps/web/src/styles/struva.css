@@ -1106,8 +1106,48 @@ p {
 }
 
 @media (max-width: 620px) {
+  /* Hero'nun mobil davranışıyla aynı fikir: telefon ayrı bir satır almıyor,
+     metnin arkasında karartılmış bir doku olarak kalıyor. */
   .app-cta-grid {
     grid-template-columns: 1fr;
+    position: relative;
+  }
+  .app-cta-copy {
+    position: relative;
+    z-index: 1;
+  }
+  .app-cta-stage {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    padding: 0;
+    justify-content: flex-end;
+    pointer-events: none;
+  }
+  .app-cta-stage::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      90deg,
+      var(--bg) 0%,
+      rgba(11, 12, 16, 0.78) 55%,
+      rgba(11, 12, 16, 0.3) 100%
+    );
+  }
+  .app-cta-phone {
+    /* Sabit genişlik yerine yüksekliğe bağlı: oran (aspect-ratio) her zaman
+       korunsun, bölüm kısa kalsa bile telefon boyuna taşıp basılmasın. */
+    width: auto;
+    height: 92%;
+    opacity: 0.76;
+    transform: rotate(-8deg) translateX(14%);
+    box-shadow: none;
+  }
+  /* Arka plandaki telefon artık metnin altına kadar uzanıyor — kendi yazısı
+     (BOYUT RADARI) ön plandaki listeyle çakışıp kirlilik yaratmasın. */
+  .app-cta-caption {
+    display: none;
   }
 }
 

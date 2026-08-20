@@ -49,7 +49,7 @@ export function AppCta({ variant }: { variant: "full" | "compact" }) {
   return (
     <div className="app-cta">
       <div className="app-cta-grid">
-        <div>
+        <div className="app-cta-copy">
           <span className="eyebrow">{toTurkishUpper("Mobil uygulama")}</span>
           <h2>Web Yüzeyi Ölçer. Uygulama Derini.</h2>
           <ul className="app-cta-list">
