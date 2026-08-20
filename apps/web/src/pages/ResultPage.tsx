@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import type { ScoreResult, TestDefinition } from "@struva/shared";
 import { fetchResult, fetchResultHistory, fetchTest, type ResultRow } from "../lib/api";
+import { track } from "../lib/analytics";
 import { BRAND } from "../lib/config";
 import { toTurkishUpper } from "../lib/text";
 import { Bar, Donut, Radar, TrendChart, bandHex, bandOf } from "../components/charts";
@@ -81,6 +82,7 @@ export function ResultPage() {
     fetchResult(resultId)
       .then((row) => {
         setResult(row);
+        track("result_view", { testId: row.test_id });
         fetchResultHistory(row.session_id, row.test_id)
           .then(setHistory)
           .catch(() => setHistory([]));
@@ -164,10 +166,24 @@ export function ResultPage() {
           <Link to="/" className="btn secondary">
             Anasayfaya Dön
           </Link>
-          <button type="button" className="btn secondary" onClick={() => window.print()}>
+          <button
+            type="button"
+            className="btn secondary"
+            onClick={() => {
+              track("print_pdf", { testId: test.id });
+              window.print();
+            }}
+          >
             PDF olarak indir / Yazdır
           </button>
-          <button type="button" className="btn secondary" onClick={() => downloadShareImage(test, r)}>
+          <button
+            type="button"
+            className="btn secondary"
+            onClick={() => {
+              track("share_image_download", { testId: test.id });
+              downloadShareImage(test, r);
+            }}
+          >
             Sonucu görsel indir
           </button>
           <button
@@ -175,6 +191,7 @@ export function ResultPage() {
             className="btn secondary"
             onClick={() => {
               navigator.clipboard.writeText(window.location.href).then(() => {
+                track("link_copied", { testId: test.id });
                 setCopied(true);
                 setTimeout(() => setCopied(false), 1800);
               });
@@ -189,6 +206,7 @@ export function ResultPage() {
               onClick={() => {
                 const url = `${window.location.origin}/test/${test.id}?compareWith=${result.id}`;
                 navigator.clipboard.writeText(url).then(() => {
+                  track("invite_copied", { testId: test.id });
                   setInviteCopied(true);
                   setTimeout(() => setInviteCopied(false), 1800);
                 });

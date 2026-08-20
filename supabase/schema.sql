@@ -24,6 +24,23 @@ create table if not exists comparisons (
   created_at timestamptz not null default now()
 );
 
+-- Ürün ölçümü: huninin nerede koptuğunu görmek için olay kaydı.
+-- Kişisel veri tutulmaz (IP, user-agent, kimlik yok); yalnızca anonim
+-- session_id ve olay adı. Sonuçlarla aynı gizlilik çizgisinde.
+create table if not exists events (
+  id uuid primary key default gen_random_uuid(),
+  name text not null,
+  session_id text not null,
+  test_id text,
+  props jsonb,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists events_name_idx on events (name);
+create index if not exists events_created_at_idx on events (created_at);
+create index if not exists events_session_id_idx on events (session_id);
+
 alter table results enable row level security;
 alter table comparisons enable row level security;
+alter table events enable row level security;
 -- Politika yok: yalnızca service-role key (backend) erişebilir.

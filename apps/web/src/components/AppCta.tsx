@@ -1,4 +1,5 @@
 import { PLAY_STORE_URL } from "../lib/config";
+import { track } from "../lib/analytics";
 import { toTurkishUpper } from "../lib/text";
 import { Reveal } from "./Reveal";
 
@@ -20,7 +21,13 @@ function GooglePlayGlyph() {
 
 function AppCtaButton() {
   return (
-    <a href={PLAY_STORE_URL} className="btn app-cta-btn" target="_blank" rel="noopener">
+    <a
+      href={PLAY_STORE_URL}
+      className="btn app-cta-btn"
+      target="_blank"
+      rel="noopener"
+      onClick={() => track("playstore_click")}
+    >
       <GooglePlayGlyph />
       Google Play&apos;den İndir
     </a>

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import type { TestDefinition } from "@struva/shared";
 import { fetchTests } from "../lib/api";
+import { track } from "../lib/analytics";
 import { toTurkishUpper } from "../lib/text";
 import { Header } from "../components/Header";
 import { Footer } from "../components/Footer";
@@ -96,6 +97,10 @@ export function LandingPage() {
   const [heroVisible, setHeroVisible] = useState(true);
   const [otherImagesReady, setOtherImagesReady] = useState(false);
   const heroScreenRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    track("landing_view");
+  }, []);
 
   useEffect(() => {
     fetchTests()

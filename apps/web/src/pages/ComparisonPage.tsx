@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import type { TestDefinition } from "@struva/shared";
 import { bandOf as interpBandOf } from "@struva/shared";
 import { fetchComparison, fetchTest, type ComparisonRow } from "../lib/api";
+import { track } from "../lib/analytics";
 import { toTurkishUpper } from "../lib/text";
 import { Donut, bandOf } from "../components/charts";
 import { Header } from "../components/Header";
@@ -30,6 +31,7 @@ export function ComparisonPage() {
     fetchComparison(comparisonId)
       .then((row) => {
         setComparison(row);
+        track("comparison_view", { testId: row.testId });
         return fetchTest(row.testId);
       })
       .then(setTest)
@@ -106,6 +108,7 @@ export function ComparisonPage() {
             className="btn secondary"
             onClick={() => {
               navigator.clipboard.writeText(window.location.href).then(() => {
+                track("link_copied", { testId: test.id });
                 setCopied(true);
                 setTimeout(() => setCopied(false), 1800);
               });

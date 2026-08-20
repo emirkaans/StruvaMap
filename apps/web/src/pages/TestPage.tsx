@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import type { Answers, Question, TestDefinition } from "@struva/shared";
 import { createComparison, fetchTest, submitResult } from "../lib/api";
+import { track } from "../lib/analytics";
 import { getOrCreateSessionId } from "../lib/session";
 import { Header } from "../components/Header";
 import { Footer } from "../components/Footer";
@@ -29,9 +30,13 @@ export function TestPage() {
   const [i, setI] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const optionsRef = useRef<HTMLDivElement>(null);
+  // Şıkka arka arkaya basıldığında (mobilde çift dokunma) 220 ms'lik geçiş
+  // penceresinde birden fazla ilerleme kuyruğa girip soru atlanmasın.
+  const advancing = useRef(false);
 
   useEffect(() => {
     if (!testId) return;
+    track("test_start", { testId });
     fetchTest(testId)
       .then(setTest)
       .catch(() => setError("Test yüklenemedi."));
@@ -65,9 +70,14 @@ export function TestPage() {
   const inContextPhase = ci < contextQuestions.length;
 
   function chooseContext(idx: number) {
+    if (advancing.current) return;
+    advancing.current = true;
     const cq = contextQuestions[ci];
     setContextAnswers((prev) => ({ ...prev, [cq.id]: cq.options[idx].value }));
-    setTimeout(() => setCi((prev) => prev + 1), 220);
+    setTimeout(() => {
+      setCi((prev) => Math.min(prev + 1, contextQuestions.length));
+      advancing.current = false;
+    }, 220);
   }
 
   if (inContextPhase) {
@@ -106,10 +116,25 @@ export function TestPage() {
   const selected = answers[q.id];
   const isLast = i === displayQuestions.length - 1;
 
+  const PROGRESS_STEP = 5;
+
   function choose(idx: number) {
+    if (advancing.current) return;
     setAnswers((prev) => ({ ...prev, [q.id]: idx }));
+    // Terk noktasını görebilmek için her 5 soruda bir ilerleme kaydı.
+    const answered = i + 1;
+    if (answered % PROGRESS_STEP === 0) {
+      track("test_progress", {
+        testId: test!.id,
+        props: { answered, total: displayQuestions.length },
+      });
+    }
     if (!isLast) {
-      setTimeout(() => setI((prev) => prev + 1), 220);
+      advancing.current = true;
+      setTimeout(() => {
+        setI((prev) => Math.min(prev + 1, displayQuestions.length - 1));
+        advancing.current = false;
+      }, 220);
     }
   }
 
@@ -123,6 +148,7 @@ export function TestPage() {
         answers,
         contextAnswers: contextQuestions.length ? contextAnswers : undefined,
       });
+      track("test_complete", { testId: test!.id });
       if (compareWith) {
         let comparisonId: string | null = null;
         try {
