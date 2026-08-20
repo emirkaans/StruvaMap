@@ -1,5 +1,6 @@
 import { PLAY_STORE_URL } from "../lib/config";
 import { toTurkishUpper } from "../lib/text";
+import { Reveal } from "./Reveal";
 
 function GooglePlayGlyph() {
   return (
@@ -29,7 +30,7 @@ function AppCtaButton() {
 export function AppCta({ variant }: { variant: "full" | "compact" }) {
   if (variant === "compact") {
     return (
-      <div className="app-cta app-cta-compact no-print">
+      <Reveal className="app-cta app-cta-compact no-print">
         <div className="app-cta-phone-mini" aria-hidden="true">
           <span />
         </div>
@@ -42,12 +43,12 @@ export function AppCta({ variant }: { variant: "full" | "compact" }) {
           </p>
           <AppCtaButton />
         </div>
-      </div>
+      </Reveal>
     );
   }
 
   return (
-    <div className="app-cta">
+    <Reveal className="app-cta">
       <div className="app-cta-grid">
         <div className="app-cta-copy">
           <span className="eyebrow">{toTurkishUpper("Mobil uygulama")}</span>
@@ -78,6 +79,6 @@ export function AppCta({ variant }: { variant: "full" | "compact" }) {
           </div>
         </div>
       </div>
-    </div>
+    </Reveal>
   );
 }

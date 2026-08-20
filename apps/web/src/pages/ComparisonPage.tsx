@@ -8,6 +8,7 @@ import { Donut, bandOf } from "../components/charts";
 import { Header } from "../components/Header";
 import { Footer } from "../components/Footer";
 import { AppCta } from "../components/AppCta";
+import { Reveal } from "../components/Reveal";
 
 const PERCEPTION_GAP_THRESHOLD = 20;
 
@@ -61,7 +62,7 @@ export function ComparisonPage() {
     <main className="wrap">
       <Header className="no-print" />
 
-      <div className="score-hero">
+      <Reveal className="score-hero">
         <span className="eyebrow">{toTurkishUpper("Kıyaslama")}</span>
         <p className="muted small" style={{ marginBottom: 0 }}>{test.name}</p>
 
@@ -93,9 +94,9 @@ export function ComparisonPage() {
             ? `İki taraf arasında ${rsiGap} puanlık belirgin bir genel algı farkı var.`
             : "Genel skorlar birbirine yakın; büyük bir algı farkı görünmüyor."}
         </p>
-      </div>
+      </Reveal>
 
-      <div className="card actions-card no-print">
+      <Reveal className="card actions-card no-print">
         <div className="actions-row">
           <Link to="/" className="btn secondary">
             Anasayfaya Dön
@@ -113,7 +114,7 @@ export function ComparisonPage() {
             {copied ? "Kopyalandı!" : "Bağlantıyı kopyala"}
           </button>
         </div>
-      </div>
+      </Reveal>
 
       <h2>Boyut Bazında Kıyaslama</h2>
       {Object.keys(test.dimensions).map((dim) => {
@@ -129,7 +130,7 @@ export function ComparisonPage() {
           ? `${lowerLabel} bu alanı daha dengesiz algılıyor: ${test.dimensions[dim].interpretation[interpBandOf(lowerScore)]}`
           : `İki taraf bu alanı benzer algılıyor (${gap} puan fark): ${test.dimensions[dim].interpretation[interpBandOf(avgScore)]}`;
         return (
-          <div className="card compare-dim" key={dim}>
+          <Reveal className="card compare-dim" key={dim}>
             <h3>
               {test.dimensions[dim].name}
               {hasGap && <span className="tag low">algı farkı {gap}</span>}
@@ -155,17 +156,17 @@ export function ComparisonPage() {
             <p className="small muted" style={{ margin: "10px 0 0" }}>
               {assessment}
             </p>
-          </div>
+          </Reveal>
         );
       })}
 
-      <div className="disclaimer">
+      <Reveal className="disclaimer">
         <span className="eyebrow">{toTurkishUpper("Teşhis değil")}</span>
         <p>
           Bu kıyaslama teşhis değildir; yalnızca iki tarafın aynı ilişkiyi ne kadar benzer ya da
           farklı algıladığını gösterir. Büyük farklar konuşmaya değer bir başlangıç noktasıdır.
         </p>
-      </div>
+      </Reveal>
 
       <AppCta variant="compact" />
 

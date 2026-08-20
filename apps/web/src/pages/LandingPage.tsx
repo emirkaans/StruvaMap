@@ -6,6 +6,7 @@ import { toTurkishUpper } from "../lib/text";
 import { Header } from "../components/Header";
 import { Footer } from "../components/Footer";
 import { AppCta } from "../components/AppCta";
+import { Reveal } from "../components/Reveal";
 import heykelRomantic from "../assets/heykel-romantik.webp";
 import heykelFriendship from "../assets/heykel-arkadaslik.webp";
 import heykelWork from "../assets/heykel-is.webp";
@@ -271,7 +272,7 @@ export function LandingPage() {
 
       <div className="wrap" style={{ paddingTop: 4 }}>
         {activeTest && (
-          <div className="stats-row">
+          <Reveal group className="stats-row">
             <div className="stat">
               <b>{Object.keys(activeTest.dimensions).length}</b>
               <span>Boyut · {HERO_CONTENT[activeTest.id].dimNote}</span>
@@ -284,28 +285,28 @@ export function LandingPage() {
               <b>~{parseMinutes(activeTest.subtitle)}dk</b>
               <span>Ortalama tamamlama süresi</span>
             </div>
-          </div>
+          </Reveal>
         )}
 
-        <div className="disclaimer">
+        <Reveal className="disclaimer">
           <span className="eyebrow">{toTurkishUpper("Teşhis değil")}</span>
           <p>
             Bu skor <em>"%X sağlıklı"</em> anlamına gelmez. İncelenen
             sosyal-yapısal alanlardaki denge ve uyum düzeyini gösterir;
             tanımlayıcı bir sosyolojik haritadır.
           </p>
-        </div>
+        </Reveal>
 
         {activeTest && (
           <section className="dims-section" id="ne-olcuyoruz">
-            <div className="section-head">
+            <Reveal className="section-head">
               <span className="eyebrow">{toTurkishUpper("Metodoloji")}</span>
               <h2>
                 {Object.keys(activeTest.dimensions).length} boyutu,{" "}
                 {Object.keys(activeTest.indices).length} endekste ölçüyoruz.
               </h2>
-            </div>
-            <div className="dims-grid">
+            </Reveal>
+            <Reveal group className="dims-grid">
               {Object.values(activeTest.dimensions).map((dim) => (
                 <div className="dim-card" key={dim.id}>
                   <span className="dim-tag">
@@ -315,7 +316,7 @@ export function LandingPage() {
                   <p>{dim.short}</p>
                 </div>
               ))}
-            </div>
+            </Reveal>
           </section>
         )}
 

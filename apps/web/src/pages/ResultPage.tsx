@@ -8,6 +8,7 @@ import { Bar, Donut, Radar, TrendChart, bandHex, bandOf } from "../components/ch
 import { Header } from "../components/Header";
 import { Footer } from "../components/Footer";
 import { AppCta } from "../components/AppCta";
+import { Reveal } from "../components/Reveal";
 
 function buildShareSvg(test: TestDefinition, r: ScoreResult): string {
   const W = 600;
@@ -132,7 +133,7 @@ export function ResultPage() {
     <main className="wrap">
       <Header className="no-print" />
 
-      <div className="score-hero">
+      <Reveal className="score-hero">
         <span className="eyebrow">{toTurkishUpper(test.name)}</span>
         <div className="gauge">
           <Donut value={r.rsi} size={172} stroke={14} label="İlişki Yapısı Skoru" />
@@ -146,19 +147,19 @@ export function ResultPage() {
         <p className="small muted" style={{ maxWidth: 440, margin: "12px auto 0" }}>
           Bu puan incelenen alanlardaki denge/uyum düzeyini gösterir; "ilişki sağlığı yüzdesi" değildir.
         </p>
-      </div>
+      </Reveal>
 
       {comparisonId && (
-        <div className="card no-print" style={{ textAlign: "center" }}>
+        <Reveal className="card no-print" style={{ textAlign: "center" }}>
           <h3 style={{ marginBottom: 8 }}>Kıyaslama hazır</h3>
           <p className="small muted">Seni davet eden kişinin sonucuyla yan yana karşılaştırma.</p>
           <Link to={`/comparisons/${comparisonId}`} className="btn">
             Kıyaslamayı gör
           </Link>
-        </div>
+        </Reveal>
       )}
 
-      <div className="card actions-card no-print">
+      <Reveal className="card actions-card no-print">
         <div className="actions-row">
           <Link to="/" className="btn secondary">
             Anasayfaya Dön
@@ -203,9 +204,9 @@ export function ResultPage() {
             çözdüğünde ikinizin cevapları kıyaslama sayfasında yan yana gösterilir.
           </p>
         )}
-      </div>
+      </Reveal>
 
-      <div className="indices">
+      <Reveal group className="indices">
         {Object.entries(test.indices).map(([key, idx]) => (
           <div className="index-card" key={key}>
             <div className="donut-ring">
@@ -217,16 +218,16 @@ export function ResultPage() {
             <div className="l">{idx.name}</div>
           </div>
         ))}
-      </div>
+      </Reveal>
 
       <h2>Boyutlar</h2>
-      <div className="card radar-card">
+      <Reveal className="card radar-card">
         <Radar
           dimensions={r.dimensions}
           labels={Object.fromEntries(Object.keys(test.dimensions).map((k) => [k, test.dimensions[k].name]))}
         />
-      </div>
-      <div className="card">
+      </Reveal>
+      <Reveal group className="card">
         {Object.keys(test.dimensions).map((dim) => {
           const satisfaction = r.satisfaction?.[dim];
           const imbalancedButSatisfied =
@@ -243,9 +244,9 @@ export function ResultPage() {
             </div>
           );
         })}
-      </div>
+      </Reveal>
 
-      <div className="split-row">
+      <Reveal group className="split-row">
         <div className="split-col strengths">
           <h3>En güçlü alanlar</h3>
           <ul>{strengthList}</ul>
@@ -254,10 +255,10 @@ export function ResultPage() {
           <h3>Yapısal gerilim alanları</h3>
           <ul>{tensionList}</ul>
         </div>
-      </div>
+      </Reveal>
 
       <h2>Sosyolojik Yorum</h2>
-      <div className="card">
+      <Reveal group className="card">
         {interp.map((it) => (
           <div className="interp-item" key={it.dim}>
             <h3>
@@ -270,10 +271,10 @@ export function ResultPage() {
             </p>
           </div>
         ))}
-      </div>
+      </Reveal>
 
       <h2>Zamanla Değişim</h2>
-      <div className="card trend-card">
+      <Reveal className="card trend-card">
         {history && history.length >= 2 ? (
           <TrendChart
             history={history.map((h) => ({ ts: new Date(h.created_at).getTime(), rsi: h.score.rsi }))}
@@ -283,9 +284,9 @@ export function ResultPage() {
             Trend için bu testi tekrar çözün.
           </p>
         )}
-      </div>
+      </Reveal>
 
-      <div className="disclaimer">
+      <Reveal className="disclaimer">
         <span className="eyebrow">{toTurkishUpper("Teşhis değil")}</span>
         <p>
           Bu analiz tanımlayıcıdır. <em>"Toksik", "sağlıksız"</em> gibi etiketler kullanmaz; yalnızca
@@ -296,7 +297,7 @@ export function ResultPage() {
           araştırmaya değil tasarım kararına dayanır; bu klinik ya da tanısal bir araç değildir.
         </p>
         {test.disclaimerNote && <p className="small muted">{test.disclaimerNote}</p>}
-      </div>
+      </Reveal>
 
       <AppCta variant="compact" />
 
