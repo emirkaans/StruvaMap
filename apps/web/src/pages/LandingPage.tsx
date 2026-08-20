@@ -10,6 +10,7 @@ import heykelRomantic from "../assets/heykel-romantik.webp";
 import heykelFriendship from "../assets/heykel-arkadaslik.webp";
 import heykelWork from "../assets/heykel-is.webp";
 import heykelFamily from "../assets/heykel-aile.webp";
+import heykelRoommate from "../assets/heykel-ev-arkadasi.webp";
 
 interface HeroContent {
   pillLabel: string;
@@ -68,6 +69,18 @@ const HERO_CONTENT: Record<string, HeroContent> = {
     image: heykelFamily,
     dimNote: "aile ilişkisini oluşturan alanlar",
     indexNote: "güç, emek, özerklik",
+  },
+  roommate: {
+    pillLabel: "Ev Arkadaşlığı",
+    headline: [
+      "Paylaşılan Çatı.",
+      "Ölçülebilir Denge.",
+      "Konuşulabilir Sınır.",
+    ],
+    lead: "Aynı evi paylaşmak, kirayı bölüşmenin ötesinde bir katmandır: ev işi, masraf, düzen ve mahremiyet dengesi. StruvaMap bu yapıyı görünür kılar.",
+    image: heykelRoommate,
+    dimNote: "ev arkadaşlığını oluşturan alanlar",
+    indexNote: "emek, uyum, sınırlar",
   },
 };
 
