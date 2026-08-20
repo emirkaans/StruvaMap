@@ -6,7 +6,8 @@
     "postinstall": "pnpm --filter @struva/shared build",
     "dev:web": "pnpm --filter @struva/web dev",
     "dev:api": "pnpm --filter @struva/api start:dev",
-    "build": "pnpm -r build"
+    "build": "pnpm -r build",
+    "test": "pnpm -r --if-present run test"
   },
   "packageManager": "pnpm@10.28.2"
 }
