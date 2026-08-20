@@ -12,6 +12,7 @@
   --good: #5fbf82;
   --warn: #d9a441;
   --bad: #e0715a;
+  --accent-glow: rgba(84, 112, 255, 0.35);
   --radius: 12px;
   --radius-lg: 22px;
   --maxw: 720px;
@@ -914,77 +915,199 @@ p {
   line-height: 1.55;
 }
 
-/* --- Landing: mobil uygulama çağrısı — .split-row'daki ince ayraç dilinin
-   tekrarı: web/uygulama sütunları gerçek bir kıyaslama, dekoratif kart değil. */
+/* --- Landing + sonuç/kıyaslama: mobil uygulama çağrısı — "cihaz" konsepti.
+   Anlatmak yerine gösterir: telefon çerçevesi uygulamanın gerçek skor
+   halkasını taşıyor. Sonuç/kıyaslama sayfalarında aynı fikir küçük bir
+   telefon rozetine iner (bkz. .app-cta-compact). */
 .app-cta {
   margin: 56px 0;
 }
-.app-cta-head {
-  margin-bottom: 22px;
-}
-.app-cta-head h2 {
+.app-cta h2 {
   font-family: "Archivo", sans-serif;
   font-weight: 800;
   font-size: clamp(1.4rem, 3vw, 1.9rem);
   letter-spacing: -0.01em;
-  margin: 8px 0 0;
+  margin: 8px 0 14px;
   color: var(--text);
 }
-.app-cta-cols {
+.app-cta-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  overflow: hidden;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 32px;
+  align-items: center;
 }
-.app-cta-col {
-  padding: 22px;
-}
-.app-cta-col + .app-cta-col {
-  border-left: 1px solid var(--border);
-}
-.app-cta-label {
-  display: block;
-  font-family: "IBM Plex Mono", ui-monospace, monospace;
-  font-size: 0.7rem;
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--muted);
-  margin-bottom: 14px;
-}
-.app-cta-col.is-upgrade .app-cta-label {
-  color: var(--accent);
-}
-.app-cta-col ul {
-  margin: 0;
+.app-cta-list {
+  margin: 0 0 24px;
   padding: 0;
   list-style: none;
 }
-.app-cta-col li {
+.app-cta-list li {
   padding: 9px 0;
   border-bottom: 1px solid var(--border);
   font-size: 0.94rem;
   color: var(--muted);
   line-height: 1.4;
 }
-.app-cta-col li:last-child {
+.app-cta-list li:last-child {
   border-bottom: none;
 }
-.app-cta-col.is-upgrade li {
-  color: var(--text);
-  font-weight: 600;
-}
 .app-cta-btn {
-  margin-top: 22px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 4px;
 }
-@media (max-width: 480px) {
-  .app-cta-cols {
+.play-glyph {
+  width: 17px;
+  height: 18px;
+  flex: none;
+  display: block;
+}
+
+.app-cta-stage {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  padding: 20px 0;
+}
+.app-cta-stage::before {
+  content: "";
+  position: absolute;
+  inset: -10% 8%;
+  background: radial-gradient(closest-side, var(--accent-glow), transparent 70%);
+  filter: blur(6px);
+  z-index: 0;
+}
+.app-cta-phone {
+  position: relative;
+  z-index: 1;
+  width: 172px;
+  aspect-ratio: 9 / 18.5;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 26px;
+  padding: 8px;
+  transform: rotate(-5deg);
+  box-shadow: 0 30px 50px rgba(0, 0, 0, 0.45);
+}
+.app-cta-screen {
+  position: relative;
+  height: 100%;
+  width: 100%;
+  background: var(--bg);
+  border-radius: 19px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 14px;
+  overflow: hidden;
+}
+.app-cta-notch {
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40px;
+  height: 5px;
+  border-radius: 99px;
+  background: var(--border);
+}
+.app-cta-donut {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: conic-gradient(var(--accent) 0turn 0.68turn, var(--border) 0.68turn 1turn);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.app-cta-donut span {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: var(--surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text);
+}
+.app-cta-bars {
+  display: flex;
+  gap: 4px;
+  align-items: flex-end;
+  height: 22px;
+}
+.app-cta-bars i {
+  width: 5px;
+  display: block;
+  background: var(--border);
+  border-radius: 2px;
+}
+.app-cta-bars i:nth-child(1) {
+  height: 40%;
+}
+.app-cta-bars i:nth-child(2) {
+  height: 90%;
+  background: var(--accent);
+}
+.app-cta-bars i:nth-child(3) {
+  height: 60%;
+}
+.app-cta-bars i:nth-child(4) {
+  height: 75%;
+  background: var(--accent);
+}
+.app-cta-bars i:nth-child(5) {
+  height: 30%;
+}
+.app-cta-caption {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 0.6rem;
+  color: var(--muted);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* --- Sonuç/kıyaslama sayfası: aynı "cihaz" fikri, küçük rozet olarak --- */
+.app-cta-compact {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+.app-cta-compact h2 {
+  font-size: 1.15rem;
+  margin: 6px 0 8px;
+}
+.app-cta-compact p {
+  max-width: 46ch;
+}
+.app-cta-phone-mini {
+  flex: none;
+  width: 34px;
+  height: 58px;
+  border-radius: 9px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.app-cta-phone-mini span {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: conic-gradient(var(--accent) 0turn 0.68turn, var(--border) 0.68turn 1turn);
+}
+
+@media (max-width: 620px) {
+  .app-cta-grid {
     grid-template-columns: 1fr;
-  }
-  .app-cta-col + .app-cta-col {
-    border-left: none;
-    border-top: 1px solid var(--border);
   }
 }
 

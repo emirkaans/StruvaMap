@@ -2,10 +2,10 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import type { TestDefinition } from "@struva/shared";
 import { fetchTests } from "../lib/api";
-import { PLAY_STORE_URL } from "../lib/config";
 import { toTurkishUpper } from "../lib/text";
 import { Header } from "../components/Header";
 import { Footer } from "../components/Footer";
+import { AppCta } from "../components/AppCta";
 import heykelRomantic from "../assets/heykel-romantik.webp";
 import heykelFriendship from "../assets/heykel-arkadaslik.webp";
 import heykelWork from "../assets/heykel-is.webp";
@@ -319,38 +319,7 @@ export function LandingPage() {
           </section>
         )}
 
-        <div className="app-cta">
-          <div className="app-cta-head">
-            <span className="eyebrow">{toTurkishUpper("Mobil uygulama")}</span>
-            <h2>Web Yüzeyi Ölçer. Uygulama Derini.</h2>
-          </div>
-          <div className="app-cta-cols">
-            <div className="app-cta-col">
-              <span className="app-cta-label">Web</span>
-              <ul>
-                <li>{heroTests.length || 4} ilişki testi</li>
-                <li>Anlık skor, radar, trend grafiği</li>
-                <li>Bağlantıyla kıyaslama</li>
-              </ul>
-            </div>
-            <div className="app-cta-col is-upgrade">
-              <span className="app-cta-label">Uygulama</span>
-              <ul>
-                <li>Ekonomik güç &amp; duygusal emek</li>
-                <li>Yaşam tarzı uyumu</li>
-                <li>"İstenen yapı vs mevcut yapı" farkı</li>
-              </ul>
-            </div>
-          </div>
-          <a
-            href={PLAY_STORE_URL}
-            className="btn app-cta-btn"
-            target="_blank"
-            rel="noopener"
-          >
-            Google Play'den İndir →
-          </a>
-        </div>
+        <AppCta variant="full" />
 
         <Footer />
       </div>

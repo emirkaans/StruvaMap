@@ -2,11 +2,12 @@ import { useEffect, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import type { ScoreResult, TestDefinition } from "@struva/shared";
 import { fetchResult, fetchResultHistory, fetchTest, type ResultRow } from "../lib/api";
-import { BRAND, PLAY_STORE_URL } from "../lib/config";
+import { BRAND } from "../lib/config";
 import { toTurkishUpper } from "../lib/text";
 import { Bar, Donut, Radar, TrendChart, bandHex, bandOf } from "../components/charts";
 import { Header } from "../components/Header";
 import { Footer } from "../components/Footer";
+import { AppCta } from "../components/AppCta";
 
 function buildShareSvg(test: TestDefinition, r: ScoreResult): string {
   const W = 600;
@@ -297,19 +298,7 @@ export function ResultPage() {
         {test.disclaimerNote && <p className="small muted">{test.disclaimerNote}</p>}
       </div>
 
-      <div className="app-cta no-print">
-        <div className="copy">
-          <span className="eyebrow">{toTurkishUpper("Mobil uygulama")}</span>
-          <h2>Bu yalnızca başlangıç.</h2>
-          <p>
-            Ekonomik güç, duygusal emek, yaşam tarzı uyumu ve "istenen yapı vs mevcut yapı" farkı gibi
-            derin analizler mobil uygulamada.
-          </p>
-        </div>
-        <a href={PLAY_STORE_URL} className="btn" target="_blank" rel="noopener">
-          Google Play'den İndir
-        </a>
-      </div>
+      <AppCta variant="compact" />
 
       <Footer />
     </main>

@@ -3,11 +3,11 @@ import { Link, useParams } from "react-router-dom";
 import type { TestDefinition } from "@struva/shared";
 import { bandOf as interpBandOf } from "@struva/shared";
 import { fetchComparison, fetchTest, type ComparisonRow } from "../lib/api";
-import { PLAY_STORE_URL } from "../lib/config";
 import { toTurkishUpper } from "../lib/text";
 import { Donut, bandOf } from "../components/charts";
 import { Header } from "../components/Header";
 import { Footer } from "../components/Footer";
+import { AppCta } from "../components/AppCta";
 
 const PERCEPTION_GAP_THRESHOLD = 20;
 
@@ -167,19 +167,7 @@ export function ComparisonPage() {
         </p>
       </div>
 
-      <div className="app-cta no-print">
-        <div className="copy">
-          <span className="eyebrow">{toTurkishUpper("Mobil uygulama")}</span>
-          <h2>Bu yalnızca başlangıç.</h2>
-          <p>
-            Ekonomik güç, duygusal emek, yaşam tarzı uyumu ve "istenen yapı vs mevcut yapı" farkı
-            gibi derin analizler mobil uygulamada.
-          </p>
-        </div>
-        <a href={PLAY_STORE_URL} className="btn" target="_blank" rel="noopener">
-          Google Play'den İndir
-        </a>
-      </div>
+      <AppCta variant="compact" />
 
       <Footer />
     </main>
