@@ -4,6 +4,7 @@ import { LandingPage } from "./pages/LandingPage";
 import { TestPage } from "./pages/TestPage";
 import { ResultPage } from "./pages/ResultPage";
 import { ComparisonPage } from "./pages/ComparisonPage";
+import { NotFoundPage } from "./pages/NotFoundPage";
 
 /* Admin panel lazy: @supabase/supabase-js istemcisi burada başlatılır ve
    VITE_SUPABASE_* değişkenlerini gerektirir — genel ziyaretçi bundle'ı bu
@@ -72,6 +73,8 @@ export function App() {
           </Suspense>
         }
       />
+
+      <Route path="*" element={<NotFoundPage />} />
     </Routes>
   );
 }
