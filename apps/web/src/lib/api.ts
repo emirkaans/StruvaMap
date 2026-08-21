@@ -135,6 +135,19 @@ export function fetchAdminEventsFunnel(from?: string, to?: string): Promise<Admi
   return adminRequest(`/admin/events/funnel${toQuery({ from, to })}`);
 }
 
+export function fetchAdminEventsDailyTotal(from?: string, to?: string): Promise<AdminEventDailyCount[]> {
+  return adminRequest(`/admin/events/daily-total${toQuery({ from, to })}`);
+}
+
+export interface AdminTestResultCount {
+  testId: string;
+  count: number;
+}
+
+export function fetchAdminResultsByTest(): Promise<AdminTestResultCount[]> {
+  return adminRequest(`/admin/results/by-test`);
+}
+
 export function fetchAdminResults(params: AdminListParams): Promise<AdminPaginated<ResultRow>> {
   return adminRequest(`/admin/results${toQuery({ ...params })}`);
 }

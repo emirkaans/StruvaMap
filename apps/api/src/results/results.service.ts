@@ -4,6 +4,11 @@ import { SupabaseService } from '../supabase/supabase.service';
 import { TestsService } from '../tests/tests.service';
 import { SubmitResultDto } from './submit-result.dto';
 
+export interface TestResultCount {
+  testId: string;
+  count: number;
+}
+
 export interface ResultRow {
   id: string;
   test_id: string;
@@ -94,5 +99,22 @@ export class ResultsService {
     if (error) throw new InternalServerErrorException(error.message);
 
     return { rows: (data ?? []) as ResultRow[], total: count ?? 0 };
+  }
+
+  /* Testler DB'de az sayıda (5) olduğundan tek tek count sorgusu — events
+     servisindeki countByName ile aynı pragmatik yaklaşım. */
+  async countByTest(): Promise<TestResultCount[]> {
+    const tests = await this.tests.listAll();
+    const counts = await Promise.all(
+      tests.map(async (test) => {
+        const { count, error } = await this.supabase.client
+          .from('results')
+          .select('*', { count: 'exact', head: true })
+          .eq('test_id', test.id);
+        if (error) throw new InternalServerErrorException(error.message);
+        return count ?? 0;
+      }),
+    );
+    return tests.map((test, i) => ({ testId: test.id, count: counts[i] }));
   }
 }

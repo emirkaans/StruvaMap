@@ -31,9 +31,19 @@ export class AdminController {
     return this.events.funnel(EVENT_NAMES, query.from, query.to);
   }
 
+  @Get('events/daily-total')
+  eventsDailyTotal(@Query() query: AdminEventsQueryDto) {
+    return this.events.dailyTotalTrend(query.from, query.to);
+  }
+
   @Get('results')
   listResults(@Query() query: AdminListDto) {
     return this.results.findAllPaginated(query);
+  }
+
+  @Get('results/by-test')
+  resultsByTest() {
+    return this.results.countByTest();
   }
 
   @Get('comparisons')

@@ -68,9 +68,26 @@ export class EventsService {
     const { data, error } = await query;
     if (error) throw new InternalServerErrorException(error.message);
 
+    return this.bucketByDay(data ?? []);
+  }
+
+  /* Özet panelindeki "son 7 gün" grafiği: olay adından bağımsız toplam
+     hacim. dailyTrend ile aynı bucketing mantığı, yalnızca isim filtresi yok. */
+  async dailyTotalTrend(from?: string, to?: string): Promise<EventDailyCount[]> {
+    let query = this.supabase.client.from('events').select('created_at');
+    if (from) query = query.gte('created_at', from);
+    if (to) query = query.lte('created_at', to);
+
+    const { data, error } = await query;
+    if (error) throw new InternalServerErrorException(error.message);
+
+    return this.bucketByDay(data ?? []);
+  }
+
+  private bucketByDay(rows: { created_at: string }[]): EventDailyCount[] {
     const buckets = new Map<string, number>();
-    for (const row of data ?? []) {
-      const date = (row.created_at as string).slice(0, 10);
+    for (const row of rows) {
+      const date = row.created_at.slice(0, 10);
       buckets.set(date, (buckets.get(date) ?? 0) + 1);
     }
 
