@@ -7,5 +7,6 @@ import { ComparisonsService } from './comparisons.service';
   imports: [ResultsModule],
   controllers: [ComparisonsController],
   providers: [ComparisonsService],
+  exports: [ComparisonsService],
 })
 export class ComparisonsModule {}

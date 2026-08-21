@@ -7,6 +7,7 @@ import { TestsModule } from './tests/tests.module';
 import { ResultsModule } from './results/results.module';
 import { ComparisonsModule } from './comparisons/comparisons.module';
 import { EventsModule } from './events/events.module';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { EventsModule } from './events/events.module';
     ResultsModule,
     ComparisonsModule,
     EventsModule,
+    AdminModule,
   ],
   // SENTRY_DSN yoksa Sentry.init hiç çalışmadığı için bu filtre de sessiz kalır;
   // yakaladığı hatayı her koşulda normal Nest yanıtına çevirmeye devam eder.

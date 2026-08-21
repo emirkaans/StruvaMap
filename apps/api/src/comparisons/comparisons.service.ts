@@ -11,6 +11,19 @@ export interface ComparisonRow {
   created_at: string;
 }
 
+export interface FindAllComparisonsParams {
+  testId?: string;
+  from?: string;
+  to?: string;
+  page: number;
+  pageSize: number;
+}
+
+export interface PaginatedComparisons {
+  rows: ComparisonRow[];
+  total: number;
+}
+
 @Injectable()
 export class ComparisonsService {
   constructor(
@@ -54,5 +67,25 @@ export class ComparisonsService {
     ]);
 
     return { id: row.id, testId: row.test_id, a, b };
+  }
+
+  async findAllPaginated(params: FindAllComparisonsParams): Promise<PaginatedComparisons> {
+    const { testId, from, to, page, pageSize } = params;
+    const offset = (page - 1) * pageSize;
+
+    let query = this.supabase.client
+      .from('comparisons')
+      .select('*', { count: 'exact' })
+      .order('created_at', { ascending: false })
+      .range(offset, offset + pageSize - 1);
+
+    if (testId) query = query.eq('test_id', testId);
+    if (from) query = query.gte('created_at', from);
+    if (to) query = query.lte('created_at', to);
+
+    const { data, count, error } = await query;
+    if (error) throw new InternalServerErrorException(error.message);
+
+    return { rows: (data ?? []) as ComparisonRow[], total: count ?? 0 };
   }
 }

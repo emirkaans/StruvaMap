@@ -13,6 +13,19 @@ export interface ResultRow {
   created_at: string;
 }
 
+export interface FindAllResultsParams {
+  testId?: string;
+  from?: string;
+  to?: string;
+  page: number;
+  pageSize: number;
+}
+
+export interface PaginatedResults {
+  rows: ResultRow[];
+  total: number;
+}
+
 @Injectable()
 export class ResultsService {
   constructor(
@@ -61,5 +74,25 @@ export class ResultsService {
 
     if (error) throw new InternalServerErrorException(error.message);
     return (data ?? []) as ResultRow[];
+  }
+
+  async findAllPaginated(params: FindAllResultsParams): Promise<PaginatedResults> {
+    const { testId, from, to, page, pageSize } = params;
+    const offset = (page - 1) * pageSize;
+
+    let query = this.supabase.client
+      .from('results')
+      .select('*', { count: 'exact' })
+      .order('created_at', { ascending: false })
+      .range(offset, offset + pageSize - 1);
+
+    if (testId) query = query.eq('test_id', testId);
+    if (from) query = query.gte('created_at', from);
+    if (to) query = query.lte('created_at', to);
+
+    const { data, count, error } = await query;
+    if (error) throw new InternalServerErrorException(error.message);
+
+    return { rows: (data ?? []) as ResultRow[], total: count ?? 0 };
   }
 }

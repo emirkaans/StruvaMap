@@ -1399,3 +1399,131 @@ p {
     box-shadow: none;
   }
 }
+
+/* Admin paneli */
+.admin-wrap {
+  max-width: 960px;
+}
+.admin-login-wrap {
+  max-width: 380px;
+}
+
+.admin-nav {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 14px 0;
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+}
+.admin-nav a {
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 0.92rem;
+}
+.admin-nav a.active {
+  color: var(--text);
+  font-weight: 600;
+}
+.admin-nav-logout {
+  margin-left: auto;
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 0.92rem;
+  padding: 0;
+}
+.admin-nav-logout:hover {
+  color: var(--text);
+}
+
+.admin-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 14px;
+  margin-bottom: 24px;
+}
+.admin-stat-tile {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.admin-stat-value {
+  font-size: 1.9rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.admin-stat-label {
+  color: var(--muted);
+  font-size: 0.86rem;
+}
+
+.admin-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+.admin-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.86rem;
+  color: var(--muted);
+}
+.admin-field-inline {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+.admin-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.admin-input {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  padding: 9px 12px;
+  font-size: 0.94rem;
+  font-family: inherit;
+}
+.admin-input:focus {
+  outline: 1px solid var(--accent);
+}
+.admin-error {
+  color: var(--bad);
+  font-size: 0.88rem;
+  margin: 0;
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+.admin-table th,
+.admin-table td {
+  text-align: left;
+  padding: 9px 10px;
+  border-bottom: 1px solid var(--border);
+}
+.admin-table th {
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 0.82rem;
+}
+
+.admin-pagination {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 16px;
+}
