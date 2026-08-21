@@ -1527,3 +1527,53 @@ p {
   gap: 14px;
   margin-top: 16px;
 }
+
+.admin-test-edit-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.admin-array-row {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.admin-array-row-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.admin-remove-btn {
+  background: none;
+  border: none;
+  color: var(--bad);
+  cursor: pointer;
+  font-size: 0.86rem;
+  padding: 0;
+}
+.admin-remove-btn:hover {
+  opacity: 0.8;
+}
+.admin-array-add {
+  margin-bottom: 16px;
+}
+
+.admin-option-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 6px;
+}
+.admin-option-row .admin-input {
+  flex: 1;
+}
+.admin-option-score {
+  min-width: 28px;
+  text-align: right;
+}
+
+textarea.admin-input {
+  resize: vertical;
+}

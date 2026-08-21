@@ -16,6 +16,8 @@ const AdminDashboardPage = lazy(() => import("./pages/admin/AdminDashboardPage")
 const AdminEventsPage = lazy(() => import("./pages/admin/AdminEventsPage").then((m) => ({ default: m.AdminEventsPage })));
 const AdminResultsPage = lazy(() => import("./pages/admin/AdminResultsPage").then((m) => ({ default: m.AdminResultsPage })));
 const AdminComparisonsPage = lazy(() => import("./pages/admin/AdminComparisonsPage").then((m) => ({ default: m.AdminComparisonsPage })));
+const AdminTestsPage = lazy(() => import("./pages/admin/AdminTestsPage").then((m) => ({ default: m.AdminTestsPage })));
+const AdminTestEditPage = lazy(() => import("./pages/admin/AdminTestEditPage").then((m) => ({ default: m.AdminTestEditPage })));
 
 export function App() {
   return (
@@ -69,6 +71,27 @@ export function App() {
           <Suspense fallback={null}>
             <AdminRoute>
               <AdminComparisonsPage />
+            </AdminRoute>
+          </Suspense>
+        }
+      />
+
+      <Route
+        path="/admin/tests"
+        element={
+          <Suspense fallback={null}>
+            <AdminRoute>
+              <AdminTestsPage />
+            </AdminRoute>
+          </Suspense>
+        }
+      />
+      <Route
+        path="/admin/tests/:testId"
+        element={
+          <Suspense fallback={null}>
+            <AdminRoute>
+              <AdminTestEditPage />
             </AdminRoute>
           </Suspense>
         }

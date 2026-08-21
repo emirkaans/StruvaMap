@@ -40,7 +40,17 @@ create index if not exists events_name_idx on events (name);
 create index if not exists events_created_at_idx on events (created_at);
 create index if not exists events_session_id_idx on events (session_id);
 
+-- Quiz içeriği: eskiden @struva/shared içinde koda gömülüydü, artık admin
+-- panelinden düzenlenebilsin diye DB'de. definition = TestDefinition (bkz.
+-- packages/shared/src/types.ts) birebir JSON'u.
+create table if not exists tests (
+  id text primary key,
+  definition jsonb not null,
+  updated_at timestamptz not null default now()
+);
+
 alter table results enable row level security;
 alter table comparisons enable row level security;
 alter table events enable row level security;
+alter table tests enable row level security;
 -- Politika yok: yalnızca service-role key (backend) erişebilir.

@@ -144,3 +144,10 @@ export function fetchAdminComparisons(
 ): Promise<AdminPaginated<AdminComparisonRow>> {
   return adminRequest(`/admin/comparisons${toQuery({ ...params })}`);
 }
+
+export function updateAdminTest(testId: string, definition: TestDefinition): Promise<TestDefinition> {
+  return adminRequest(`/admin/tests/${testId}`, {
+    method: "PUT",
+    body: JSON.stringify({ definition }),
+  });
+}

@@ -6,12 +6,12 @@ export class TestsController {
   constructor(private readonly testsService: TestsService) {}
 
   @Get()
-  list() {
+  async list() {
     return this.testsService.listAll();
   }
 
   @Get(':testId')
-  getOne(@Param('testId') testId: string) {
+  async getOne(@Param('testId') testId: string) {
     return this.testsService.getById(testId);
   }
 }
