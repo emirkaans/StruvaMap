@@ -1,6 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
-import { OPTION_SETS, type Band, type Dimension, type IndexDef, type Question, type TestDefinition } from "@struva/shared";
+import {
+  OPTION_SETS,
+  type Band,
+  type ConditionalNote,
+  type ContextQuestion,
+  type Dimension,
+  type IndexDef,
+  type Question,
+  type TestDefinition,
+} from "@struva/shared";
 import { AdminNav } from "../../components/AdminRoute";
 import { fetchTest, updateAdminTest } from "../../lib/api";
 
@@ -33,6 +42,7 @@ export function AdminTestEditPage() {
 
   const indexEntries = useMemo(() => (def ? Object.entries(def.indices) : []), [def]);
   const dimensionEntries = useMemo(() => (def ? Object.entries(def.dimensions) : []), [def]);
+  const contextQuestions = def?.contextQuestions ?? [];
 
   if (!def) {
     return (
@@ -124,6 +134,142 @@ export function AdminTestEditPage() {
       delete dimensions[id];
       return { ...d, dimensions };
     });
+  }
+
+  function updateContextQuestion<K extends keyof ContextQuestion>(id: string, field: K, value: ContextQuestion[K]) {
+    setDef((d) =>
+      d
+        ? { ...d, contextQuestions: (d.contextQuestions ?? []).map((cq) => (cq.id === id ? { ...cq, [field]: value } : cq)) }
+        : d,
+    );
+  }
+
+  function addContextQuestion() {
+    setDef((d) => {
+      if (!d) return d;
+      const existing = new Set((d.contextQuestions ?? []).map((cq) => cq.id));
+      const id = uniqueId("baglam", existing);
+      const cq: ContextQuestion = { id, text: "", options: [{ label: "Seçenek 1", value: "a" }, { label: "Seçenek 2", value: "b" }] };
+      return { ...d, contextQuestions: [...(d.contextQuestions ?? []), cq] };
+    });
+  }
+
+  function removeContextQuestion(id: string) {
+    setDef((d) => (d ? { ...d, contextQuestions: (d.contextQuestions ?? []).filter((cq) => cq.id !== id) } : d));
+  }
+
+  function updateContextOption(cqId: string, optionIndex: number, field: "label" | "value", value: string) {
+    setDef((d) =>
+      d
+        ? {
+            ...d,
+            contextQuestions: (d.contextQuestions ?? []).map((cq) =>
+              cq.id === cqId
+                ? { ...cq, options: cq.options.map((o, i) => (i === optionIndex ? { ...o, [field]: value } : o)) }
+                : cq,
+            ),
+          }
+        : d,
+    );
+  }
+
+  function addContextOption(cqId: string) {
+    setDef((d) =>
+      d
+        ? {
+            ...d,
+            contextQuestions: (d.contextQuestions ?? []).map((cq) =>
+              cq.id === cqId ? { ...cq, options: [...cq.options, { label: "Yeni seçenek", value: `v${cq.options.length + 1}` }] } : cq,
+            ),
+          }
+        : d,
+    );
+  }
+
+  function removeContextOption(cqId: string, optionIndex: number) {
+    setDef((d) =>
+      d
+        ? {
+            ...d,
+            contextQuestions: (d.contextQuestions ?? []).map((cq) =>
+              cq.id === cqId ? { ...cq, options: cq.options.filter((_, i) => i !== optionIndex) } : cq,
+            ),
+          }
+        : d,
+    );
+  }
+
+  function updateConditionalNote(dimId: string, index: number, field: keyof ConditionalNote, value: string) {
+    setDef((d) =>
+      d
+        ? {
+            ...d,
+            dimensions: {
+              ...d.dimensions,
+              [dimId]: {
+                ...d.dimensions[dimId],
+                conditionalNotes: (d.dimensions[dimId].conditionalNotes ?? []).map((n, i) =>
+                  i === index ? { ...n, [field]: value } : n,
+                ),
+              },
+            },
+          }
+        : d,
+    );
+  }
+
+  function addConditionalNote(dimId: string) {
+    setDef((d) => {
+      if (!d) return d;
+      const firstCq = contextQuestions[0];
+      const note: ConditionalNote = {
+        contextQuestionId: firstCq?.id ?? "",
+        whenValue: firstCq?.options[0]?.value ?? "",
+        band: "düşük",
+        note: "",
+      };
+      return {
+        ...d,
+        dimensions: {
+          ...d.dimensions,
+          [dimId]: { ...d.dimensions[dimId], conditionalNotes: [...(d.dimensions[dimId].conditionalNotes ?? []), note] },
+        },
+      };
+    });
+  }
+
+  function removeConditionalNote(dimId: string, index: number) {
+    setDef((d) =>
+      d
+        ? {
+            ...d,
+            dimensions: {
+              ...d.dimensions,
+              [dimId]: {
+                ...d.dimensions[dimId],
+                conditionalNotes: (d.dimensions[dimId].conditionalNotes ?? []).filter((_, i) => i !== index),
+              },
+            },
+          }
+        : d,
+    );
+  }
+
+  function updateQuestionRoleText(questionId: number, roleValue: string, text: string) {
+    setDef((d) =>
+      d
+        ? {
+            ...d,
+            questions: d.questions.map((q) => {
+              if (q.id !== questionId) return q;
+              const textByRole = { ...(q.textByRole ?? {}) };
+              if (text.trim()) textByRole[roleValue] = text;
+              else delete textByRole[roleValue];
+              return { ...q, textByRole: Object.keys(textByRole).length ? textByRole : undefined };
+            }),
+          }
+        : d,
+    );
   }
 
   function updateQuestion<K extends keyof Question>(id: number, field: K, value: Question[K]) {
@@ -232,6 +378,51 @@ export function AdminTestEditPage() {
         </label>
       </div>
 
+      <h2>Bağlam Soruları</h2>
+      <p className="small muted">Cevaplayanın rolüne (ör. ebeveyn/çocuk, yönetici/çalışan) göre soru metnini değiştirmek ya da boyut yorumuna koşullu not eklemek için kullanılır.</p>
+      {contextQuestions.map((cq) => (
+        <div className="card admin-array-row" key={cq.id}>
+          <div className="admin-array-row-head">
+            <span className="small muted">id: {cq.id}</span>
+            <button type="button" className="admin-remove-btn" onClick={() => removeContextQuestion(cq.id)}>
+              Sil
+            </button>
+          </div>
+          <label className="admin-field">
+            <span>Soru metni</span>
+            <input className="admin-input" value={cq.text} onChange={(e) => updateContextQuestion(cq.id, "text", e.target.value)} />
+          </label>
+          <div className="admin-field">
+            <span>Seçenekler</span>
+            {cq.options.map((opt, i) => (
+              <div className="admin-option-row" key={i}>
+                <input
+                  className="admin-input"
+                  placeholder="Etiket"
+                  value={opt.label}
+                  onChange={(e) => updateContextOption(cq.id, i, "label", e.target.value)}
+                />
+                <input
+                  className="admin-input"
+                  placeholder="Değer"
+                  value={opt.value}
+                  onChange={(e) => updateContextOption(cq.id, i, "value", e.target.value)}
+                />
+                <button type="button" className="admin-remove-btn" onClick={() => removeContextOption(cq.id, i)}>
+                  Sil
+                </button>
+              </div>
+            ))}
+            <button type="button" className="btn secondary admin-array-add" onClick={() => addContextOption(cq.id)}>
+              + Seçenek ekle
+            </button>
+          </div>
+        </div>
+      ))}
+      <button type="button" className="btn secondary admin-array-add" onClick={addContextQuestion}>
+        + Bağlam sorusu ekle
+      </button>
+
       <h2>Endeksler</h2>
       {indexEntries.map(([id, idx]) => (
         <div className="card admin-array-row" key={id}>
@@ -293,6 +484,65 @@ export function AdminTestEditPage() {
               />
             </label>
           ))}
+          <div className="admin-field">
+            <span>Koşullu notlar (opsiyonel — bağlam cevabına göre bu boyutun yorumuna eklenir)</span>
+            {(dim.conditionalNotes ?? []).map((note, i) => (
+              <div className="admin-array-row" key={i}>
+                <div className="admin-filters">
+                  <label className="admin-field admin-field-inline">
+                    <span>Bağlam sorusu</span>
+                    <select
+                      className="admin-input"
+                      value={note.contextQuestionId}
+                      onChange={(e) => updateConditionalNote(id, i, "contextQuestionId", e.target.value)}
+                    >
+                      {contextQuestions.map((cq) => (
+                        <option key={cq.id} value={cq.id}>
+                          {cq.text || cq.id}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="admin-field admin-field-inline">
+                    <span>Değer</span>
+                    <select
+                      className="admin-input"
+                      value={note.whenValue}
+                      onChange={(e) => updateConditionalNote(id, i, "whenValue", e.target.value)}
+                    >
+                      {(contextQuestions.find((cq) => cq.id === note.contextQuestionId)?.options ?? []).map((opt) => (
+                        <option key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="admin-field admin-field-inline">
+                    <span>Bant</span>
+                    <select className="admin-input" value={note.band} onChange={(e) => updateConditionalNote(id, i, "band", e.target.value)}>
+                      {BANDS.map((band) => (
+                        <option key={band} value={band}>
+                          {BAND_LABEL[band]}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                </div>
+                <textarea
+                  className="admin-input"
+                  rows={2}
+                  value={note.note}
+                  onChange={(e) => updateConditionalNote(id, i, "note", e.target.value)}
+                />
+                <button type="button" className="admin-remove-btn" onClick={() => removeConditionalNote(id, i)}>
+                  Sil
+                </button>
+              </div>
+            ))}
+            <button type="button" className="btn secondary admin-array-add" onClick={() => addConditionalNote(id)}>
+              + Koşullu not ekle
+            </button>
+          </div>
         </div>
       ))}
       <button type="button" className="btn secondary admin-array-add" onClick={addDimension}>
@@ -319,6 +569,24 @@ export function AdminTestEditPage() {
                 onChange={(e) => updateQuestion(q.id, "text", e.target.value)}
               />
             </label>
+            {contextQuestions.length > 0 && (
+              <div className="admin-field">
+                <span>Role göre metin (boş bırakılırsa yukarıdaki metin kullanılır)</span>
+                {contextQuestions.flatMap((cq) =>
+                  cq.options.map((opt) => (
+                    <label className="admin-field" key={`${cq.id}:${opt.value}`}>
+                      <span className="small muted">{opt.label}</span>
+                      <textarea
+                        className="admin-input"
+                        rows={2}
+                        value={q.textByRole?.[opt.value] ?? ""}
+                        onChange={(e) => updateQuestionRoleText(q.id, opt.value, e.target.value)}
+                      />
+                    </label>
+                  )),
+                )}
+              </div>
+            )}
             <div className="admin-filters">
               <label className="admin-field admin-field-inline">
                 <span>Boyut</span>
