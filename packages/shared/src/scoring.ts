@@ -2,7 +2,9 @@ import type {
   Answers,
   Band,
   ContextAnswers,
+  ContextQuestion,
   DimensionInterpretation,
+  Question,
   ScoreResult,
   ScoringThresholds,
   TestDefinition,
@@ -99,4 +101,28 @@ export function bandOf(score: number): Band {
   if (score >= 75) return "yüksek";
   if (score >= 55) return "orta";
   return "düşük";
+}
+
+/* textByRole anahtarları tekil (`"parent"`, `"under18"`) ya da contextQuestions
+   sırasına göre birleşik (`"parent:under18"`) olabilir. En özelden en genele
+   doğru düşer: tam birleşik anahtar → sadece ilk context değeri (role) →
+   tek tek her context değeri (bu da yaş-only anahtarı yakalar). */
+export function resolveQuestionText(
+  question: Question,
+  contextQuestions: ContextQuestion[],
+  contextAnswers?: ContextAnswers,
+): string {
+  const map = question.textByRole;
+  if (!map || !contextAnswers) return question.text;
+  const values = contextQuestions
+    .map((cq) => contextAnswers[cq.id])
+    .filter((v): v is string => !!v);
+  for (let take = values.length; take >= 1; take--) {
+    const key = values.slice(0, take).join(":");
+    if (map[key] != null) return map[key];
+  }
+  for (const v of values) {
+    if (map[v] != null) return map[v];
+  }
+  return question.text;
 }

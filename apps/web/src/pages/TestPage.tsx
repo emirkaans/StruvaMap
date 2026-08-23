@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import type { Answers, Question, TestDefinition } from "@struva/shared";
+import { resolveQuestionText, type Answers, type Question, type TestDefinition } from "@struva/shared";
 import { createComparison, fetchTest, submitResult } from "../lib/api";
 import { track } from "../lib/analytics";
 import { getOrCreateSessionId } from "../lib/session";
@@ -112,7 +112,7 @@ export function TestPage() {
   }
 
   const q = displayQuestions[i];
-  const qText = q.textByRole?.[contextAnswers["role"]] ?? q.text;
+  const qText = resolveQuestionText(q, contextQuestions, contextAnswers);
   const selected = answers[q.id];
   const isLast = i === displayQuestions.length - 1;
 

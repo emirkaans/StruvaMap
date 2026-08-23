@@ -92,6 +92,14 @@ const dimensions: Record<string, Dimension> = {
       düşük:
         "Duygusal emeğin belirgin biçimde bir tarafta yoğunlaştığı görülüyor.",
     },
+    conditionalNotes: [
+      {
+        contextQuestionId: "childAge",
+        whenValue: "under18",
+        band: "düşük",
+        note: "Not: çocuk 18 yaşından küçükse duygusal desteğin ağırlıklı olarak ebeveynden çocuğa akması yaşa uygun, gelişimsel olarak beklenen bir durumdur; tek başına sorun anlamına gelmez. Tersi yönde bir örüntü (çocuğun ebeveynini duygusal olarak desteklemesi/yatıştırması) ayrıca değerlendirilmelidir.",
+      },
+    ],
   },
   practicalSupport: {
     id: "practicalSupport",
@@ -104,6 +112,14 @@ const dimensions: Record<string, Dimension> = {
       orta: "Somut destek çoğunlukla karşılıklı, ancak bazı dönemlerde yük bir tarafa kayabiliyor.",
       düşük: "Pratik yükün belirgin biçimde bir tarafta toplandığı görülüyor.",
     },
+    conditionalNotes: [
+      {
+        contextQuestionId: "childAge",
+        whenValue: "under18",
+        band: "düşük",
+        note: "Not: çocuk 18 yaşından küçükse maddi ve pratik desteğin ağırlıklı olarak ebeveynden çocuğa akması yaşa uygun, gelişimsel olarak beklenen bir durumdur; tek başına sorun anlamına gelmez.",
+      },
+    ],
   },
   trust: {
     id: "trust",
@@ -221,12 +237,22 @@ const RAW_QUESTIONS: {
   {
     dim: "emotionalLabour",
     type: "likert",
-    text: "Zor bir dönemde moral desteği karşılıklı işler.",
+    text: "Zor bir dönemde ebeveynimle aramızda moral desteği karşılıklı işler.",
+    textByRole: {
+      "child:under18": "Zor bir dönemde ebeveynimden moral desteği alırım.",
+      "parent:under18": "Çocuğum zor bir dönemden geçerken ona moral desteği veririm.",
+    },
   },
   {
     dim: "emotionalLabour",
     type: "likert_reverse",
     text: "Duygusal olarak hep ben teselli ediyorum, bana aynı şekilde davranılmıyor.",
+    textByRole: {
+      "child:under18":
+        "Üzgün ya da kaygılı olduğumda ebeveynim beni teselli etmekte zorlanır ya da yetersiz kalır.",
+      "parent:under18":
+        "Çocuğumu duygusal olarak teselli etmekte zorlanıyorum ya da yetersiz kalıyorum.",
+    },
   },
   {
     dim: "emotionalLabour",
@@ -246,7 +272,7 @@ const RAW_QUESTIONS: {
   {
     dim: "emotionalLabour",
     type: "likert",
-    text: "Duygusal desteğin aramızdaki dağılımından memnunum.",
+    text: "Aramızdaki duygusal destekten memnunum.",
     satisfactionQuestion: true,
   },
 
@@ -254,22 +280,40 @@ const RAW_QUESTIONS: {
     dim: "practicalSupport",
     type: "likert",
     text: "İhtiyaç olduğunda (para, zaman, iş gücü) her iki taraf da birbirine destek olur.",
+    textByRole: {
+      "child:under18": "İhtiyacım olduğunda (zaman, ilgi, temel ihtiyaçlar) ebeveynimden destek görürüm.",
+      "parent:under18": "Çocuğumun ihtiyaç duyduğu zaman, ilgi ve temel ihtiyaçlarını karşılarım.",
+    },
   },
   {
     dim: "practicalSupport",
     type: "balance",
     text: "Pratik bir yardım gerektiğinde (taşınma, tamir, iş takibi, bakım) bunu genellikle kim üstlenir?",
+    textByRole: {
+      under18:
+        "Evle ilgili günlük pratik işlerde (temizlik, düzen, küçük görevler) çocuğun yaşına uygun bir pay üstlenmesi nasıl sağlanır — bunu genellikle kim üstlenir?",
+    },
   },
   {
     dim: "practicalSupport",
     type: "likert_reverse",
     text: "Hep ben yardım ediyorum, karşılığında aynı desteği görmüyorum.",
+    textByRole: {
+      "child:under18":
+        "Ebeveynimin bana verdiği desteğin karşılığında benden yaşımın üstünde bir şey beklendiğini hissederim.",
+      "parent:under18":
+        "Çocuğuma verdiğim destek karşılığında ondan yaşının üstünde bir şey beklediğimi fark ediyorum.",
+    },
   },
   {
     dim: "practicalSupport",
     type: "likert",
     text: "Maddi ya da pratik konularda yük adil paylaşılıyor.",
     satisfactionQuestion: true,
+    textByRole: {
+      "child:under18": "Maddi ve pratik ihtiyaçlarımın yeterince karşılandığını düşünüyorum.",
+      "parent:under18": "Çocuğumun maddi ve pratik ihtiyaçlarını yeterince karşılayabildiğimi düşünüyorum.",
+    },
   },
   {
     dim: "practicalSupport",
@@ -329,6 +373,10 @@ const RAW_QUESTIONS: {
     dim: "privacy",
     type: "likert",
     text: "Kişisel alanım (evim, eşyalarım, zamanım) bu ilişkide gözetilir.",
+    textByRole: {
+      child: "Kişisel alanım (evim, eşyalarım, zamanım) bu ilişkide gözetilir.",
+      parent: "Çocuğumun kişisel alanını (evini, eşyalarını, zamanını) gözetirim.",
+    },
   },
   {
     dim: "privacy",
@@ -355,11 +403,21 @@ const RAW_QUESTIONS: {
     dim: "privacy",
     type: "likert",
     text: "Bu ilişkide hayır dediğimde ya da sınır koyduğumda kendimi suçlu veya kötü hissetmiyorum.",
+    textByRole: {
+      child: "Bu ilişkide hayır dediğimde ya da sınır koyduğumda kendimi suçlu veya kötü hissetmiyorum.",
+      parent:
+        "Çocuğum hayır dediğinde ya da sınır koyduğunda bunu doğal karşılarım; onu suçlu ya da kötü hissettirmem.",
+    },
   },
   {
     dim: "privacy",
     type: "likert_reverse",
     text: "Mahremiyetimle ilgili sorular ya da müdahaleler rahatsız edici sıklıkta oluyor.",
+    textByRole: {
+      child: "Mahremiyetimle ilgili sorular ya da müdahaleler rahatsız edici sıklıkta oluyor.",
+      parent:
+        "Çocuğumun mahremiyetiyle ilgili sorularım ya da müdahalelerim onu rahatsız edecek sıklıkta oluyor.",
+    },
   },
 ];
 
