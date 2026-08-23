@@ -1,9 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
-import type { ScoreResult, TestDefinition } from "@struva/shared";
+import { composeProfileStory, computeProfileLabel, type ScoreResult, type TestDefinition } from "@struva/shared";
 import { fetchResult, fetchResultHistory, fetchTest, type ResultRow } from "../lib/api";
 import { track } from "../lib/analytics";
-import { BRAND } from "../lib/config";
 import { toTurkishUpper } from "../lib/text";
 import { Bar, Donut, Radar, TrendChart, bandHex, bandOf } from "../components/charts";
 import { Header } from "../components/Header";
@@ -11,36 +10,102 @@ import { Footer } from "../components/Footer";
 import { AppCta } from "../components/AppCta";
 import { Reveal } from "../components/Reveal";
 
-function buildShareSvg(test: TestDefinition, r: ScoreResult): string {
-  const W = 600;
-  const H = 240 + Object.keys(test.dimensions).length * 46 + 20;
-  let rows = "";
-  Object.keys(test.dimensions).forEach((d, i) => {
-    const y = 240 + i * 46;
+const SHARE_FONT = "Archivo,system-ui,sans-serif";
+const SHARE_BODY_FONT = "'Source Sans 3',system-ui,sans-serif";
+const SHARE_MONO_FONT = "'IBM Plex Mono',ui-monospace,monospace";
+
+/* Kelime bazlı basit satır sarma — SVG <text> otomatik sarmaz. Font/boyut
+   değişirse maxChars'ı ayarlamak yeterli, ölçüm yapmıyoruz (hız/basitlik). */
+function wrapText(text: string, maxChars: number): string[] {
+  const words = text.split(" ");
+  const lines: string[] = [];
+  let line = "";
+  for (const word of words) {
+    const candidate = line ? `${line} ${word}` : word;
+    if (candidate.length > maxChars && line) {
+      lines.push(line);
+      line = word;
+    } else {
+      line = candidate;
+    }
+  }
+  if (line) lines.push(line);
+  return lines;
+}
+
+function esc(s: string): string {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+function buildShareSvg(test: TestDefinition, r: ScoreResult, profile: { title: string; description: string }): string {
+  const W = 1080;
+  const PAD = 72;
+  const titleLines = wrapText(profile.title, 22);
+  const descLines = wrapText(profile.description, 62).slice(0, 2);
+
+  let y = 150;
+  const eyebrowY = y;
+  y += 64;
+  const titleStartY = y;
+  const titleLineHeight = 70;
+  y += titleLines.length * titleLineHeight;
+  y += 12;
+  const rsiY = y;
+  y += 56;
+  const descStartY = y;
+  const descLineHeight = 32;
+  y += descLines.length * descLineHeight;
+  y += 40;
+  const dividerY = y;
+  y += 48;
+  const barsStartY = y;
+  const barRowHeight = 58;
+  const dimIds = Object.keys(test.dimensions);
+  y += dimIds.length * barRowHeight;
+  y += 60; // alt boşluk + footer
+
+  const H = y;
+
+  const titleSvg = titleLines
+    .map((line, i) => `<tspan x="${PAD}" y="${titleStartY + i * titleLineHeight}">${esc(line)}</tspan>`)
+    .join("");
+  const descSvg = descLines
+    .map((line, i) => `<tspan x="${PAD}" y="${descStartY + i * descLineHeight}">${esc(line)}</tspan>`)
+    .join("");
+
+  let bars = "";
+  dimIds.forEach((d, i) => {
+    const rowY = barsStartY + i * barRowHeight;
     const val = r.dimensions[d];
-    rows +=
-      `<text x="40" y="${y}" font-size="16" fill="#1c1c1a" font-family="system-ui,sans-serif">${test.dimensions[d].name}</text>` +
-      `<rect x="220" y="${y - 14}" width="340" height="10" rx="5" fill="#e4e4df"/>` +
-      `<rect x="220" y="${y - 14}" width="${((340 * val) / 100).toFixed(1)}" height="10" rx="5" fill="${bandHex(val)}"/>` +
-      `<text x="570" y="${y}" font-size="14" fill="#6b6b66" text-anchor="end" font-family="system-ui,sans-serif">${val}</text>`;
+    const barW = W - PAD * 2 - 60;
+    bars +=
+      `<text x="${PAD}" y="${rowY}" font-size="19" fill="#ecedef" font-family="${SHARE_BODY_FONT}">${esc(test.dimensions[d].name)}</text>` +
+      `<text x="${W - PAD}" y="${rowY}" font-size="17" fill="#9092a0" text-anchor="end" font-family="${SHARE_MONO_FONT}">${val}</text>` +
+      `<rect x="${PAD}" y="${rowY + 12}" width="${barW}" height="10" rx="5" fill="#20222b"/>` +
+      `<rect x="${PAD}" y="${rowY + 12}" width="${((barW * val) / 100).toFixed(1)}" height="10" rx="5" fill="${bandHex(val)}"/>`;
   });
+
   return (
     `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">` +
-    `<rect width="${W}" height="${H}" fill="#ffffff"/>` +
-    `<text x="40" y="56" font-size="24" font-weight="700" fill="#1c1c1a" font-family="system-ui,sans-serif">${BRAND}</text>` +
-    `<text x="40" y="82" font-size="13" fill="#6b6b66" font-family="system-ui,sans-serif">${test.name}</text>` +
-    `<text x="40" y="170" font-size="72" font-weight="800" fill="#3a5a78" font-family="system-ui,sans-serif">${r.rsi}` +
-    `<tspan font-size="20" fill="#6b6b66"> / 100</tspan></text>` +
-    `<text x="40" y="216" font-size="15" fill="#1c1c1a" font-weight="600" font-family="system-ui,sans-serif">Boyutlar</text>` +
-    rows +
+    `<rect width="${W}" height="${H}" fill="#0b0c10"/>` +
+    `<text x="${PAD}" y="${eyebrowY}" font-size="20" font-weight="600" letter-spacing="2.5" fill="#5470ff" font-family="${SHARE_MONO_FONT}">${esc(test.name.toUpperCase())}</text>` +
+    `<text font-size="58" font-weight="800" fill="#ecedef" font-family="${SHARE_FONT}">${titleSvg}</text>` +
+    `<text x="${PAD}" y="${rsiY}" font-size="40" font-weight="500" fill="#ecedef" font-family="${SHARE_MONO_FONT}">${r.rsi}<tspan font-size="20" font-weight="600" fill="#9092a0"> / 100 · İlişki Yapısı Skoru</tspan></text>` +
+    `<text font-size="24" fill="#9092a0" font-family="${SHARE_BODY_FONT}">${descSvg}</text>` +
+    `<line x1="${PAD}" y1="${dividerY}" x2="${W - PAD}" y2="${dividerY}" stroke="#26272f" stroke-width="1"/>` +
+    bars +
+    `<text x="${PAD}" y="${H - 40}" font-size="22" font-weight="800" font-family="${SHARE_FONT}">` +
+    `<tspan fill="#ecedef">Struva</tspan><tspan fill="#5470ff">Map</tspan></text>` +
+    `<text x="${W - PAD}" y="${H - 40}" font-size="16" fill="#9092a0" text-anchor="end" font-family="${SHARE_BODY_FONT}">struvamap.netlify.app</text>` +
     `</svg>`
   );
 }
 
-function downloadShareImage(test: TestDefinition, r: ScoreResult) {
-  const svgStr = buildShareSvg(test, r);
-  const W = 600;
-  const H = 240 + Object.keys(test.dimensions).length * 46 + 20;
+function downloadShareImage(test: TestDefinition, r: ScoreResult, profile: { title: string; description: string }) {
+  const svgStr = buildShareSvg(test, r, profile);
+  const parsed = /width="(\d+)" height="(\d+)"/.exec(svgStr);
+  const W = parsed ? Number(parsed[1]) : 1080;
+  const H = parsed ? Number(parsed[2]) : 800;
   const blob = new Blob([svgStr], { type: "image/svg+xml;charset=utf-8" });
   const url = URL.createObjectURL(blob);
   const img = new Image();
@@ -112,6 +177,8 @@ export function ResultPage() {
   }
 
   const r = result.score;
+  const profile = computeProfileLabel(test.indices, r.indices);
+  const story = composeProfileStory(profile, r.interpretation, r.strengths, r.tensions);
 
   const strengthList = r.strengths.length
     ? r.strengths.map((d) => (
@@ -137,6 +204,8 @@ export function ResultPage() {
 
       <Reveal className="score-hero">
         <span className="eyebrow">{toTurkishUpper(test.name)}</span>
+        <h1 className="profile-title">{profile.title}</h1>
+        <p className="profile-desc">{story}</p>
         <div className="gauge">
           <Donut value={r.rsi} size={172} stroke={14} label="İlişki Yapısı Skoru" />
           <div className="overlay" aria-hidden="true">
@@ -181,7 +250,7 @@ export function ResultPage() {
             className="btn secondary"
             onClick={() => {
               track("share_image_download", { testId: test.id });
-              downloadShareImage(test, r);
+              downloadShareImage(test, r, profile);
             }}
           >
             Sonucu görsel indir

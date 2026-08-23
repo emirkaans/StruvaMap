@@ -44,17 +44,17 @@ const dimensions: Record<string, Dimension> = {
     index: "power",
     interpretation: {
       yüksek:
-        "Kararlar büyük ölçüde birlikte alınıyor; söz hakkı dengeli paylaşılmış görünüyor.",
-      orta: "Kararlar çoğunlukla paylaşılıyor, ancak bazı konularda söz hakkı tek tarafta yoğunlaşabiliyor.",
+        "Kararları çoğunlukla birlikte alıyorsunuz; söz hakkı dengeli görünüyor.",
+      orta: "Kararların çoğunu birlikte alıyorsunuz ama bazı konularda söz hakkı tek kişide toplanabiliyor.",
       düşük:
-        "Kararların belirgin biçimde tek tarafta toplandığı görülüyor. Bu bir 'karar asimetrisi' işaretidir.",
+        "Kararlar büyük ölçüde tek kişide toplanmış görünüyor.",
     },
     conditionalNotes: [
       {
         contextQuestionId: "childAge",
         whenValue: "under18",
         band: "düşük",
-        note: "Not: çocuk 18 yaşından küçükse düşük karar payı yaşa uygun, gelişimsel olarak beklenen bir durum olabilir; tek başına sorun anlamına gelmez.",
+        note: "Not: çocuk 18 yaşından küçükse kararlarda az söz hakkı olması yaşına göre normal olabilir; tek başına sorun anlamına gelmez.",
       },
     ],
   },
@@ -66,17 +66,17 @@ const dimensions: Record<string, Dimension> = {
     index: "power",
     interpretation: {
       yüksek:
-        "Konuşma karşılıklı akıyor; taraflar birbirini sözünü kesmeden dinliyor.",
-      orta: "Dinlenme çoğunlukla var, ancak zaman zaman söz kesilebiliyor ya da istenmeyen öğüt gelebiliyor.",
+        "Birbirinizi sözünü kesmeden dinliyorsunuz; konuşma karşılıklı işliyor.",
+      orta: "Genelde birbirinizi dinliyorsunuz ama bazen söz kesiliyor ya da istenmeyen öğüt geliyor.",
       düşük:
-        "Konuşmada belirgin bir taraf hep konuşan, diğeri hep dinleyen konumda kalıyor.",
+        "Genelde bir taraf hep konuşuyor, diğeri hep dinliyor.",
     },
     conditionalNotes: [
       {
         contextQuestionId: "childAge",
         whenValue: "under18",
         band: "düşük",
-        note: "Not: çocuk 18 yaşından küçükse ebeveynin yönlendirici konuşması (öğüt, yönlendirme) yaşa uygun bir ebeveynlik biçimi olabilir; tek başına sorun anlamına gelmez.",
+        note: "Not: çocuk 18 yaşından küçükse ebeveynin çok konuşup yönlendirmesi yaşına göre normal olabilir; tek başına sorun anlamına gelmez.",
       },
     ],
   },
@@ -87,17 +87,17 @@ const dimensions: Record<string, Dimension> = {
     index: "labour",
     interpretation: {
       yüksek:
-        "Duygusal destek karşılıklı akıyor; teselli etme emeği tek tarafta yığılmıyor.",
-      orta: "Destek çoğunlukla karşılıklı, ancak bazı dönemlerde bir taraf daha çok veren konumda kalıyor.",
+        "Zor zamanlarda birbirinize destek oluyorsunuz; teselli etme işi tek kişiye kalmıyor.",
+      orta: "Çoğunlukla birbirinize destek oluyorsunuz ama bazen bir taraf daha çok veren konumda kalıyor.",
       düşük:
-        "Duygusal emeğin belirgin biçimde bir tarafta yoğunlaştığı görülüyor.",
+        "Duygusal desteğin çoğu tek bir kişiden geliyor gibi görünüyor.",
     },
     conditionalNotes: [
       {
         contextQuestionId: "childAge",
         whenValue: "under18",
         band: "düşük",
-        note: "Not: çocuk 18 yaşından küçükse duygusal desteğin ağırlıklı olarak ebeveynden çocuğa akması yaşa uygun, gelişimsel olarak beklenen bir durumdur; tek başına sorun anlamına gelmez. Tersi yönde bir örüntü (çocuğun ebeveynini duygusal olarak desteklemesi/yatıştırması) ayrıca değerlendirilmelidir.",
+        note: "Not: çocuk 18 yaşından küçükse duygusal desteğin çoğunlukla ebeveynden çocuğa gitmesi yaşına göre normaldir; tek başına sorun anlamına gelmez. Ama tam tersi oluyorsa (çocuk ebeveynini teselli ediyorsa) bu ayrıca konuşulmalı.",
       },
     ],
   },
@@ -108,16 +108,16 @@ const dimensions: Record<string, Dimension> = {
     index: "labour",
     interpretation: {
       yüksek:
-        "Somut destek (zaman, para, iş gücü) iki yönlü akıyor; yük tek tarafta yığılmıyor.",
-      orta: "Somut destek çoğunlukla karşılıklı, ancak bazı dönemlerde yük bir tarafa kayabiliyor.",
-      düşük: "Pratik yükün belirgin biçimde bir tarafta toplandığı görülüyor.",
+        "Zaman, para, iş gücü gibi somut yardım iki yönlü akıyor; yük tek kişiye kalmıyor.",
+      orta: "Çoğunlukla karşılıklı yardımlaşıyorsunuz ama bazen yük bir tarafa kayabiliyor.",
+      düşük: "Pratik yükün çoğu tek bir kişide toplanmış görünüyor.",
     },
     conditionalNotes: [
       {
         contextQuestionId: "childAge",
         whenValue: "under18",
         band: "düşük",
-        note: "Not: çocuk 18 yaşından küçükse maddi ve pratik desteğin ağırlıklı olarak ebeveynden çocuğa akması yaşa uygun, gelişimsel olarak beklenen bir durumdur; tek başına sorun anlamına gelmez.",
+        note: "Not: çocuk 18 yaşından küçükse maddi ve pratik desteğin çoğunlukla ebeveynden çocuğa gitmesi yaşına göre normaldir; tek başına sorun anlamına gelmez.",
       },
     ],
   },
@@ -128,10 +128,10 @@ const dimensions: Record<string, Dimension> = {
     index: "autonomy",
     interpretation: {
       yüksek:
-        "Güven baskın; sürekli kontrol ya da denetleme ihtiyacı hissedilmiyor.",
-      orta: "Güven çoğunlukla var, ancak bazı konularda kontrol öne çıkabiliyor.",
+        "Güven ön planda; sürekli kontrol etme ya da denetleme ihtiyacı yok.",
+      orta: "Genelde güven var ama bazı konularda kontrol etme isteği öne çıkabiliyor.",
       düşük:
-        "Kontrol eğilimi belirgin; güven yerine sürekli denetim öne çıkıyor görünüyor.",
+        "Güvenmek yerine sürekli kontrol etme/denetleme öne çıkıyor görünüyor.",
     },
   },
   privacy: {
@@ -140,9 +140,9 @@ const dimensions: Record<string, Dimension> = {
     short: "Kişisel sınırlar ve mahremiyet korunuyor mu?",
     index: "autonomy",
     interpretation: {
-      yüksek: "Kişisel alan ve mahremiyet büyük ölçüde korunuyor.",
-      orta: "Özel alan çoğunlukla korunuyor, ancak zaman zaman ihlal edilebiliyor.",
-      düşük: "Kişisel alana ya da mahremiyete belirgin bir taşma görülüyor.",
+      yüksek: "Kişisel alanınıza ve mahremiyetinize büyük ölçüde saygı gösteriliyor.",
+      orta: "Özel alan çoğunlukla korunuyor, ama zaman zaman buna girilebiliyor.",
+      düşük: "Kişisel alana ya da mahremiyete sık sık girildiği görülüyor.",
     },
   },
 };

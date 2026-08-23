@@ -24,10 +24,10 @@ const dimensions: Record<string, Dimension> = {
     index: "labour",
     interpretation: {
       yüksek:
-        "Ev işleri dengeli paylaşılıyor; günlük yük tek tarafta yığılmıyor.",
-      orta: "Ev işlerinin dağılımında ölçülü bir dengesizlik var; bazı işler bir tarafta daha çok toplanabiliyor.",
+        "Ev işlerini dengeli paylaşıyorsunuz; günlük yük tek kişiye kalmıyor.",
+      orta: "Ev işi dağılımında ölçülü bir dengesizlik var; bazı işler bir kişide daha çok toplanabiliyor.",
       düşük:
-        "Günlük ev işlerinin belirgin biçimde bir tarafta yoğunlaştığı görülüyor. Bu bir 'iş yükü asimetrisi' işaretidir.",
+        "Günlük ev işlerinin çoğu tek bir kişide toplanmış görünüyor.",
     },
   },
   expenses: {
@@ -36,10 +36,10 @@ const dimensions: Record<string, Dimension> = {
     short: "Kira, fatura, market gibi ortak giderler adil paylaşılıyor mu?",
     index: "labour",
     interpretation: {
-      yüksek: "Ortak masraflar adil ve düzenli biçimde paylaşılıyor.",
-      orta: "Masraf paylaşımında kısmi bir dengesizlik var; takip ya da hatırlatma bazen tek tarafa kalabiliyor.",
+      yüksek: "Ortak masrafları adil ve düzenli şekilde paylaşıyorsunuz.",
+      orta: "Masraf paylaşımında kısmi bir dengesizlik var; takip etmek/hatırlatmak bazen tek kişiye kalabiliyor.",
       düşük:
-        "Ortak masrafların takibi ve karşılanması belirgin biçimde bir tarafta toplanmış görünüyor.",
+        "Ortak masrafları takip etme ve ödeme işinin çoğu tek bir kişide toplanmış görünüyor.",
     },
   },
   standards: {
@@ -49,10 +49,10 @@ const dimensions: Record<string, Dimension> = {
     index: "harmony",
     interpretation: {
       yüksek:
-        "Temizlik ve düzen beklentileri büyük ölçüde örtüşüyor; ortak bir orta yol bulunabiliyor.",
-      orta: "Beklentilerde kısmi bir uyumsuzluk var; bazı konularda taraflardan biri diğerine uyum sağlamak zorunda kalıyor.",
+        "Temizlik ve düzen beklentileriniz büyük ölçüde örtüşüyor; ortak bir orta yol bulabiliyorsunuz.",
+      orta: "Beklentilerde kısmi bir uyumsuzluk var; bazı konularda biriniz diğerine uyum sağlamak zorunda kalıyor.",
       düşük:
-        "Temizlik/düzen standartları belirgin biçimde uyuşmuyor; uyum sağlama yükü tek tarafta görünüyor.",
+        "Temizlik/düzen beklentileriniz belirgin şekilde uyuşmuyor; uyum sağlama işi tek kişiye kalmış görünüyor.",
     },
   },
   communication: {
@@ -62,10 +62,10 @@ const dimensions: Record<string, Dimension> = {
     index: "harmony",
     interpretation: {
       yüksek:
-        "Ev ile ilgili sorunlar doğrudan ve açıkça konuşulabiliyor; gerginlikler birikmiyor.",
-      orta: "İletişim çoğunlukla açık, ancak bazı rahatsızlıklar dile getirilmeden içte kalabiliyor.",
+        "Ev ile ilgili sorunları doğrudan ve açıkça konuşabiliyorsunuz; gerginlikler birikmiyor.",
+      orta: "Genelde açık konuşuyorsunuz ama bazı rahatsızlıklar dile getirilmeden içte kalabiliyor.",
       düşük:
-        "Rahatsızlıkların konuşulmadığı ya da görmezden gelindiği bir örüntü görülüyor. Bu, biriken gerilim işareti olabilir.",
+        "Rahatsızlıklar genelde konuşulmuyor ya da görmezden geliniyor. Bu, zamanla biriken bir gerginliğe işaret edebilir.",
     },
   },
   guests: {
@@ -75,10 +75,10 @@ const dimensions: Record<string, Dimension> = {
     index: "boundaries",
     interpretation: {
       yüksek:
-        "Misafir ve ortak alan kullanımında karşılıklı gözetilen, netleşmiş bir anlayış var.",
-      orta: "Ortak alan kullanımı çoğunlukla gözetiliyor, ancak zaman zaman gerginlik yaratabiliyor.",
+        "Misafir ağırlama ve ortak alan kullanımında karşılıklı gözetilen, net bir anlayışınız var.",
+      orta: "Ortak alan kullanımına çoğunlukla dikkat ediliyor ama zaman zaman gerginlik yaratabiliyor.",
       düşük:
-        "Misafir ağırlama ya da ortak alan kullanımı belirgin bir rahatsızlık ya da tek taraflı belirlenme kaynağı görünüyor.",
+        "Misafir ağırlama ya da ortak alan kullanımı belirgin bir rahatsızlık kaynağı; kararlar tek taraflı alınıyor görünüyor.",
     },
   },
   privacy: {
@@ -88,10 +88,10 @@ const dimensions: Record<string, Dimension> = {
     index: "boundaries",
     interpretation: {
       yüksek:
-        "Kişisel alan, eşyalar ve sessizlik ihtiyacı büyük ölçüde gözetiliyor.",
-      orta: "Kişisel alana saygı çoğunlukla var, ancak zaman zaman ihlal edilebiliyor.",
+        "Kişisel alanınıza, eşyalarınıza ve sessizlik ihtiyacınıza büyük ölçüde saygı gösteriliyor.",
+      orta: "Kişisel alana saygı çoğunlukla var ama zaman zaman buna girilebiliyor.",
       düşük:
-        "Kişisel alana, mahremiyete ya da sessizlik ihtiyacına belirgin bir taşma görülüyor.",
+        "Kişisel alana, mahremiyete ya da sessizlik ihtiyacına sık sık girildiği görülüyor.",
     },
   },
 };

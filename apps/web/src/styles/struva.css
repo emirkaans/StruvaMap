@@ -217,6 +217,23 @@ p {
   color: var(--muted);
   font-weight: 600;
 }
+/* Profil başlığı: sayı (RSI) değil, yapı tanımı sayfanın asıl başlığı —
+   "hero is a thesis". Donut'un üstünde, eyebrow'dan büyük, tek satır Archivo. */
+.profile-title {
+  font-family: "Archivo", system-ui, sans-serif;
+  font-size: clamp(1.7rem, 4.5vw, 2.6rem);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  line-height: 1.15;
+  margin: 0 auto 10px;
+  max-width: 560px;
+}
+.profile-desc {
+  color: var(--muted);
+  max-width: 560px;
+  line-height: 1.6;
+  margin: 0 auto 20px;
+}
 
 /* Grid yerine flex + justify-content:center: sabit boşluklu (gap) ve
    ortalanmış, 3 kolonun tüm genişliğe gerilip birbirinden uzaklaşmasını önler. */
@@ -603,6 +620,12 @@ p {
 }
 .hero-btn-row .btn {
   border-radius: 10px;
+}
+.hero-invite-note {
+  margin: 14px 0 0;
+  color: var(--muted);
+  font-size: 0.86rem;
+  max-width: 42ch;
 }
 
 .hero-visual {

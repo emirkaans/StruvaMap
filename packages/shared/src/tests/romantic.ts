@@ -8,9 +8,9 @@ const dimensions: Record<string, Dimension> = {
     short: "Kararlar nasıl ve kimin lehine alınıyor?",
     index: "power",
     interpretation: {
-      yüksek: "Kararlar büyük ölçüde karşılıklı ve paylaşımlı alınıyor; taraflardan birinin sistematik üstünlüğü görünmüyor.",
-      orta: "Kararlar çoğu zaman paylaşılıyor, ancak bazı alanlarda taraflardan biri daha belirleyici olabiliyor.",
-      düşük: "Kararların belirgin biçimde bir tarafta yoğunlaştığı görülüyor. Bu bir 'karar asimetrisi' işaretidir.",
+      yüksek: "Önemli kararları çoğunlukla birlikte alıyorsunuz; sürekli aynı kişi son sözü söylemiyor.",
+      orta: "Kararların çoğunu birlikte alıyorsunuz ama bazı konularda bir taraf daha çok belirleyici oluyor.",
+      düşük: "Kararlar büyük ölçüde tek bir kişide toplanmış görünüyor.",
     },
   },
   domestic: {
@@ -19,9 +19,9 @@ const dimensions: Record<string, Dimension> = {
     short: "Fiziksel ev işlerinin dağılımı.",
     index: "labour",
     interpretation: {
-      yüksek: "Fiziksel ev işleri görece dengeli paylaşılıyor.",
-      orta: "Ev işlerinde ölçülü bir dengesizlik var; bazı görevler bir tarafta yoğunlaşıyor olabilir.",
-      düşük: "Fiziksel ev işleri belirgin biçimde bir tarafta toplanmış görünüyor.",
+      yüksek: "Ev işlerini aşağı yukarı dengeli paylaşıyorsunuz.",
+      orta: "Ev işlerinde ölçülü bir dengesizlik var; bazı işler hep aynı kişiye kalıyor olabilir.",
+      düşük: "Ev işlerinin çoğunu tek bir kişi yapıyor gibi görünüyor.",
     },
   },
   mental: {
@@ -30,9 +30,9 @@ const dimensions: Record<string, Dimension> = {
     short: "Planlama ve hatırlama emeğinin dağılımı.",
     index: "labour",
     interpretation: {
-      yüksek: "Planlama ve hatırlama gibi görünmeyen zihinsel yük dengeli dağılmış.",
-      orta: "Zihinsel yükte kısmi bir dengesizlik var; koordinasyon işleri kısmen bir tarafta.",
-      düşük: "Planlama ve koordinasyon (mental load) büyük ölçüde bir tarafın üzerinde yoğunlaşıyor. Ev işleri eşit görünse bile toplam emek eşit olmayabilir.",
+      yüksek: "Neyin ne zaman yapılması gerektiğini hatırlama, planlama gibi görünmeyen işler de dengeli dağılmış.",
+      orta: "Planlama ve hatırlama işlerinde kısmi bir dengesizlik var; bu işler biraz daha çok bir kişiye kalıyor.",
+      düşük: "Planlama ve hatırlama işi büyük ölçüde tek bir kişinin üstünde. Ev işleri eşit görünse bile, kafada taşınan yük eşit olmayabilir.",
     },
   },
   digital: {
@@ -41,9 +41,9 @@ const dimensions: Record<string, Dimension> = {
     short: "Araştırma, rezervasyon, koordinasyon emeği.",
     index: "labour",
     interpretation: {
-      yüksek: "Araştırma, rezervasyon ve dijital koordinasyon emeği dengeli paylaşılıyor.",
-      orta: "Dijital koordinasyon emeğinde kısmi bir dengesizlik görünüyor.",
-      düşük: "Dijital koordinasyon emeği (araştırma, rezervasyon, mesajlaşma) belirgin biçimde bir tarafta.",
+      yüksek: "Araştırma yapma, rezervasyon ayarlama gibi işleri dengeli paylaşıyorsunuz.",
+      orta: "Bu tür işlerde kısmi bir dengesizlik görünüyor.",
+      düşük: "Araştırma, rezervasyon, mesajlaşma gibi işlerin çoğunu tek bir kişi yapıyor.",
     },
   },
   social: {
@@ -52,9 +52,9 @@ const dimensions: Record<string, Dimension> = {
     short: "Bireysel sosyal alanın korunması.",
     index: "autonomy",
     interpretation: {
-      yüksek: "Bireysel sosyal alan güçlü biçimde korunuyor; ilişki bireyselliği kısıtlamıyor.",
-      orta: "Bireysel sosyal alan çoğunlukla korunuyor, ancak bazı durumlarda daralabiliyor.",
-      düşük: "Bireysel sosyal alanın daraldığı görülüyor. Bu düşük algılanan özerklik işaretidir.",
+      yüksek: "Kendi arkadaşlıklarınıza ve zamanınıza saygı duyuluyor; ilişki bireyselliğinizi kısıtlamıyor.",
+      orta: "Kişisel alanınız çoğunlukla korunuyor, ama bazen daralabiliyor.",
+      düşük: "Kişisel alanınızın belirgin şekilde daraldığı görülüyor.",
     },
   },
   family: {
@@ -63,9 +63,9 @@ const dimensions: Record<string, Dimension> = {
     short: "Ailelerin ilişki üzerindeki etkisi ve sınırlar.",
     index: "autonomy",
     interpretation: {
-      yüksek: "Ailelerle ilişkide dengeli ve sağlıklı sınırlar kurulmuş görünüyor.",
-      orta: "Aile sınırları çoğunlukla dengeli, ancak bazı konularda bir aile daha etkili olabiliyor.",
-      düşük: "Ailelerin ilişki üzerindeki etkisi yüksek ya da dengesiz görünüyor.",
+      yüksek: "Ailelerinizle ilişkinizde dengeli ve sağlıklı sınırlar var.",
+      orta: "Aile sınırları çoğunlukla dengeli, ama bazı konularda bir taraf ailesi daha etkili olabiliyor.",
+      düşük: "Bir tarafın ailesi ilişki üzerinde oldukça baskın ya da dengesiz bir etkiye sahip görünüyor.",
     },
   },
 };

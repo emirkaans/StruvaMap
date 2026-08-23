@@ -255,6 +255,9 @@ export function LandingPage() {
                             Nasıl Çalışır
                           </a>
                         </div>
+                        <p className="hero-invite-note">
+                          {t.inviteCta} — testi bitirince sonuçlarınız yan yana kıyaslanır.
+                        </p>
                       </div>
                       <div className="hero-visual">
                         <div className="hero-frame">

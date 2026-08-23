@@ -16,9 +16,9 @@ const dimensions: Record<string, Dimension> = {
     short: "Görüşme ve iletişimi kim başlatıyor?",
     index: "reciprocity",
     interpretation: {
-      yüksek: "İletişimi başlatma sorumluluğu iki taraf arasında dengeli dağılmış; taraflardan birinin sürekli inisiyatif alması gerekmiyor.",
-      orta: "İletişim girişiminde kısmi bir dengesizlik var; bazı dönemlerde bir taraf daha çok inisiyatif alıyor olabilir.",
-      düşük: "İletişimi başlatma büyük ölçüde bir tarafta yoğunlaşmış görünüyor. Bu bir 'girişim asimetrisi' işaretidir.",
+      yüksek: "Mesaj atmayı ya da aramayı ikiniz de aşağı yukarı eşit başlatıyorsunuz. Sürekli aynı kişi ilk adımı atmak zorunda kalmıyor.",
+      orta: "Bazen bir tarafın diğerinden biraz daha çok ilk adımı attığı oluyor, ama bu çok belirgin değil.",
+      düşük: "Neredeyse hep aynı kişi mesaj atıyor ya da arıyor. O kişi aramasa, uzun süre haber alamayabilirsiniz.",
     },
   },
   effort: {
@@ -27,9 +27,9 @@ const dimensions: Record<string, Dimension> = {
     short: "Zaman ve çaba yatırımının dağılımı.",
     index: "reciprocity",
     interpretation: {
-      yüksek: "Zaman ve çaba yatırımı iki taraf arasında dengeli.",
-      orta: "Emek dengesinde ölçülü bir dengesizlik var; bir taraf bazen daha fazla çaba gösteriyor olabilir.",
-      düşük: "Bu arkadaşlığa yatırılan çaba belirgin biçimde bir tarafta toplanmış görünüyor.",
+      yüksek: "Bu arkadaşlığa ikiniz de aşağı yukarı aynı kadar zaman ve emek harcıyorsunuz.",
+      orta: "Bazen bir taraf diğerinden biraz daha fazla emek harcıyor olabilir, ama fark küçük.",
+      düşük: "Bu arkadaşlık için emeğin çoğunu tek bir kişi harcıyor gibi görünüyor.",
     },
   },
   emotional: {
@@ -38,9 +38,9 @@ const dimensions: Record<string, Dimension> = {
     short: "Zor zamanlarda dinlenme ve anlaşılma.",
     index: "support",
     interpretation: {
-      yüksek: "Duygusal destek karşılıklı ve güvenli biçimde alışverişte.",
-      orta: "Duygusal destekte kısmi bir dengesizlik var; bazı durumlarda destek tek yönlü kalabiliyor.",
-      düşük: "Duygusal destek belirgin biçimde tek yönlü görünüyor; bu, yük hissi ya da yalnızlaşma riski taşıyabilir.",
+      yüksek: "Zor zamanlarda birbirinize destek oluyorsunuz, bu karşılıklı işliyor.",
+      orta: "Çoğunlukla birbirinize destek oluyorsunuz ama bazen destek sadece tek taraftan geliyor.",
+      düşük: "Duygusal destek çoğunlukla tek taraftan diğerine akıyor. Bu, destek veren kişiyi yorabilir, destek alamayan kişiyi de yalnız hissettirebilir.",
     },
   },
   practical: {
@@ -49,9 +49,9 @@ const dimensions: Record<string, Dimension> = {
     short: "Yardım isteme/verme ve kaynak paylaşımı.",
     index: "support",
     interpretation: {
-      yüksek: "Pratik yardım ve kaynak paylaşımı dengeli biçimde iki yönlü işliyor.",
-      orta: "Pratik destekte kısmi bir dengesizlik var; yardım isteme/verme bazen tek yönlü olabiliyor.",
-      düşük: "Pratik destek belirgin biçimde bir taraftan diğerine akıyor görünüyor.",
+      yüksek: "Yardım isteme ve yardım etme ikiniz arasında dengeli işliyor.",
+      orta: "Bazen yardım hep aynı yönde gidiyor — biri hep isteyen, diğeri hep veren taraf oluyor.",
+      düşük: "Pratik yardım (eşya, bilgi, zaman) neredeyse hep aynı kişiden diğerine gidiyor.",
     },
   },
   honesty: {
@@ -60,9 +60,9 @@ const dimensions: Record<string, Dimension> = {
     short: "Açık iletişim, kırgınlık ve özür dengesi.",
     index: "trust",
     interpretation: {
-      yüksek: "Çatışma ve kırgınlıklar açıkça konuşulabiliyor; güven güçlü görünüyor.",
-      orta: "Dürüstlük ve çatışma yönetiminde kısmi bir zorlanma var; bazı konular konuşulmadan geçiştirilebiliyor.",
-      düşük: "Kırgınlıkların konuşulmadığı ya da özür/geri adımın hep aynı taraftan geldiği görülüyor. Bu, biriken gerilim işareti olabilir.",
+      yüksek: "Kırgınlıkları ve anlaşmazlıkları rahatça konuşabiliyorsunuz; birbirinize güveniyorsunuz.",
+      orta: "Bazı konuları konuşmak yerine üstünü örtüp geçiyor olabilirsiniz.",
+      düşük: "Kırgınlıklar genelde konuşulmuyor, ya da özür dileyen hep aynı kişi oluyor. Bu, zamanla birikip büyüyebilecek bir gerginliğe işaret eder.",
     },
   },
   autonomy: {
@@ -71,9 +71,9 @@ const dimensions: Record<string, Dimension> = {
     short: "Bağımsız hayata ve diğer ilişkilere saygı.",
     index: "trust",
     interpretation: {
-      yüksek: "Bağımsız hayatlara ve başka ilişkilere saygı güçlü; arkadaşlık kişisel alanı kısıtlamıyor.",
-      orta: "Özerklik çoğunlukla korunuyor, ancak bazı durumlarda sahiplenme ya da tedirginlik görülebiliyor.",
-      düşük: "Bağımsız kararlara ya da diğer ilişkilere karşı belirgin bir tedirginlik/sahiplenme görülüyor. Bu düşük algılanan özerklik işaretidir.",
+      yüksek: "Birbirinizin başka arkadaşlıklarına ve kendi hayatına saygı duyuyorsunuz; bu arkadaşlık kişisel alanınızı kısıtlamıyor.",
+      orta: "Genelde birbirinizin alanına saygı duyuyorsunuz ama bazen kıskançlık ya da tedirginlik oluyor.",
+      düşük: "Diğer kişinin kendi kararlarına ya da başka arkadaşlıklarına karşı belirgin bir kıskançlık/sahiplenme var. Bu, kişisel alanın daraldığını gösterir.",
     },
   },
 };

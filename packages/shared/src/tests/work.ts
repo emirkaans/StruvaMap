@@ -36,17 +36,17 @@ const dimensions: Record<string, Dimension> = {
     index: "power",
     interpretation: {
       yüksek:
-        "Kararlar büyük ölçüde birlikte alınıyor; söz hakkı ve yetki net biçimde paylaşılmış görünüyor.",
-      orta: "Kararlar çoğunlukla paylaşılıyor, ancak bazı konularda söz hakkı tek tarafta yoğunlaşabiliyor.",
+        "Kararları çoğunlukla birlikte alıyorsunuz; söz hakkı ve yetki dengeli paylaşılmış görünüyor.",
+      orta: "Kararların çoğunu birlikte alıyorsunuz ama bazı konularda söz hakkı tek kişide toplanabiliyor.",
       düşük:
-        "Kararların belirgin biçimde tek tarafta toplandığı görülüyor. Bu bir 'karar asimetrisi' işaretidir.",
+        "Kararlar büyük ölçüde tek kişide toplanmış görünüyor.",
     },
     conditionalNotes: [
       {
         contextQuestionId: "role",
         whenValue: "employee",
         band: "düşük",
-        note: "Not: yöneticinin son sözü olması meşru bir hiyerarşik yapının parçası olabilir; bu tek başına sorun anlamına gelmez.",
+        note: "Not: yöneticinin son sözü söylemesi normal bir hiyerarşinin parçası olabilir; tek başına sorun anlamına gelmez.",
       },
     ],
   },
@@ -57,17 +57,17 @@ const dimensions: Record<string, Dimension> = {
     index: "power",
     interpretation: {
       yüksek:
-        "Geri bildirim iki yönlü akıyor; taraflar birbirine açıkça geri bildirim verebiliyor.",
-      orta: "Geri bildirim çoğunlukla akıyor, ancak yön çoğu zaman aynı taraftan diğerine doğru.",
+        "Geri bildirim iki yönlü akıyor; birbirinize açıkça geri bildirim verebiliyorsunuz.",
+      orta: "Geri bildirim akıyor ama çoğunlukla hep aynı yönde, aynı kişiden diğerine.",
       düşük:
-        "Geri bildirim büyük ölçüde tek yönlü görünüyor. Bu, sessiz kalan tarafın görünmez kaldığı bir yapı olabilir.",
+        "Geri bildirim büyük ölçüde tek yönlü görünüyor. Bu, sessiz kalan tarafın fikrinin duyulmadığı bir yapıya işaret edebilir.",
     },
     conditionalNotes: [
       {
         contextQuestionId: "role",
         whenValue: "employee",
         band: "düşük",
-        note: "Not: hiyerarşik yapılarda geri bildirimin ağırlıklı olarak yönetici-çalışan yönünde akması beklenen bir durum olabilir; tek başına sorun anlamına gelmez.",
+        note: "Not: hiyerarşik yapılarda geri bildirimin çoğunlukla yöneticiden çalışana akması beklenen bir durum olabilir; tek başına sorun anlamına gelmez.",
       },
     ],
   },
@@ -77,9 +77,9 @@ const dimensions: Record<string, Dimension> = {
     short: "İş yükü ve sorumluluk dağılımı adil mi?",
     index: "labour",
     interpretation: {
-      yüksek: "İş yükü ve sorumluluk dağılımı dengeli algılanıyor.",
+      yüksek: "İş yükü ve sorumluluk dağılımını dengeli buluyorsunuz.",
       orta: "İş yükünde ölçülü bir dengesizlik var; bazı dönemlerde yük bir tarafa kayabiliyor.",
-      düşük: "İş yükünün belirgin biçimde bir tarafta yoğunlaştığı görülüyor.",
+      düşük: "İş yükünün çoğu tek bir kişide toplanmış görünüyor.",
     },
   },
   recognition: {
@@ -88,10 +88,10 @@ const dimensions: Record<string, Dimension> = {
     short: "Emek fark ediliyor, katkı takdir görüyor mu?",
     index: "labour",
     interpretation: {
-      yüksek: "Emek ve katkı görülüyor, karşılığında takdir geliyor.",
-      orta: "Katkı çoğunlukla fark ediliyor, ancak takdir düzenli ya da tutarlı değil.",
+      yüksek: "Emeğiniz görülüyor ve karşılığında takdir geliyor.",
+      orta: "Katkınız çoğunlukla fark ediliyor ama takdir düzenli gelmiyor.",
       düşük:
-        "Emeğin görünmediği ya da takdirin eksik kaldığı bir yapı öne çıkıyor.",
+        "Emeğin fark edilmediği ya da takdirin eksik kaldığı bir yapı öne çıkıyor.",
     },
   },
   trust: {
@@ -101,10 +101,10 @@ const dimensions: Record<string, Dimension> = {
     index: "autonomy",
     interpretation: {
       yüksek:
-        "İş güvenle devrediliyor; sürekli kontrol ihtiyacı hissedilmiyor.",
-      orta: "Güven çoğunlukla var, ancak bazı alanlarda yakın takip ya da kontrol öne çıkabiliyor.",
+        "İş güvenle bırakılıyor; sürekli kontrol edilme ihtiyacı yok.",
+      orta: "Genelde güven var ama bazı konularda yakın takip/kontrol öne çıkabiliyor.",
       düşük:
-        "Mikro-yönetim eğilimi belirgin; iş, güven yerine sürekli kontrolle takip ediliyor görünüyor.",
+        "İş, güvenmek yerine sürekli kontrol edilerek takip ediliyor görünüyor.",
     },
   },
   boundaries: {
@@ -113,10 +113,10 @@ const dimensions: Record<string, Dimension> = {
     short: "Mesai dışı zaman ve kişisel alan korunuyor mu?",
     index: "autonomy",
     interpretation: {
-      yüksek: "Mesai dışı zaman ve kişisel alan büyük ölçüde korunuyor.",
-      orta: "Sınırlar çoğunlukla korunuyor, ancak zaman zaman ihlal edilebiliyor.",
+      yüksek: "Mesai dışı zamanınız ve kişisel alanınız büyük ölçüde korunuyor.",
+      orta: "Sınırlar çoğunlukla korunuyor ama zaman zaman aşılabiliyor.",
       düşük:
-        "Mesai dışı zamana ya da kişisel alana belirgin bir taşma görülüyor.",
+        "Mesai dışı zamana ya da kişisel alana sık sık girildiği görülüyor.",
     },
   },
 };
