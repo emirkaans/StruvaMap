@@ -1,3 +1,7 @@
+// Bu script yalnızca İLK KURULUM için SQL üretir ("on conflict do nothing" —
+// var olan satırları asla günceller). Canlı testler admin panelden düzenleniyor;
+// bu dosyaları (ya da packages/shared/src/tests/*.ts'yi) değiştirmek, zaten
+// seed edilmiş bir testin DB'deki içeriğini GÜNCELLEMEZ.
 import { writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";

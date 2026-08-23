@@ -722,7 +722,13 @@ export function AdminTestEditPage() {
     });
   }, [testId]);
 
+  // Bilinçli olarak sadece indices/dimensions/contextQuestions'a bağlı: `def`in
+  // tamamına bağlamak (reducer her dispatch'te yeni def objesi ürettiği için)
+  // her soru metni düzenlemesinde bu diziyi yeniden oluşturup QuestionCard/
+  // DimensionCard'ın React.memo'sunu boşa çıkarırdı.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const indexEntries = useMemo(() => (def ? Object.entries(def.indices) : []), [def?.indices]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const dimensionEntries = useMemo(() => (def ? Object.entries(def.dimensions) : []), [def?.dimensions]);
   const contextQuestions = useMemo(() => def?.contextQuestions ?? [], [def?.contextQuestions]);
 

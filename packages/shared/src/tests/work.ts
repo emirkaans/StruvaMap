@@ -165,6 +165,10 @@ const RAW_QUESTIONS: {
     dim: "decision",
     type: "likert",
     text: "Görüşümün karar süreçlerinde gerçekten dikkate alındığını hissederim.",
+    textByRole: {
+      employee: "Görüşümün karar süreçlerinde gerçekten dikkate alındığını hissederim.",
+      manager: "Çalışanımın görüşünü karar süreçlerinde gerçekten dikkate aldığımı hissederim.",
+    },
   },
   {
     dim: "decision",
@@ -196,6 +200,11 @@ const RAW_QUESTIONS: {
     dim: "feedback",
     type: "likert_reverse",
     text: "Bir şeyi eleştirmek istediğimde sonuçlarından çekindiğim için sessiz kalırım.",
+    textByRole: {
+      employee: "Bir şeyi eleştirmek istediğimde sonuçlarından çekindiğim için sessiz kalırım.",
+      manager:
+        "Çalışanımı eleştirmek istediğimde bunun ilişkimizi zedelemesinden ya da onu demotive etmesinden çekindiğim için sessiz kalırım.",
+    },
   },
 
   {
@@ -329,6 +338,10 @@ const RAW_QUESTIONS: {
     dim: "boundaries",
     type: "likert_reverse",
     text: "Hayır dediğimde ya da sınır koyduğumda karşı tarafın tepkisinden çekinirim.",
+    textByRole: {
+      employee: "Hayır dediğimde ya da sınır koyduğumda karşı tarafın tepkisinden çekinirim.",
+      manager: "Çalışanım hayır dediğinde ya da sınır koyduğunda buna olumsuz tepki veririm.",
+    },
   },
 ];
 

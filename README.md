@@ -54,6 +54,14 @@ değişikliği gerekmez:
 API ve web tarafı, testleri otomatik olarak listeler ve sunar; başka hiçbir
 yerde kod değişikliği gerekmez.
 
+**Önemli — kod ile canlı içerik farklı kaynaklar:** `packages/shared/src/tests/*.ts`
+dosyaları yalnızca **ilk kurulum (seed)** kaynağıdır (bkz. `scripts/generate-test-seed.mjs`,
+`supabase/seed-tests.sql`). Bir test bir kez seed edildikten sonra gerçek/canlı
+içerik `/admin/tests` panelinden düzenlenir ve yalnızca Supabase `tests`
+tablosunda tutulur — bu `.ts` dosyalarını sonradan düzenlemek DB'yi
+**güncellemez**. Yeni bir test eklerken yukarıdaki adımlar geçerli; var olan
+bir testin sorularını/metnini değiştirmek için admin paneli kullan.
+
 ## Tasarım dili
 
 Koyu tema, Archivo (başlık) + Source Sans 3 (gövde) + IBM Plex Mono (veri/skor)

@@ -24,6 +24,27 @@ export function assertValidTestDefinition(def: unknown, expectedId: string): voi
   if (typeof def.subtitle !== 'string') fail('subtitle string olmalı.');
   if (typeof def.inviteCta !== 'string') fail('inviteCta string olmalı.');
 
+  const contextValueSets = new Map<string, Set<string>>();
+  if (def.contextQuestions !== undefined) {
+    if (!Array.isArray(def.contextQuestions)) fail('contextQuestions bir dizi olmalı.');
+    const seenCqIds = new Set<string>();
+    for (const cq of def.contextQuestions as unknown[]) {
+      if (!isObject(cq) || typeof cq.id !== 'string' || !cq.id.trim()) fail('her contextQuestion için id boş olmayan bir string olmalı.');
+      if (seenCqIds.has(cq.id as string)) fail(`contextQuestions.${cq.id} birden fazla kez tanımlanmış.`);
+      seenCqIds.add(cq.id as string);
+      if (typeof cq.text !== 'string') fail(`contextQuestions.${cq.id}.text string olmalı.`);
+      if (!Array.isArray(cq.options) || cq.options.length === 0) fail(`contextQuestions.${cq.id}.options boş olmayan bir dizi olmalı.`);
+      const values = new Set<string>();
+      for (const opt of cq.options as unknown[]) {
+        if (!isObject(opt) || typeof opt.label !== 'string' || typeof opt.value !== 'string') {
+          fail(`contextQuestions.${cq.id}: her option {label:string, value:string} şeklinde olmalı.`);
+        }
+        values.add(opt.value);
+      }
+      contextValueSets.set(cq.id as string, values);
+    }
+  }
+
   if (!isObject(def.indices) || Object.keys(def.indices).length === 0) {
     fail('indices boş olmayan bir obje olmalı.');
   }
@@ -51,6 +72,29 @@ export function assertValidTestDefinition(def: unknown, expectedId: string): voi
         fail(`dimensions.${id}.interpretation.${band} string olmalı.`);
       }
     }
+
+    if (dim.conditionalNotes !== undefined) {
+      if (!Array.isArray(dim.conditionalNotes)) fail(`dimensions.${id}.conditionalNotes bir dizi olmalı.`);
+      for (const note of dim.conditionalNotes as unknown[]) {
+        if (
+          !isObject(note) ||
+          typeof note.contextQuestionId !== 'string' ||
+          typeof note.whenValue !== 'string' ||
+          typeof note.band !== 'string' ||
+          typeof note.note !== 'string'
+        ) {
+          fail(`dimensions.${id}: her conditionalNote {contextQuestionId, whenValue, band, note} (hepsi string) şeklinde olmalı.`);
+        }
+        if (!BANDS.includes(note.band as (typeof BANDS)[number])) {
+          fail(`dimensions.${id}: conditionalNote.band geçerli bir bant olmalı (${BANDS.join('/')}).`);
+        }
+        const values = contextValueSets.get(note.contextQuestionId as string);
+        if (!values) fail(`dimensions.${id}: conditionalNote.contextQuestionId (${String(note.contextQuestionId)}) tanımlı bir contextQuestions.id'ye karşılık gelmiyor.`);
+        if (!values.has(note.whenValue as string)) {
+          fail(`dimensions.${id}: conditionalNote.whenValue (${String(note.whenValue)}) contextQuestions.${String(note.contextQuestionId)} seçeneklerinde yok.`);
+        }
+      }
+    }
   }
 
   if (!Array.isArray(def.questions) || def.questions.length === 0) {
@@ -68,6 +112,13 @@ export function assertValidTestDefinition(def: unknown, expectedId: string): voi
     for (const opt of q.options as unknown[]) {
       if (!isObject(opt) || typeof opt.label !== 'string' || typeof opt.score !== 'number') {
         fail(`question ${q.id}: her option {label:string, score:number} şeklinde olmalı.`);
+      }
+    }
+
+    if (q.textByRole !== undefined) {
+      if (!isObject(q.textByRole)) fail(`question ${q.id}: textByRole bir obje olmalı.`);
+      for (const [key, value] of Object.entries(q.textByRole)) {
+        if (typeof value !== 'string') fail(`question ${q.id}: textByRole.${key} string olmalı.`);
       }
     }
   }

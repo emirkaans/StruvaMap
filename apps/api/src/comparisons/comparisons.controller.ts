@@ -1,4 +1,5 @@
 import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import { ComparisonsService } from './comparisons.service';
 import { CreateComparisonDto } from './create-comparison.dto';
 
@@ -7,6 +8,7 @@ export class ComparisonsController {
   constructor(private readonly comparisonsService: ComparisonsService) {}
 
   @Post()
+  @Throttle({ default: { ttl: 60000, limit: 5 } })
   create(@Body() dto: CreateComparisonDto) {
     return this.comparisonsService.create(dto);
   }

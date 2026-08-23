@@ -1,4 +1,5 @@
 import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import { ResultsService } from './results.service';
 import { SubmitResultDto } from './submit-result.dto';
 import { ListResultsDto } from './list-results.dto';
@@ -8,6 +9,7 @@ export class ResultsController {
   constructor(private readonly resultsService: ResultsService) {}
 
   @Post()
+  @Throttle({ default: { ttl: 60000, limit: 5 } })
   submit(@Body() dto: SubmitResultDto) {
     return this.resultsService.submit(dto);
   }
