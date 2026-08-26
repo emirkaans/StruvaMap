@@ -51,9 +51,9 @@ const HERO_CONTENT: Record<string, HeroContent> = {
   work: {
     pillLabel: "İş",
     headline: [
-      "Örtük Hiyerarşi.",
-      "Hesaplanabilir Güven.",
-      "Tartışılabilir Sınır.",
+      "Ofis Bir Sahne Gibi.",
+      "Roller Net,",
+      "Emek Genellike Belirsiz.",
     ],
     lead: "Terfi baskısı, mikro yönetim, mesai dışı mesajlar... Yönetici-çalışan ilişkisi de karar payı, emek ve güvenle örülüdür. StruvaMap bu dinamiği ölçülebilir kılar.",
     image: heykelWork,
@@ -63,22 +63,18 @@ const HERO_CONTENT: Record<string, HeroContent> = {
   family: {
     pillLabel: "Aile",
     headline: [
-      "Saklı Roller.",
-      "Somutlaşabilir Fark.",
-      "Dillendirilebilir Mesafe.",
+      "Aileyi sevgi birleştirir.",
+      "Roller düzenler.",
+      "İletişim besler.",
     ],
-    lead: "Çocukluk biter, alışkanlıklar bitmez. Ebeveyn-çocuk ilişkisi de karar payı, dinlenme ve güvenle şekillenir. StruvaMap bu örüntüyü gün yüzüne çıkarır.",
+    lead: "StruvaMap, aile ilişkinizdeki karar payı, dinleme ve güven dengesini haritalar.",
     image: heykelFamily,
     dimNote: "aile ilişkisini oluşturan alanlar",
     indexNote: "güç, emek, özerklik",
   },
   roommate: {
     pillLabel: "Ev Arkadaşlığı",
-    headline: [
-      "Paylaşılan Çatı.",
-      "Ölçülebilir Denge.",
-      "Konuşulabilir Sınır.",
-    ],
+    headline: ["Bulaşık Kimde Kalıyor?", "Çöpü kim çıkarıyor?"],
     lead: "Aynı evi paylaşmak, kirayı bölüşmenin ötesinde bir katmandır: ev işi, masraf, düzen ve mahremiyet dengesi. StruvaMap bu yapıyı görünür kılar.",
     image: heykelRoommate,
     dimNote: "ev arkadaşlığını oluşturan alanlar",
@@ -256,7 +252,8 @@ export function LandingPage() {
                           </a>
                         </div>
                         <p className="hero-invite-note">
-                          {t.inviteCta} — testi bitirince sonuçlarınız yan yana kıyaslanır.
+                          {t.inviteCta} — testi bitirince sonuçlarınız yan yana
+                          kıyaslanır.
                         </p>
                       </div>
                       <div className="hero-visual">
