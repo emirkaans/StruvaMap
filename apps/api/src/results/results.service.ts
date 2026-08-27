@@ -1,6 +1,7 @@
 import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { computeScores, ScoreResult } from '@struva/shared';
 import { SupabaseService } from '../supabase/supabase.service';
+import { bucketByDay, DailyCount } from '../common/bucket-by-day';
 import { TestsService } from '../tests/tests.service';
 import { SubmitResultDto } from './submit-result.dto';
 
@@ -116,5 +117,16 @@ export class ResultsService {
       }),
     );
     return tests.map((test, i) => ({ testId: test.id, count: counts[i] }));
+  }
+
+  async dailyTotalTrend(from?: string, to?: string): Promise<DailyCount[]> {
+    let query = this.supabase.client.from('results').select('created_at');
+    if (from) query = query.gte('created_at', from);
+    if (to) query = query.lte('created_at', to);
+
+    const { data, error } = await query;
+    if (error) throw new InternalServerErrorException(error.message);
+
+    return bucketByDay(data ?? []);
   }
 }

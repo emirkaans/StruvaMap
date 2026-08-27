@@ -543,6 +543,8 @@ p {
   margin: 0 auto;
 }
 .logo-lg {
+  display: inline-flex;
+  align-items: center;
   font-family: "Archivo", sans-serif;
   font-weight: 800;
   font-size: 1.3rem;
@@ -552,6 +554,12 @@ p {
 }
 .logo-lg span {
   color: var(--accent);
+}
+.logo-mark {
+  width: 1.35em;
+  height: 1.35em;
+  margin-right: 7px;
+  flex-shrink: 0;
 }
 
 /* --- Landing: kayan hero --- */

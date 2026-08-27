@@ -7,7 +7,7 @@ export interface CountPoint {
    bantlarına bağlı — ham olay sayacı için o bileşeni değil, aynı .trend-*
    CSS sınıflarını (jenerik, skorla ilgisi yok) yeniden kullanan bu küçük
    bileşeni kullanıyoruz. */
-export function AdminTrendChart({ data }: { data: CountPoint[] }) {
+export function AdminTrendChart({ data, label = "olay" }: { data: CountPoint[]; label?: string }) {
   const W = 640;
   const H = 220;
   const padL = 34;
@@ -61,7 +61,7 @@ export function AdminTrendChart({ data }: { data: CountPoint[] }) {
       className="trend"
       viewBox={`0 0 ${W} ${H}`}
       role="img"
-      aria-label={`Günlük olay sayısı grafiği, ${n} gün`}
+      aria-label={`Günlük ${label} sayısı grafiği, ${n} gün`}
       style={{ maxWidth: "100%" }}
     >
       {grid}

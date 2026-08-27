@@ -148,6 +148,14 @@ export function fetchAdminResultsByTest(): Promise<AdminTestResultCount[]> {
   return adminRequest(`/admin/results/by-test`);
 }
 
+export function fetchAdminResultsDailyTotal(from?: string, to?: string): Promise<AdminEventDailyCount[]> {
+  return adminRequest(`/admin/results/daily-total${toQuery({ from, to })}`);
+}
+
+export function fetchAdminComparisonsDailyTotal(from?: string, to?: string): Promise<AdminEventDailyCount[]> {
+  return adminRequest(`/admin/comparisons/daily-total${toQuery({ from, to })}`);
+}
+
 export function fetchAdminResults(params: AdminListParams): Promise<AdminPaginated<ResultRow>> {
   return adminRequest(`/admin/results${toQuery({ ...params })}`);
 }

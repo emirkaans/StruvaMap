@@ -28,6 +28,17 @@ const WORK_BALANCE: Option[] = [
   { label: "Neredeyse her zaman diğer taraf", score: 0 },
 ];
 
+/* "kim başlatır" tarzı sınır-ihlali sorularında "eşit" iyi değildir; ikisi de
+   eşit sıklıkla sınırı ihlal ediyor demektir. Burada asıl eksen kim değil,
+   sıklık — hiç olmaması en iyisi, sık ve karşılıklı olması en kötüsü. */
+const BOUNDARY_INITIATION: Option[] = [
+  { label: "Hiçbirimiz başlatmıyor, bu neredeyse hiç olmuyor", score: 100 },
+  { label: "Nadiren oluyor", score: 80 },
+  { label: "Bazen oluyor, çoğunlukla tek taraf başlatıyor", score: 50 },
+  { label: "Sık sık oluyor, çoğunlukla tek taraf başlatıyor", score: 20 },
+  { label: "Sık sık oluyor, ikimiz de başlatıyoruz", score: 0 },
+];
+
 const dimensions: Record<string, Dimension> = {
   decision: {
     id: "decision",
@@ -145,6 +156,7 @@ const RAW_QUESTIONS: {
   text: string;
   satisfactionQuestion?: boolean;
   textByRole?: Record<string, string>;
+  options?: Option[];
 }[] = [
   {
     dim: "decision",
@@ -226,7 +238,7 @@ const RAW_QUESTIONS: {
   {
     dim: "workload",
     type: "balance",
-    text: "Yoğun dönemlerde fazla mesaiyi ya da ek yükü genellikle kim taşır?",
+    text: "Uzun süren yoğun dönemlerde bu ek yükü sürekli olarak genellikle kim taşır?",
   },
   {
     dim: "workload",
@@ -290,7 +302,7 @@ const RAW_QUESTIONS: {
   {
     dim: "trust",
     type: "balance",
-    text: "Bir işin nasıl yapılacağına dair son sözü genellikle kim söyler?",
+    text: "Bir işi hangi yöntemle yürüteceğime dair son sözü genellikle kim söyler?",
   },
   {
     dim: "trust",
@@ -322,7 +334,12 @@ const RAW_QUESTIONS: {
   {
     dim: "boundaries",
     type: "likert_reverse",
-    text: "İzin ya da tatil günlerinde bile iş konularıyla ilgili ulaşılırım ya da ulaşırım.",
+    text: "İzin ya da tatil günlerinde bile iş konularıyla ilgili bana ulaşılır.",
+  },
+  {
+    dim: "boundaries",
+    type: "likert_reverse",
+    text: "İzin ya da tatil günlerinde bile iş konularıyla ilgili ben ulaşırım.",
   },
   {
     dim: "boundaries",
@@ -332,7 +349,8 @@ const RAW_QUESTIONS: {
   {
     dim: "boundaries",
     type: "balance",
-    text: "Mesai dışı saatlerde iş için ulaşmayı genellikle kim başlatır?",
+    text: "Mesai dışı saatlerde iş için ulaşma ne sıklıkta oluyor ve genellikle kim başlatıyor?",
+    options: BOUNDARY_INITIATION,
   },
   {
     dim: "boundaries",
@@ -340,7 +358,7 @@ const RAW_QUESTIONS: {
     text: "Hayır dediğimde ya da sınır koyduğumda karşı tarafın tepkisinden çekinirim.",
     textByRole: {
       employee: "Hayır dediğimde ya da sınır koyduğumda karşı tarafın tepkisinden çekinirim.",
-      manager: "Çalışanım hayır dediğinde ya da sınır koyduğunda buna olumsuz tepki veririm.",
+      manager: "Çalışanım hayır dediğinde ya da sınır koyduğunda bundan rahatsızlık duyarım.",
     },
   },
 ];
@@ -350,7 +368,7 @@ const questions: Question[] = RAW_QUESTIONS.map((q, i) => ({
   dim: q.dim,
   type: q.type,
   text: q.text,
-  options: q.type === "balance" ? WORK_BALANCE : OPTION_SETS[q.type],
+  options: q.options ?? (q.type === "balance" ? WORK_BALANCE : OPTION_SETS[q.type]),
   satisfactionQuestion: q.satisfactionQuestion,
   textByRole: q.textByRole,
 }));
@@ -359,7 +377,7 @@ export const workTest: TestDefinition = {
   id: "work",
   slug: "is-iliskisi-testi",
   name: "İş İlişkisi Yapısı Anlık Görünümü",
-  subtitle: "6 boyut · 31 soru · ~7 dakika",
+  subtitle: "6 boyut · 32 soru · ~7 dakika",
   inviteCta: "Yöneticini ya da çalışanını davet et",
   contextQuestions,
   disclaimerNote:

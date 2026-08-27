@@ -1,5 +1,6 @@
 import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
 import { SupabaseService } from '../supabase/supabase.service';
+import { bucketByDay, DailyCount } from '../common/bucket-by-day';
 import { EVENT_NAMES, TrackEventDto } from './track-event.dto';
 
 export interface EventCount {
@@ -7,10 +8,7 @@ export interface EventCount {
   count: number;
 }
 
-export interface EventDailyCount {
-  date: string;
-  count: number;
-}
+export type EventDailyCount = DailyCount;
 
 @Injectable()
 export class EventsService {
@@ -68,11 +66,11 @@ export class EventsService {
     const { data, error } = await query;
     if (error) throw new InternalServerErrorException(error.message);
 
-    return this.bucketByDay(data ?? []);
+    return bucketByDay(data ?? []);
   }
 
-  /* Özet panelindeki "son 7 gün" grafiği: olay adından bağımsız toplam
-     hacim. dailyTrend ile aynı bucketing mantığı, yalnızca isim filtresi yok. */
+  /* Özet panelindeki olay grafiği: olay adından bağımsız toplam hacim.
+     dailyTrend ile aynı bucketing mantığı, yalnızca isim filtresi yok. */
   async dailyTotalTrend(from?: string, to?: string): Promise<EventDailyCount[]> {
     let query = this.supabase.client.from('events').select('created_at');
     if (from) query = query.gte('created_at', from);
@@ -81,18 +79,6 @@ export class EventsService {
     const { data, error } = await query;
     if (error) throw new InternalServerErrorException(error.message);
 
-    return this.bucketByDay(data ?? []);
-  }
-
-  private bucketByDay(rows: { created_at: string }[]): EventDailyCount[] {
-    const buckets = new Map<string, number>();
-    for (const row of rows) {
-      const date = row.created_at.slice(0, 10);
-      buckets.set(date, (buckets.get(date) ?? 0) + 1);
-    }
-
-    return [...buckets.entries()]
-      .sort(([a], [b]) => a.localeCompare(b))
-      .map(([date, count]) => ({ date, count }));
+    return bucketByDay(data ?? []);
   }
 }

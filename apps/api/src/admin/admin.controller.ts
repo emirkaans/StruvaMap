@@ -46,8 +46,18 @@ export class AdminController {
     return this.results.countByTest();
   }
 
+  @Get('results/daily-total')
+  resultsDailyTotal(@Query() query: AdminEventsQueryDto) {
+    return this.results.dailyTotalTrend(query.from, query.to);
+  }
+
   @Get('comparisons')
   listComparisons(@Query() query: AdminListDto) {
     return this.comparisons.findAllPaginated(query);
+  }
+
+  @Get('comparisons/daily-total')
+  comparisonsDailyTotal(@Query() query: AdminEventsQueryDto) {
+    return this.comparisons.dailyTotalTrend(query.from, query.to);
   }
 }

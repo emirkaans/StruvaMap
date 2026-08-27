@@ -37,9 +37,21 @@ export function TestPage() {
   useEffect(() => {
     if (!testId) return;
     track("test_start", { testId });
+    let cancelled = false;
     fetchTest(testId)
-      .then(setTest)
-      .catch(() => setError("Test yüklenemedi."));
+      .then((t) => {
+        if (!cancelled) setTest(t);
+      })
+      .catch(() => {
+        if (!cancelled) setError("Test yüklenemedi.");
+      });
+    // StrictMode geliştirme modunda effect'i mount→unmount→mount olarak iki kez
+    // çalıştırır; bu bayrak olmadan iki ayrı fetch de setTest çağırır, her biri
+    // farklı bir nesne referansı taşıdığından displayQuestions iki kez karışır
+    // ve soru sırası ilk gösterimden hemen sonra değişmiş gibi görünür.
+    return () => {
+      cancelled = true;
+    };
   }, [testId]);
 
   const displayQuestions = useMemo<Question[]>(

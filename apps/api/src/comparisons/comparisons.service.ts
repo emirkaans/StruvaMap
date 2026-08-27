@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { SupabaseService } from '../supabase/supabase.service';
+import { bucketByDay, DailyCount } from '../common/bucket-by-day';
 import { ResultsService } from '../results/results.service';
 import { CreateComparisonDto } from './create-comparison.dto';
 
@@ -87,5 +88,16 @@ export class ComparisonsService {
     if (error) throw new InternalServerErrorException(error.message);
 
     return { rows: (data ?? []) as ComparisonRow[], total: count ?? 0 };
+  }
+
+  async dailyTotalTrend(from?: string, to?: string): Promise<DailyCount[]> {
+    let query = this.supabase.client.from('comparisons').select('created_at');
+    if (from) query = query.gte('created_at', from);
+    if (to) query = query.lte('created_at', to);
+
+    const { data, error } = await query;
+    if (error) throw new InternalServerErrorException(error.message);
+
+    return bucketByDay(data ?? []);
   }
 }
