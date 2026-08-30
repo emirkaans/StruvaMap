@@ -5,6 +5,7 @@ import { TestPage } from "./pages/TestPage";
 import { ResultPage } from "./pages/ResultPage";
 import { ComparisonPage } from "./pages/ComparisonPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
+import { PrivacyPage } from "./pages/PrivacyPage";
 
 /* Admin panel lazy: @supabase/supabase-js istemcisi burada başlatılır ve
    VITE_SUPABASE_* değişkenlerini gerektirir — genel ziyaretçi bundle'ı bu
@@ -26,6 +27,7 @@ export function App() {
       <Route path="/test/:testId" element={<TestPage />} />
       <Route path="/result/:resultId" element={<ResultPage />} />
       <Route path="/comparisons/:comparisonId" element={<ComparisonPage />} />
+      <Route path="/gizlilik" element={<PrivacyPage />} />
 
       <Route
         path="/admin/login"
