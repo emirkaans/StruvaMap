@@ -4,6 +4,7 @@ import { composeProfileStory, computeProfileLabel, type ScoreResult, type TestDe
 import { fetchResult, fetchResultHistory, fetchTest, type ResultRow } from "../lib/api";
 import { track } from "../lib/analytics";
 import { toTurkishUpper } from "../lib/text";
+import { useCountUp } from "../lib/useCountUp";
 import { Bar, Donut, Radar, TrendChart, bandHex, bandOf } from "../components/charts";
 import { Header } from "../components/Header";
 import { Footer } from "../components/Footer";
@@ -40,8 +41,24 @@ function esc(s: string): string {
 function buildShareSvg(test: TestDefinition, r: ScoreResult, profile: { title: string; description: string }): string {
   const W = 1080;
   const PAD = 72;
-  const titleLines = wrapText(profile.title, 22);
-  const descLines = wrapText(profile.description, 62).slice(0, 2);
+
+  // Sağ üstte gerçek uygulamadaki gibi bir RSI halkası — kart artık düz metin
+  // değil, tanınabilir bir "skor grafiği" gibi görünsün diye.
+  const donutSize = 168;
+  const donutStroke = 14;
+  const donutR = (donutSize - donutStroke) / 2;
+  const donutCirc = 2 * Math.PI * donutR;
+  const v = Math.max(0, Math.min(100, r.rsi));
+  const donutOff = donutCirc * (1 - v / 100);
+  const donutCx = W - PAD - donutSize / 2;
+
+  const fullColW = W - PAD * 2;
+  const textColW = fullColW - donutSize - 48;
+  const titleMaxChars = Math.max(10, Math.round(22 * (textColW / fullColW)));
+  const descMaxChars = Math.max(24, Math.round(62 * (textColW / fullColW)));
+
+  const titleLines = wrapText(profile.title, titleMaxChars);
+  const descLines = wrapText(profile.description, descMaxChars).slice(0, 3);
 
   let y = 150;
   const eyebrowY = y;
@@ -49,15 +66,16 @@ function buildShareSvg(test: TestDefinition, r: ScoreResult, profile: { title: s
   const titleStartY = y;
   const titleLineHeight = 70;
   y += titleLines.length * titleLineHeight;
-  y += 12;
-  const rsiY = y;
-  y += 56;
+  y += 36;
   const descStartY = y;
   const descLineHeight = 32;
   y += descLines.length * descLineHeight;
   y += 40;
-  const dividerY = y;
-  y += 48;
+
+  const donutTop = eyebrowY - 40;
+  const donutCy = donutTop + donutSize / 2;
+  const dividerY = Math.max(y, donutTop + donutSize + 40);
+  y = dividerY + 48;
   const barsStartY = y;
   const barRowHeight = 58;
   const dimIds = Object.keys(test.dimensions);
@@ -73,6 +91,14 @@ function buildShareSvg(test: TestDefinition, r: ScoreResult, profile: { title: s
     .map((line, i) => `<tspan x="${PAD}" y="${descStartY + i * descLineHeight}">${esc(line)}</tspan>`)
     .join("");
 
+  const donutSvg =
+    `<circle cx="${donutCx}" cy="${donutCy}" r="${donutR}" fill="none" stroke="#20222b" stroke-width="${donutStroke}"/>` +
+    `<circle cx="${donutCx}" cy="${donutCy}" r="${donutR}" fill="none" stroke="${bandHex(v)}" stroke-width="${donutStroke}" ` +
+    `stroke-linecap="round" stroke-dasharray="${donutCirc.toFixed(2)}" stroke-dashoffset="${donutOff.toFixed(2)}" ` +
+    `transform="rotate(-90 ${donutCx} ${donutCy})"/>` +
+    `<text x="${donutCx}" y="${donutCy + 12}" font-size="44" font-weight="700" fill="#ecedef" text-anchor="middle" font-family="${SHARE_MONO_FONT}">${r.rsi}</text>` +
+    `<text x="${donutCx}" y="${donutCy + 38}" font-size="15" font-weight="600" fill="#9092a0" text-anchor="middle" font-family="${SHARE_MONO_FONT}">/ 100</text>`;
+
   let bars = "";
   dimIds.forEach((d, i) => {
     const rowY = barsStartY + i * barRowHeight;
@@ -87,11 +113,17 @@ function buildShareSvg(test: TestDefinition, r: ScoreResult, profile: { title: s
 
   return (
     `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">` +
+    `<defs><radialGradient id="glow" cx="82%" cy="6%" r="70%">` +
+    `<stop offset="0%" stop-color="#5470ff" stop-opacity="0.28"/>` +
+    `<stop offset="55%" stop-color="#5470ff" stop-opacity="0.06"/>` +
+    `<stop offset="100%" stop-color="#5470ff" stop-opacity="0"/>` +
+    `</radialGradient></defs>` +
     `<rect width="${W}" height="${H}" fill="#0b0c10"/>` +
+    `<rect width="${W}" height="${H}" fill="url(#glow)"/>` +
     `<text x="${PAD}" y="${eyebrowY}" font-size="20" font-weight="600" letter-spacing="2.5" fill="#5470ff" font-family="${SHARE_MONO_FONT}">${esc(test.name.toUpperCase())}</text>` +
     `<text font-size="58" font-weight="800" fill="#ecedef" font-family="${SHARE_FONT}">${titleSvg}</text>` +
-    `<text x="${PAD}" y="${rsiY}" font-size="40" font-weight="500" fill="#ecedef" font-family="${SHARE_MONO_FONT}">${r.rsi}<tspan font-size="20" font-weight="600" fill="#9092a0"> / 100 · İlişki Yapısı Skoru</tspan></text>` +
     `<text font-size="24" fill="#9092a0" font-family="${SHARE_BODY_FONT}">${descSvg}</text>` +
+    donutSvg +
     `<line x1="${PAD}" y1="${dividerY}" x2="${W - PAD}" y2="${dividerY}" stroke="#26272f" stroke-width="1"/>` +
     bars +
     `<text x="${PAD}" y="${H - 40}" font-size="22" font-weight="800" font-family="${SHARE_FONT}">` +
@@ -157,6 +189,8 @@ export function ResultPage() {
       .catch(() => setError("Sonuç bulunamadı."));
   }, [resultId]);
 
+  const rsiCount = useCountUp(result?.score.rsi ?? 0);
+
   if (error) {
     return (
       <main className="wrap">
@@ -210,7 +244,7 @@ export function ResultPage() {
           <Donut value={r.rsi} size={172} stroke={14} label="İlişki Yapısı Skoru" />
           <div className="overlay" aria-hidden="true">
             <div className="big">
-              {r.rsi}
+              {rsiCount}
               <small> / 100</small>
             </div>
           </div>

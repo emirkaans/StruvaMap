@@ -98,12 +98,14 @@ export function TestPage() {
     return (
       <main className="wrap">
         <Header />
-        <div className="q-count">
-          Ek soru {ci + 1} / {contextQuestions.length}
+        <div className="q-panel" key={ci}>
+          <div className="q-count">
+            Ek soru {ci + 1} / {contextQuestions.length}
+          </div>
+          <h1 className="q-text" tabIndex={-1} aria-live="polite">
+            {cq.text}
+          </h1>
         </div>
-        <h1 className="q-text" tabIndex={-1} aria-live="polite">
-          {cq.text}
-        </h1>
         <div className="options" role="radiogroup">
           {cq.options.map((opt, idx) => (
             <button
@@ -210,13 +212,15 @@ export function TestPage() {
       >
         <span style={{ width: `${(i / displayQuestions.length) * 100}%` }} />
       </div>
-      <div className="q-count">
-        Soru {i + 1} / {displayQuestions.length}
-      </div>
+      <div className="q-panel" key={i}>
+        <div className="q-count">
+          Soru {i + 1} / {displayQuestions.length}
+        </div>
 
-      <h1 className="q-text" tabIndex={-1} aria-live="polite">
-        {qText}
-      </h1>
+        <h1 className="q-text" tabIndex={-1} aria-live="polite">
+          {qText}
+        </h1>
+      </div>
 
       <div className="options" role="radiogroup" ref={optionsRef} onKeyDown={onOptionsKeyDown}>
         {q.options.map((opt, idx) => {
@@ -243,7 +247,7 @@ export function TestPage() {
           Geri
         </button>
         {isLast && (
-          <button type="button" className="btn" disabled={selected == null || submitting} onClick={goNext}>
+          <button type="button" className="btn finish-btn-enter" disabled={selected == null || submitting} onClick={goNext}>
             {submitting ? "Gönderiliyor…" : "Sonucu Gör"}
           </button>
         )}

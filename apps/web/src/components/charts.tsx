@@ -1,4 +1,6 @@
+import type { CSSProperties } from "react";
 import { DEFAULT_THRESHOLDS } from "@struva/shared";
+import { useRevealed } from "../lib/useRevealed";
 
 export type Band = "good" | "mid" | "low";
 
@@ -30,16 +32,20 @@ export function Donut({
   stroke: number;
   label: string;
 }) {
+  const [ref, visible] = useRevealed<SVGSVGElement>(0.2);
   const v = Math.max(0, Math.min(100, value));
   const r = (size - stroke) / 2;
   const cx = size / 2;
   const cy = size / 2;
   const circ = 2 * Math.PI * r;
   const off = circ * (1 - v / 100);
+  const vars = { "--circ": circ.toFixed(2), "--offset": off.toFixed(2) } as CSSProperties;
 
   return (
     <svg
-      className="donut"
+      ref={ref}
+      className={`donut${visible ? " is-visible" : ""}`}
+      style={vars}
       viewBox={`0 0 ${size} ${size}`}
       width={size}
       height={size}
@@ -48,7 +54,7 @@ export function Donut({
     >
       <circle className="c-track" cx={cx} cy={cy} r={r} fill="none" strokeWidth={stroke} />
       <circle
-        className={`c-${bandOf(v)}`}
+        className={`c-fill c-${bandOf(v)}`}
         cx={cx}
         cy={cy}
         r={r}
@@ -56,7 +62,6 @@ export function Donut({
         strokeWidth={stroke}
         strokeLinecap="round"
         strokeDasharray={circ.toFixed(2)}
-        strokeDashoffset={off.toFixed(2)}
         transform={`rotate(-90 ${cx} ${cy})`}
       />
     </svg>
@@ -99,6 +104,7 @@ export function Radar({
   dimensions: Record<string, number>;
   labels?: Record<string, string>;
 }) {
+  const [ref, visible] = useRevealed<SVGSVGElement>(0.2);
   const keys = Object.keys(dimensions);
   const n = keys.length;
   const W = 520;
@@ -112,19 +118,45 @@ export function Radar({
     const pts = keys
       .map((_, i) => polar(cx, cy, R * frac, i * (360 / n)).map((v) => v.toFixed(1)).join(","))
       .join(" ");
-    return <polygon key={gi} className="radar-grid" points={pts} />;
+    return (
+      <polygon
+        key={gi}
+        className="radar-grid"
+        points={pts}
+        style={{ animationDelay: `${gi * 90}ms` }}
+      />
+    );
   });
 
   const axes = keys.map((k, i) => {
     const [x, y] = polar(cx, cy, R, i * (360 / n));
-    return <line key={k} className="radar-axis" x1={cx} y1={cy} x2={x.toFixed(1)} y2={y.toFixed(1)} />;
+    return (
+      <line
+        key={k}
+        className="radar-axis"
+        x1={cx}
+        y1={cy}
+        x2={x.toFixed(1)}
+        y2={y.toFixed(1)}
+        style={{ "--r": R } as CSSProperties}
+      />
+    );
   });
 
   const valPts: string[] = [];
   const dots = keys.map((k, i) => {
     const [x, y] = polar(cx, cy, R * (dimensions[k] / 100), i * (360 / n));
     valPts.push(`${x.toFixed(1)},${y.toFixed(1)}`);
-    return <circle key={k} className="radar-dot" cx={x.toFixed(1)} cy={y.toFixed(1)} r={3} />;
+    return (
+      <circle
+        key={k}
+        className="radar-dot"
+        cx={x.toFixed(1)}
+        cy={y.toFixed(1)}
+        r={3}
+        style={{ animationDelay: `${420 + i * 45}ms` }}
+      />
+    );
   });
 
   const labelEls = keys.map((k, i) => {
@@ -145,10 +177,20 @@ export function Radar({
   });
 
   return (
-    <svg className="radar" viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Boyut radar grafiği">
+    <svg
+      ref={ref}
+      className={`radar${visible ? " is-visible" : ""}`}
+      viewBox={`0 0 ${W} ${H}`}
+      role="img"
+      aria-label="Boyut radar grafiği"
+    >
       {grid}
       {axes}
-      <polygon className="radar-area" points={valPts.join(" ")} />
+      <polygon
+        className="radar-area"
+        points={valPts.join(" ")}
+        style={{ transformOrigin: `${cx}px ${cy}px` }}
+      />
       {dots}
       {labelEls}
     </svg>
@@ -222,14 +264,18 @@ export function TrendChart({ history }: { history: TrendPoint[] }) {
 }
 
 export function Bar({ name, score }: { name: string; score: number }) {
+  const [ref, visible] = useRevealed<HTMLDivElement>(0.2);
   return (
-    <div className="bar-row">
+    <div className="bar-row" ref={ref}>
       <div className="bar-head">
         <span>{name}</span>
         <span className="val">{score}</span>
       </div>
       <div className={`bar ${bandOf(score)}`}>
-        <span style={{ width: `${score}%` }} />
+        <span
+          className={visible ? "is-visible" : ""}
+          style={{ "--w": `${score}%` } as CSSProperties}
+        />
       </div>
     </div>
   );

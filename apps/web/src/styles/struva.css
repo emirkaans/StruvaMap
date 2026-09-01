@@ -165,6 +165,42 @@ p {
   margin-bottom: 20px;
   line-height: 1.35;
 }
+/* Her yeni soruda panel key değişip yeniden mount olur, giriş animasyonu
+   tekrar tetiklenir — ilerleme hissi verir. */
+.q-panel {
+  animation: q-panel-enter 0.32s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+@keyframes q-panel-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.finish-btn-enter {
+  animation: finish-btn-enter 0.35s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+@keyframes finish-btn-enter {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .q-panel,
+  .finish-btn-enter {
+    animation: none !important;
+  }
+}
 
 .options {
   display: flex;
@@ -270,6 +306,15 @@ p {
 .c-low {
   stroke: var(--bad);
 }
+/* Halka görünüme girince boştan gerçek değere dolar; --circ/--offset her
+   Donut örneğine göre satır içi stil olarak set edilir. */
+.c-fill {
+  stroke-dashoffset: var(--circ);
+  transition: stroke-dashoffset 900ms cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+.donut.is-visible .c-fill {
+  stroke-dashoffset: var(--offset);
+}
 
 /* RSI gauge — hero */
 .gauge {
@@ -321,9 +366,34 @@ p {
   fill: none;
   stroke: var(--border);
 }
+.radar.is-visible .radar-grid {
+  animation: radar-grid-in 0.4s ease both;
+}
+@keyframes radar-grid-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 .radar-axis {
   stroke: var(--border);
 }
+.radar.is-visible .radar-axis {
+  stroke-dasharray: var(--r);
+  stroke-dashoffset: var(--r);
+  animation: radar-axis-in 0.35s ease 0.3s forwards;
+}
+@keyframes radar-axis-in {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Değer poligonu merkezden şişerek açılır — her köşe kendi ekseni boyunca
+   dışa doğru genişliyormuş hissi verir. */
 .radar-area {
   fill: var(--accent);
   fill-opacity: 0.16;
@@ -331,17 +401,70 @@ p {
   stroke-width: 2;
   stroke-linejoin: round;
 }
+.radar.is-visible .radar-area {
+  animation: radar-area-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.15s both;
+}
+@keyframes radar-area-in {
+  from {
+    transform: scale(0);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
 .radar-dot {
   fill: var(--accent);
+  transform-box: fill-box;
+  transform-origin: center;
 }
+.radar.is-visible .radar-dot {
+  animation: radar-dot-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+@keyframes radar-dot-in {
+  from {
+    opacity: 0;
+    transform: scale(0);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
 .radar-label {
   fill: var(--muted);
   font-size: 15px;
 }
+.radar.is-visible .radar-label {
+  animation: radar-label-in 0.3s ease 0.6s both;
+}
+@keyframes radar-label-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 .radar-val {
   fill: var(--text);
   font-weight: 700;
   font-family: "IBM Plex Mono", ui-monospace, monospace;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .radar.is-visible .radar-grid,
+  .radar.is-visible .radar-axis,
+  .radar.is-visible .radar-area,
+  .radar.is-visible .radar-dot,
+  .radar.is-visible .radar-label {
+    animation: none !important;
+    stroke-dashoffset: 0 !important;
+  }
 }
 
 .bar-row {
@@ -367,6 +490,11 @@ p {
   display: block;
   height: 100%;
   border-radius: 99px;
+  width: 0%;
+  transition: width 900ms cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+.bar > span.is-visible {
+  width: var(--w);
 }
 .bar.good > span {
   background: var(--good);
@@ -1413,6 +1541,29 @@ p {
 .duel-delta-val.low {
   color: var(--bad);
 }
+/* Fark sayısı, iki taraf da sayılıp bittikten sonra vurgulu bir "iniş"le
+   belirir — kıyaslamanın asıl dramatik anı. */
+.reveal-group.is-visible .duel-delta-val {
+  animation: duel-delta-pop 0.5s cubic-bezier(0.22, 0.61, 0.36, 1) 0.65s backwards;
+}
+@keyframes duel-delta-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  65% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .reveal-group.is-visible .duel-delta-val {
+    animation: none !important;
+  }
+}
 
 /* Boyut bazında kıyaslama kartı: iki bar üst üste, üstte ayraç payı */
 .compare-dim h3 {
@@ -1488,6 +1639,14 @@ p {
     opacity: 1 !important;
     transform: none !important;
   }
+  .c-fill {
+    transition: none !important;
+    stroke-dashoffset: var(--offset) !important;
+  }
+  .bar > span {
+    transition: none !important;
+    width: var(--w) !important;
+  }
 }
 
 @media print {
@@ -1516,6 +1675,14 @@ p {
   .reveal-group > * {
     opacity: 1 !important;
     transform: none !important;
+    transition: none !important;
+  }
+  .c-fill {
+    stroke-dashoffset: var(--offset) !important;
+    transition: none !important;
+  }
+  .bar > span {
+    width: var(--w) !important;
     transition: none !important;
   }
   body {

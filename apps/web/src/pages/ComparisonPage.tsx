@@ -5,7 +5,8 @@ import { bandOf as interpBandOf } from "@struva/shared";
 import { fetchComparison, fetchTest, type ComparisonRow } from "../lib/api";
 import { track } from "../lib/analytics";
 import { toTurkishUpper } from "../lib/text";
-import { Donut, bandOf } from "../components/charts";
+import { useCountUp } from "../lib/useCountUp";
+import { Bar, Donut } from "../components/charts";
 import { Header } from "../components/Header";
 import { Footer } from "../components/Footer";
 import { AppCta } from "../components/AppCta";
@@ -38,6 +39,14 @@ export function ComparisonPage() {
       .catch(() => setError("Kıyaslama bulunamadı."));
   }, [comparisonId]);
 
+  const aRsiCount = useCountUp(comparison?.a.score.rsi ?? 0, 900, 0);
+  const bRsiCount = useCountUp(comparison?.b.score.rsi ?? 0, 900, 150);
+  const gapCount = useCountUp(
+    comparison ? Math.abs(comparison.a.score.rsi - comparison.b.score.rsi) : 0,
+    700,
+    650,
+  );
+
   if (error) {
     return (
       <main className="wrap">
@@ -68,28 +77,28 @@ export function ComparisonPage() {
         <span className="eyebrow">{toTurkishUpper("Kıyaslama")}</span>
         <p className="muted small" style={{ marginBottom: 0 }}>{test.name}</p>
 
-        <div className="duel">
+        <Reveal group className="duel">
           <div className="duel-side">
             <div className="duel-donut">
               <Donut value={a.score.rsi} size={132} stroke={11} label="Davet eden — İlişki Yapısı Skoru" />
-              <div className="overlay" aria-hidden="true">{a.score.rsi}</div>
+              <div className="overlay" aria-hidden="true">{aRsiCount}</div>
             </div>
             <div className="l">Davet eden</div>
           </div>
 
           <div className="duel-delta">
             <span className="duel-delta-label">{toTurkishUpper("Fark")}</span>
-            <span className={`duel-delta-val ${gapBand(rsiGap)}`}>{rsiGap}</span>
+            <span className={`duel-delta-val ${gapBand(rsiGap)}`}>{gapCount}</span>
           </div>
 
           <div className="duel-side">
             <div className="duel-donut">
               <Donut value={b.score.rsi} size={132} stroke={11} label="Katılan — İlişki Yapısı Skoru" />
-              <div className="overlay" aria-hidden="true">{b.score.rsi}</div>
+              <div className="overlay" aria-hidden="true">{bRsiCount}</div>
             </div>
             <div className="l">Katılan</div>
           </div>
-        </div>
+        </Reveal>
 
         <p className="small muted" style={{ maxWidth: 460, margin: "16px auto 0" }}>
           {rsiGap >= PERCEPTION_GAP_THRESHOLD
@@ -138,24 +147,8 @@ export function ComparisonPage() {
               {test.dimensions[dim].name}
               {hasGap && <span className="tag low">algı farkı {gap}</span>}
             </h3>
-            <div className="bar-row">
-              <div className="bar-head">
-                <span>Davet eden</span>
-                <span className="val">{aScore}</span>
-              </div>
-              <div className={`bar ${bandOf(aScore)}`}>
-                <span style={{ width: `${aScore}%` }} />
-              </div>
-            </div>
-            <div className="bar-row">
-              <div className="bar-head">
-                <span>Katılan</span>
-                <span className="val">{bScore}</span>
-              </div>
-              <div className={`bar ${bandOf(bScore)}`}>
-                <span style={{ width: `${bScore}%` }} />
-              </div>
-            </div>
+            <Bar name="Davet eden" score={aScore} />
+            <Bar name="Katılan" score={bScore} />
             <p className="small muted" style={{ margin: "10px 0 0" }}>
               {assessment}
             </p>
