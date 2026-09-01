@@ -30,9 +30,16 @@ export function TestPage() {
   const [i, setI] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const optionsRef = useRef<HTMLDivElement>(null);
+  const qHeadingRef = useRef<HTMLHeadingElement>(null);
   // Şıkka arka arkaya basıldığında (mobilde çift dokunma) 220 ms'lik geçiş
   // penceresinde birden fazla ilerleme kuyruğa girip soru atlanmasın.
   const advancing = useRef(false);
+
+  // Yeni soruya geçince odağı başlığa taşı — ekran okuyucu kullanıcısı
+  // içeriğin değiştiğini fark etsin (tabIndex={-1} bunun için var).
+  useEffect(() => {
+    qHeadingRef.current?.focus();
+  }, [i, ci]);
 
   useEffect(() => {
     if (!testId) return;
@@ -102,7 +109,7 @@ export function TestPage() {
           <div className="q-count">
             Ek soru {ci + 1} / {contextQuestions.length}
           </div>
-          <h1 className="q-text" tabIndex={-1} aria-live="polite">
+          <h1 className="q-text" ref={qHeadingRef} tabIndex={-1} aria-live="polite">
             {cq.text}
           </h1>
         </div>
@@ -217,7 +224,7 @@ export function TestPage() {
           Soru {i + 1} / {displayQuestions.length}
         </div>
 
-        <h1 className="q-text" tabIndex={-1} aria-live="polite">
+        <h1 className="q-text" ref={qHeadingRef} tabIndex={-1} aria-live="polite">
           {qText}
         </h1>
       </div>

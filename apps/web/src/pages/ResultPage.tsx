@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { composeProfileStory, computeProfileLabel, type ScoreResult, type TestDefinition } from "@struva/shared";
-import { fetchResult, fetchResultHistory, fetchTest, type ResultRow } from "../lib/api";
+import { fetchComparisonByResultId, fetchResult, fetchResultHistory, fetchTest, type ResultRow } from "../lib/api";
 import { track } from "../lib/analytics";
 import { toTurkishUpper } from "../lib/text";
 import { useCountUp } from "../lib/useCountUp";
@@ -163,16 +163,23 @@ function downloadShareImage(test: TestDefinition, r: ScoreResult, profile: { tit
   img.src = url;
 }
 
+function invitedStorageKey(resultId: string): string {
+  return `struva_invited_${resultId}`;
+}
+
 export function ResultPage() {
   const { resultId } = useParams<{ resultId: string }>();
   const [searchParams] = useSearchParams();
-  const comparisonId = searchParams.get("comparisonId");
+  const comparisonIdFromUrl = searchParams.get("comparisonId");
   const [result, setResult] = useState<ResultRow | null>(null);
   const [test, setTest] = useState<TestDefinition | null>(null);
   const [history, setHistory] = useState<ResultRow[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [inviteCopied, setInviteCopied] = useState(false);
+  const [invited, setInvited] = useState(false);
+  const [foundComparisonId, setFoundComparisonId] = useState<string | null>(null);
+  const comparisonId = comparisonIdFromUrl ?? foundComparisonId;
 
   useEffect(() => {
     if (!resultId) return;
@@ -180,6 +187,7 @@ export function ResultPage() {
       .then((row) => {
         setResult(row);
         track("result_view", { testId: row.test_id });
+        setInvited(localStorage.getItem(invitedStorageKey(row.id)) === "1");
         fetchResultHistory(row.session_id, row.test_id)
           .then(setHistory)
           .catch(() => setHistory([]));
@@ -188,6 +196,28 @@ export function ResultPage() {
       .then(setTest)
       .catch(() => setError("Sonuç bulunamadı."));
   }, [resultId]);
+
+  // Davet gönderildiyse ve henüz bir kıyaslama yoksa, karşı taraf testi
+  // bitirdiğinde sayfayı yenilemeye gerek kalmadan haberdar olalım.
+  useEffect(() => {
+    if (!result || comparisonId || !invited) return;
+    let cancelled = false;
+    const poll = () => {
+      fetchComparisonByResultId(result.id)
+        .then((found) => {
+          if (!cancelled && found) {
+            setFoundComparisonId(found.id);
+            track("comparison_ready", { testId: result.test_id });
+          }
+        })
+        .catch(() => {});
+    };
+    const interval = setInterval(poll, 6000);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, [result, comparisonId, invited]);
 
   const rsiCount = useCountUp(result?.score.rsi ?? 0);
 
@@ -254,13 +284,37 @@ export function ResultPage() {
         </p>
       </Reveal>
 
-      {comparisonId && (
+      {comparisonIdFromUrl && (
         <Reveal className="card no-print" style={{ textAlign: "center" }}>
           <h3 style={{ marginBottom: 8 }}>Kıyaslama hazır</h3>
           <p className="small muted">Seni davet eden kişinin sonucuyla yan yana karşılaştırma.</p>
-          <Link to={`/comparisons/${comparisonId}`} className="btn">
+          <Link to={`/comparisons/${comparisonIdFromUrl}`} className="btn">
             Kıyaslamayı gör
           </Link>
+        </Reveal>
+      )}
+
+      {foundComparisonId && (
+        <Reveal className="card no-print" style={{ textAlign: "center" }}>
+          <h3 style={{ marginBottom: 8 }}>Kıyaslama hazır</h3>
+          <p className="small muted">Davet ettiğin kişi testi tamamladı — sonuçlarınız yan yana hazır.</p>
+          <Link to={`/comparisons/${foundComparisonId}`} className="btn">
+            Kıyaslamayı gör
+          </Link>
+        </Reveal>
+      )}
+
+      {invited && !comparisonId && (
+        <Reveal className="card no-print" style={{ textAlign: "center" }}>
+          <h3 style={{ marginBottom: 8 }}>Davet gönderildi</h3>
+          <p className="small muted">
+            Karşı taraf testi tamamladığında kıyaslama burada otomatik görünecek.
+          </p>
+          <span className="waiting-dots" aria-hidden="true">
+            <span />
+            <span />
+            <span />
+          </span>
         </Reveal>
       )}
 
@@ -310,6 +364,8 @@ export function ResultPage() {
                 const url = `${window.location.origin}/test/${test.id}?compareWith=${result.id}`;
                 navigator.clipboard.writeText(url).then(() => {
                   track("invite_copied", { testId: test.id });
+                  localStorage.setItem(invitedStorageKey(result.id), "1");
+                  setInvited(true);
                   setInviteCopied(true);
                   setTimeout(() => setInviteCopied(false), 1800);
                 });

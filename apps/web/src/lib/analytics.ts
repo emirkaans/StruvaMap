@@ -13,6 +13,7 @@ export type EventName =
   | "test_complete"
   | "result_view"
   | "comparison_view"
+  | "comparison_ready"
   | "invite_copied"
   | "link_copied"
   | "share_image_download"

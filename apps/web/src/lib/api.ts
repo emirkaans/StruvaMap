@@ -60,6 +60,10 @@ export function fetchComparison(comparisonId: string): Promise<ComparisonRow> {
   return request(`/comparisons/${comparisonId}`);
 }
 
+export function fetchComparisonByResultId(resultId: string): Promise<ComparisonRow | null> {
+  return request(`/comparisons/by-result/${resultId}`);
+}
+
 /* Admin uçları oturum gerektirir. supabase istemcisi burada dinamik import
    edilir ki genel ziyaretçi akışı VITE_SUPABASE_* değişkenlerine bağımlı
    olmasın — bu istemci yalnızca admin panelinde gerçekten kullanılır. */

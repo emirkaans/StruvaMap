@@ -1,4 +1,9 @@
-import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { SupabaseService } from '../supabase/supabase.service';
 import { bucketByDay, DailyCount } from '../common/bucket-by-day';
 import { ResultsService } from '../results/results.service';
@@ -59,18 +64,49 @@ export class ComparisonsService {
       .eq('id', id)
       .single();
 
-    if (error || !data) throw new NotFoundException(`Kıyaslama bulunamadı: ${id}`);
-    const row = data as ComparisonRow;
+    if (error || !data)
+      throw new NotFoundException(`Kıyaslama bulunamadı: ${id}`);
+    return this.hydrate(data as ComparisonRow);
+  }
 
+  /* Davet eden kişinin sonuç sayfası, karşı taraf testi bitirince ortaya
+     çıkacak kıyaslamayı bulmak için bunu periyodik olarak yoklar (polling).
+     Henüz oluşmadıysa 404 değil null döner — bu beklenen, geçici bir durum. */
+  async findByResultId(resultId: string) {
+    const asA = await this.supabase.client
+      .from('comparisons')
+      .select()
+      .eq('result_id_a', resultId)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (asA.error) throw new InternalServerErrorException(asA.error.message);
+    if (asA.data) return this.hydrate(asA.data as ComparisonRow);
+
+    const asB = await this.supabase.client
+      .from('comparisons')
+      .select()
+      .eq('result_id_b', resultId)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (asB.error) throw new InternalServerErrorException(asB.error.message);
+    if (asB.data) return this.hydrate(asB.data as ComparisonRow);
+
+    return null;
+  }
+
+  private async hydrate(row: ComparisonRow) {
     const [a, b] = await Promise.all([
       this.results.findById(row.result_id_a),
       this.results.findById(row.result_id_b),
     ]);
-
     return { id: row.id, testId: row.test_id, a, b };
   }
 
-  async findAllPaginated(params: FindAllComparisonsParams): Promise<PaginatedComparisons> {
+  async findAllPaginated(
+    params: FindAllComparisonsParams,
+  ): Promise<PaginatedComparisons> {
     const { testId, from, to, page, pageSize } = params;
     const offset = (page - 1) * pageSize;
 

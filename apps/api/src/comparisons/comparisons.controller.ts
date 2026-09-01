@@ -13,6 +13,11 @@ export class ComparisonsController {
     return this.comparisonsService.create(dto);
   }
 
+  @Get('by-result/:resultId')
+  getByResult(@Param('resultId') resultId: string) {
+    return this.comparisonsService.findByResultId(resultId);
+  }
+
   @Get(':id')
   getOne(@Param('id') id: string) {
     return this.comparisonsService.findById(id);

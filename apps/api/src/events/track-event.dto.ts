@@ -1,4 +1,11 @@
-import { IsIn, IsNotEmpty, IsObject, IsOptional, IsString, MaxLength } from 'class-validator';
+import {
+  IsIn,
+  IsNotEmpty,
+  IsObject,
+  IsOptional,
+  IsString,
+  MaxLength,
+} from 'class-validator';
 
 export const EVENT_NAMES = [
   'landing_view',
@@ -7,6 +14,7 @@ export const EVENT_NAMES = [
   'test_complete',
   'result_view',
   'comparison_view',
+  'comparison_ready',
   'invite_copied',
   'link_copied',
   'share_image_download',
