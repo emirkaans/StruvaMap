@@ -437,6 +437,7 @@ export const familyTest: TestDefinition = {
   name: "Ebeveyn-Çocuk İlişkisi Yapısı Anlık Görünümü",
   subtitle: "6 boyut · 31 soru · ~7 dakika",
   inviteCta: "Ebeveynini ya da çocuğunu davet et",
+  visible: false,
   contextQuestions,
   disclaimerNote:
     "Ebeveyn-çocuk ilişkisinde bazı asimetriler (ör. yaşa bağlı karar payı farkı) yapısal olarak meşrudur; her asimetri sorun anlamına gelmez.",

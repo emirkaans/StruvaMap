@@ -50,7 +50,7 @@ export function AdminDashboardPage() {
     fetchAdminComparisons({ page: 1, pageSize: 1 }).then((r) => setComparisonsTotal(r.total));
     fetchAdminEventsSummary().then((rows) => setEventsTotal(rows.reduce((sum, r) => sum + r.count, 0)));
     fetchAdminResultsByTest().then((rows) => setResultsByTest([...rows].sort((a, b) => b.count - a.count)));
-    fetchTests().then(setTests);
+    fetchTests(true).then(setTests);
   }, []);
 
   useEffect(() => {

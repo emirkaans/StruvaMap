@@ -18,7 +18,7 @@ export function AdminComparisonsPage() {
   const [total, setTotal] = useState(0);
 
   useEffect(() => {
-    fetchTests().then(setTests);
+    fetchTests(true).then(setTests);
   }, []);
 
   useEffect(() => {

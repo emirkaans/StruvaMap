@@ -63,6 +63,7 @@ export interface TestDefinition {
   questions: Question[];
   contextQuestions?: ContextQuestion[];
   disclaimerNote?: string;
+  visible?: boolean; // false ise genel uygulamada gizlenir, admin panelden yönetilmeye devam eder
 }
 
 export type Answers = Record<number, number>;

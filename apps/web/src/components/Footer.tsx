@@ -4,9 +4,7 @@ import { PLAY_STORE_URL } from "../lib/config";
 const FOOTER_TESTS = [
   { id: "romantic", label: "Romantik İlişki" },
   { id: "friendship", label: "Arkadaşlık" },
-  { id: "family", label: "Aile" },
   { id: "roommate", label: "Ev Arkadaşlığı" },
-  { id: "work", label: "İş" },
 ];
 
 export function Footer() {

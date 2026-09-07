@@ -20,8 +20,8 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   return res.json() as Promise<T>;
 }
 
-export function fetchTests(): Promise<TestDefinition[]> {
-  return request("/tests");
+export function fetchTests(all?: boolean): Promise<TestDefinition[]> {
+  return request(`/tests${all ? "?all=true" : ""}`);
 }
 
 export function fetchTest(testId: string): Promise<TestDefinition> {

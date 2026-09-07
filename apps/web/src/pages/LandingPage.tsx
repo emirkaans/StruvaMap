@@ -38,11 +38,7 @@ const HERO_CONTENT: Record<string, HeroContent> = {
   },
   friendship: {
     pillLabel: "Arkadaşlık",
-    headline: [
-      "Sessiz Emek.",
-      "Hissedilen Karşılıklılık.",
-      "Anlaşılabilir Bağ.",
-    ],
+    headline: ["Dostlukta Hesap Tutulmaz.", "Ama Denge Hissedilir."],
     lead: "Arkadaşlığınızda sohbetin ötesinde bir katman vardır: girişim, destek, dürüstlük, özerklik... StruvaMap bunları birlikte görünür kılar.",
     image: heykelFriendship,
     dimNote: "arkadaşlığı oluşturan alanlar",

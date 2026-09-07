@@ -379,6 +379,7 @@ export const workTest: TestDefinition = {
   name: "İş İlişkisi Yapısı Anlık Görünümü",
   subtitle: "6 boyut · 32 soru · ~7 dakika",
   inviteCta: "Yöneticini ya da çalışanını davet et",
+  visible: false,
   contextQuestions,
   disclaimerNote:
     "İş ilişkisinde bazı asimetriler (ör. yöneticinin son sözü olması) meşru hiyerarşinin parçasıdır; her asimetri sorun anlamına gelmez.",

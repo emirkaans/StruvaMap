@@ -8,7 +8,7 @@ export function AdminTestsPage() {
   const [tests, setTests] = useState<TestDefinition[] | null>(null);
 
   useEffect(() => {
-    fetchTests().then(setTests);
+    fetchTests(true).then(setTests);
   }, []);
 
   return (

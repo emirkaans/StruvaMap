@@ -1,4 +1,4 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import { Controller, Get, Param, Query } from '@nestjs/common';
 import { TestsService } from './tests.service';
 
 @Controller('tests')
@@ -6,8 +6,8 @@ export class TestsController {
   constructor(private readonly testsService: TestsService) {}
 
   @Get()
-  async list() {
-    return this.testsService.listAll();
+  async list(@Query('all') all?: string) {
+    return this.testsService.listAll(all === 'true');
   }
 
   @Get(':testId')

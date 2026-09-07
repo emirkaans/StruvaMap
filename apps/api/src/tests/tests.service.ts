@@ -19,14 +19,14 @@ const TEST_ORDER = ['romantic', 'friendship', 'family', 'roommate', 'work'];
 export class TestsService {
   constructor(private readonly supabase: SupabaseService) {}
 
-  async listAll(): Promise<TestDefinition[]> {
+  async listAll(includeHidden = false): Promise<TestDefinition[]> {
     const { data, error } = await this.supabase.client
       .from('tests')
       .select('definition');
     if (error) throw new InternalServerErrorException(error.message);
-    const tests = ((data ?? []) as Pick<TestRow, 'definition'>[]).map(
-      (row) => row.definition,
-    );
+    const tests = ((data ?? []) as Pick<TestRow, 'definition'>[])
+      .map((row) => row.definition)
+      .filter((def) => includeHidden || def.visible !== false);
     return tests.sort((a, b) => {
       const ai = TEST_ORDER.indexOf(a.id);
       const bi = TEST_ORDER.indexOf(b.id);
