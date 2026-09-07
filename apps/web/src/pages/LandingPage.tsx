@@ -129,17 +129,19 @@ export function LandingPage() {
     touchStartX.current = e.touches[0].clientX;
   }
 
+  function stepHero(dir: 1 | -1) {
+    if (heroTests.length < 2) return;
+    const idx = activeIndex === -1 ? 0 : activeIndex;
+    const nextIdx = (idx + dir + heroTests.length) % heroTests.length;
+    setSelectedId(heroTests[nextIdx].id);
+  }
+
   function handleHeroTouchEnd(e: React.TouchEvent) {
     if (touchStartX.current == null || heroTests.length < 2) return;
     const dx = e.changedTouches[0].clientX - touchStartX.current;
     touchStartX.current = null;
     if (Math.abs(dx) < SWIPE_THRESHOLD) return;
-    const idx = activeIndex === -1 ? 0 : activeIndex;
-    const nextIdx =
-      dx < 0
-        ? (idx + 1) % heroTests.length
-        : (idx - 1 + heroTests.length) % heroTests.length;
-    setSelectedId(heroTests[nextIdx].id);
+    stepHero(dx < 0 ? 1 : -1);
   }
 
   useEffect(() => {
@@ -153,6 +155,16 @@ export function LandingPage() {
     }, 10000);
     return () => clearInterval(id);
   }, [heroIds, activeId, heroVisible]);
+
+  useEffect(() => {
+    if (heroTests.length < 2) return;
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "ArrowRight") stepHero(1);
+      else if (e.key === "ArrowLeft") stepHero(-1);
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [heroIds, activeId]);
 
   return (
     <div>
