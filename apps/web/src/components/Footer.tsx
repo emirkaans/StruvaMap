@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { PLAY_STORE_URL } from "../lib/config";
+import logoMark from "../assets/struvamap-3d-logo.svg";
 
 const FOOTER_TESTS = [
   { id: "romantic", label: "Romantik İlişki" },
@@ -15,6 +16,7 @@ export function Footer() {
       <div className="site-footer-cols">
         <div className="site-footer-brand">
           <Link to="/" className="logo-lg">
+            <img className="logo-mark" src={logoMark} alt="" aria-hidden="true" />
             Struva<span>Map</span>
           </Link>
           <p>
