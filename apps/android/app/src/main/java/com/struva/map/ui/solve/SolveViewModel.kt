@@ -1,0 +1,121 @@
+package com.struva.map.ui.solve
+
+import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.struva.map.network.ApiService
+import com.struva.map.network.SessionIdProvider
+import com.struva.map.network.dto.ContextQuestionDto
+import com.struva.map.network.dto.QuestionDto
+import com.struva.map.network.dto.ScoreResultDto
+import com.struva.map.network.dto.SubmitResultRequest
+import com.struva.map.network.dto.TestDetailDto
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+import javax.inject.Inject
+
+sealed interface SolveUiState {
+    data object Loading : SolveUiState
+    data class ContextQuestion(val question: ContextQuestionDto, val position: Int, val total: Int) : SolveUiState
+    data class Question(val question: QuestionDto, val position: Int, val total: Int) : SolveUiState
+    data object Submitting : SolveUiState
+    data class Result(val resultId: String, val score: ScoreResultDto) : SolveUiState
+    data class Error(val message: String) : SolveUiState
+}
+
+@HiltViewModel
+class SolveViewModel @Inject constructor(
+    private val api: ApiService,
+    private val sessionIdProvider: SessionIdProvider,
+    savedStateHandle: SavedStateHandle,
+) : ViewModel() {
+    private val testId: String = checkNotNull(savedStateHandle["testId"])
+
+    private val _uiState = MutableStateFlow<SolveUiState>(SolveUiState.Loading)
+    val uiState: StateFlow<SolveUiState> = _uiState.asStateFlow()
+
+    private var test: TestDetailDto? = null
+    private var shuffledQuestions: List<QuestionDto> = emptyList()
+    private val answers = mutableMapOf<Int, Int>()
+    private val contextAnswers = mutableMapOf<String, String>()
+    private var contextIndex = 0
+    private var questionIndex = 0
+
+    init {
+        load()
+    }
+
+    fun load() {
+        viewModelScope.launch {
+            _uiState.value = SolveUiState.Loading
+            try {
+                val t = api.getTest(testId)
+                test = t
+                shuffledQuestions = t.questions.shuffled()
+                answers.clear()
+                contextAnswers.clear()
+                contextIndex = 0
+                questionIndex = 0
+                advance()
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                _uiState.value = SolveUiState.Error(e.message ?: "Bilinmeyen hata")
+            }
+        }
+    }
+
+    fun chooseContextAnswer(questionId: String, value: String) {
+        contextAnswers[questionId] = value
+        contextIndex++
+        advance()
+    }
+
+    fun chooseAnswer(questionId: Int, optionIndex: Int) {
+        answers[questionId] = optionIndex
+        questionIndex++
+        advance()
+    }
+
+    // Sıra: bağlam soruları (ör. yaş/rol) önce, sonra karıştırılmış asıl
+    // sorular — web'deki TestPage.tsx akışıyla aynı (ci < contextQuestions
+    // önce kontrol ediliyor).
+    private fun advance() {
+        val t = test ?: return
+        val contextQuestions = t.contextQuestions
+        _uiState.value = when {
+            contextIndex < contextQuestions.size ->
+                SolveUiState.ContextQuestion(contextQuestions[contextIndex], contextIndex, contextQuestions.size)
+            questionIndex < shuffledQuestions.size ->
+                SolveUiState.Question(shuffledQuestions[questionIndex], questionIndex, shuffledQuestions.size)
+            else -> {
+                submit(t)
+                SolveUiState.Submitting
+            }
+        }
+    }
+
+    private fun submit(t: TestDetailDto) {
+        viewModelScope.launch {
+            _uiState.value = try {
+                val response = api.submitResult(
+                    SubmitResultRequest(
+                        testId = t.id,
+                        sessionId = sessionIdProvider.sessionId,
+                        answers = answers.toMap(),
+                        contextAnswers = contextAnswers.takeIf { it.isNotEmpty() },
+                    ),
+                )
+                SolveUiState.Result(response.id, response.score)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                SolveUiState.Error(e.message ?: "Sonuç gönderilemedi")
+            }
+        }
+    }
+}

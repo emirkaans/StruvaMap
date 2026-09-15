@@ -2,6 +2,7 @@ import { Injectable, InternalServerErrorException, NotFoundException } from '@ne
 import { computeScores, ScoreResult } from '@struva/shared';
 import { SupabaseService } from '../supabase/supabase.service';
 import { bucketByDay, DailyCount } from '../common/bucket-by-day';
+import { getOptionalUser } from '../auth/optional-user';
 import { TestsService } from '../tests/tests.service';
 import { SubmitResultDto } from './submit-result.dto';
 
@@ -14,6 +15,7 @@ export interface ResultRow {
   id: string;
   test_id: string;
   session_id: string;
+  user_id: string | null;
   answers: Record<number, number>;
   score: ScoreResult;
   created_at: string;
@@ -39,15 +41,19 @@ export class ResultsService {
     private readonly tests: TestsService,
   ) {}
 
-  async submit(dto: SubmitResultDto): Promise<ResultRow> {
+  async submit(dto: SubmitResultDto, authorization?: string): Promise<ResultRow> {
     const test = await this.tests.getById(dto.testId); // testId geçersizse NotFoundException fırlatır
     const score = computeScores(test, dto.answers, undefined, dto.contextAnswers);
+    // Web anonim (Authorization yok) çalışmaya devam eder; mobil authlıysa
+    // user_id de yazılır — aynı tablo, tek akış.
+    const user = await getOptionalUser(this.supabase.client, authorization);
 
     const { data, error } = await this.supabase.client
       .from('results')
       .insert({
         test_id: test.id,
         session_id: dto.sessionId,
+        user_id: user?.id ?? null,
         answers: dto.answers,
         score,
       })
@@ -74,6 +80,19 @@ export class ResultsService {
       .from('results')
       .select()
       .eq('session_id', sessionId)
+      .eq('test_id', testId)
+      .order('created_at', { ascending: true })
+      .limit(limit);
+
+    if (error) throw new InternalServerErrorException(error.message);
+    return (data ?? []) as ResultRow[];
+  }
+
+  async findByUser(userId: string, testId: string, limit = 20): Promise<ResultRow[]> {
+    const { data, error } = await this.supabase.client
+      .from('results')
+      .select()
+      .eq('user_id', userId)
       .eq('test_id', testId)
       .order('created_at', { ascending: true })
       .limit(limit);

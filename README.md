@@ -106,4 +106,6 @@ pnpm dev:api    # http://localhost:3000
 - ✅ Anasayfa: ilişki türü seçici, gerçek test verisinden kurulu istatistik ve
   metodoloji bölümleri.
 - ✅ Bağlama duyarlı yorum ve denge/memnuniyet ayrımı (iş ve aile testleri).
-- ⏳ Auth yok (bilinçli: web anonim session, mobil ileride gerçek auth).
+- ⏳ Web'de auth yok (bilinçli: anonim session). Mobil (Android) için kullanıcı
+  adı+şifre auth backend'de hazır (`POST /auth/register`, `profiles` tablosu,
+  `results.user_id`) — Android istemcisi henüz yazılmadı.

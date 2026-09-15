@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "540802721338",
+    "project_id": "struvamap-30437",
+    "storage_bucket": "struvamap-30437.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:540802721338:android:f4566228721c87227ab703",
+        "android_client_info": {
+          "package_name": "com.struva.map"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBtLcQj5gBaJfnBjClAV4W0Y350yR33nB4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

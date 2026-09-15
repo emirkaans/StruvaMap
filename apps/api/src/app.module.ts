@@ -4,11 +4,14 @@ import { ConfigModule } from '@nestjs/config';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { SentryGlobalFilter, SentryModule } from '@sentry/nestjs/setup';
 import { SupabaseModule } from './supabase/supabase.module';
+import { AuthModule } from './auth/auth.module';
 import { TestsModule } from './tests/tests.module';
 import { ResultsModule } from './results/results.module';
 import { ComparisonsModule } from './comparisons/comparisons.module';
 import { EventsModule } from './events/events.module';
 import { AdminModule } from './admin/admin.module';
+import { DevicesModule } from './devices/devices.module';
+import { PushModule } from './push/push.module';
 
 @Module({
   imports: [
@@ -18,11 +21,14 @@ import { AdminModule } from './admin/admin.module';
     // (results, comparisons, events) için tek savunma katmanı bu.
     ThrottlerModule.forRoot([{ ttl: 60000, limit: 30 }]),
     SupabaseModule,
+    AuthModule,
     TestsModule,
     ResultsModule,
     ComparisonsModule,
     EventsModule,
     AdminModule,
+    DevicesModule,
+    PushModule,
   ],
   providers: [
     // SENTRY_DSN yoksa Sentry.init hiç çalışmadığı için bu filtre de sessiz kalır;

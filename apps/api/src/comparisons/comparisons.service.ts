@@ -7,6 +7,8 @@ import {
 import { SupabaseService } from '../supabase/supabase.service';
 import { bucketByDay, DailyCount } from '../common/bucket-by-day';
 import { ResultsService } from '../results/results.service';
+import { DevicesService } from '../devices/devices.service';
+import { PushService } from '../push/push.service';
 import { CreateComparisonDto } from './create-comparison.dto';
 
 export interface ComparisonRow {
@@ -35,6 +37,8 @@ export class ComparisonsService {
   constructor(
     private readonly supabase: SupabaseService,
     private readonly results: ResultsService,
+    private readonly devices: DevicesService,
+    private readonly push: PushService,
   ) {}
 
   async create(dto: CreateComparisonDto): Promise<ComparisonRow> {
@@ -54,7 +58,15 @@ export class ComparisonsService {
       .single();
 
     if (error) throw new InternalServerErrorException(error.message);
-    return data as ComparisonRow;
+    const row = data as ComparisonRow;
+
+    // Davet edeni (A) bilgilendir — karşı taraf (B) az önce kendi isteğiyle
+    // testi bitirdi, bildirime ihtiyacı yok. Token kayıtlı değilse (mobil
+    // davet etmediyse) getToken null döner, sendComparisonReady sessizce atlar.
+    const token = await this.devices.getToken(a.id);
+    if (token) void this.push.sendComparisonReady(token, row.id);
+
+    return row;
   }
 
   async findById(id: string) {
