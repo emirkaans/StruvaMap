@@ -21,6 +21,12 @@ class ResultsRepository @Inject constructor(
         rows.map { ResultRowDto(id = it.id, createdAt = it.createdAt, score = json.decodeFromString(it.scoreJson)) }
     }
 
+    // "Geçmiş" sekmesi: testId'den bağımsız, kullanıcının çözdüğü tüm testlerin
+    // sonuçları — her satırdaki score.testId zaten hangi teste ait olduğunu taşır.
+    fun observeAll(): Flow<List<ResultRowDto>> = dao.observeAll().map { rows ->
+        rows.map { ResultRowDto(id = it.id, createdAt = it.createdAt, score = json.decodeFromString(it.scoreJson)) }
+    }
+
     suspend fun refresh(testId: String) {
         val results = api.getMyResults(testId)
         dao.deleteByTest(testId)
@@ -29,6 +35,24 @@ class ResultsRepository @Inject constructor(
                 CachedResultEntity(
                     id = it.id,
                     testId = testId,
+                    createdAt = it.createdAt,
+                    scoreJson = json.encodeToString(it.score),
+                )
+            },
+        )
+    }
+
+    // Tam anlık görüntü (snapshot) değişimi: sunucudaki tüm sonuçlarla cache'i
+    // baştan kurar, testId bazlı refresh()'lerle çakışmaz çünkü satır id'si
+    // birincil anahtar (REPLACE).
+    suspend fun refreshAll() {
+        val results = api.getMyResults(testId = null)
+        dao.deleteAll()
+        dao.insertAll(
+            results.map {
+                CachedResultEntity(
+                    id = it.id,
+                    testId = it.score.testId,
                     createdAt = it.createdAt,
                     scoreJson = json.encodeToString(it.score),
                 )

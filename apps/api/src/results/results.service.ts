@@ -88,15 +88,16 @@ export class ResultsService {
     return (data ?? []) as ResultRow[];
   }
 
-  async findByUser(userId: string, testId: string, limit = 20): Promise<ResultRow[]> {
-    const { data, error } = await this.supabase.client
+  async findByUser(userId: string, testId?: string, limit = 20): Promise<ResultRow[]> {
+    let query = this.supabase.client
       .from('results')
       .select()
       .eq('user_id', userId)
-      .eq('test_id', testId)
       .order('created_at', { ascending: true })
       .limit(limit);
+    if (testId) query = query.eq('test_id', testId);
 
+    const { data, error } = await query;
     if (error) throw new InternalServerErrorException(error.message);
     return (data ?? []) as ResultRow[];
   }

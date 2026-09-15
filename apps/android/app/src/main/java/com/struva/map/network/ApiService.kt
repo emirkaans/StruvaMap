@@ -25,8 +25,10 @@ interface ApiService {
     @POST("results")
     suspend fun submitResult(@Body body: SubmitResultRequest): SubmitResultResponseDto
 
+    // testId verilmezse (null) kullanıcının çözdüğü tüm testlerin sonuçları
+    // döner — "Geçmiş" sekmesi için (bkz. results.controller.ts).
     @GET("results/mine")
-    suspend fun getMyResults(@Query("testId") testId: String): List<ResultRowDto>
+    suspend fun getMyResults(@Query("testId") testId: String?): List<ResultRowDto>
 
     @GET("results/{id}")
     suspend fun getResult(@Path("id") id: String): ResultRowDto

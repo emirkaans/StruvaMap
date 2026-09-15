@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.struva.map.network.ApiService
 import com.struva.map.network.dto.ComparisonDto
+import com.struva.map.network.dto.TestDetailDto
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,7 +16,7 @@ import javax.inject.Inject
 
 sealed interface ComparisonUiState {
     data object Loading : ComparisonUiState
-    data class Loaded(val comparison: ComparisonDto) : ComparisonUiState
+    data class Loaded(val comparison: ComparisonDto, val test: TestDetailDto) : ComparisonUiState
     data class Error(val message: String) : ComparisonUiState
 }
 
@@ -37,7 +38,9 @@ class ComparisonViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = ComparisonUiState.Loading
             _uiState.value = try {
-                ComparisonUiState.Loaded(api.getComparison(comparisonId))
+                val comparison = api.getComparison(comparisonId)
+                val test = api.getTest(comparison.testId)
+                ComparisonUiState.Loaded(comparison, test)
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {

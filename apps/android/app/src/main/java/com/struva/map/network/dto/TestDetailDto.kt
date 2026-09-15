@@ -20,10 +20,22 @@ data class TestDetailDto(
     // halkalarının etiketleri için — skorlama server'da zaten hesaplanıyor,
     // burada yalnız isimler lazım.
     val indices: Map<String, IndexDefDto> = emptyMap(),
+    // Test detayı metodoloji grid'i ve kıyaslama sayfasının boyut bazlı
+    // değerlendirme metni için (interpretation: band→şablon metin, web'deki
+    // Dimension.interpretation ile birebir aynı, band anahtarları Türkçe).
+    val dimensions: Map<String, DimensionDefDto> = emptyMap(),
 )
 
 @Serializable
 data class IndexDefDto(val name: String)
+
+@Serializable
+data class DimensionDefDto(
+    val name: String,
+    val short: String,
+    val index: String,
+    val interpretation: Map<String, String> = emptyMap(),
+)
 
 @Serializable
 data class QuestionDto(

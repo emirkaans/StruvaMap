@@ -14,7 +14,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -32,7 +31,6 @@ import com.struva.map.ui.theme.struvaTopAppBarColors
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
-    onProfileClick: () -> Unit = {},
     onTestClick: (String) -> Unit = {},
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
@@ -42,7 +40,6 @@ fun HomeScreen(
         topBar = {
             TopAppBar(
                 title = { StruvaLogo() },
-                actions = { TextButton(onClick = onProfileClick) { Text("Profil") } },
                 colors = struvaTopAppBarColors(),
             )
         },

@@ -12,6 +12,7 @@ import com.struva.map.network.dto.SubmitResultRequest
 import com.struva.map.network.dto.TestDetailDto
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -21,8 +22,14 @@ import javax.inject.Inject
 sealed interface SolveUiState {
     data object Loading : SolveUiState
     data class ContextQuestion(val question: ContextQuestionDto, val position: Int, val total: Int) : SolveUiState
-    data class Question(val question: QuestionDto, val position: Int, val total: Int) : SolveUiState
-    data object Submitting : SolveUiState
+    data class Question(
+        val question: QuestionDto,
+        val position: Int,
+        val total: Int,
+        val isLast: Boolean,
+        val selectedOptionIndex: Int? = null,
+        val submitting: Boolean = false,
+    ) : SolveUiState
     data class Result(val resultId: String, val score: ScoreResultDto) : SolveUiState
     data class Error(val message: String) : SolveUiState
 }
@@ -75,27 +82,58 @@ class SolveViewModel @Inject constructor(
         advance()
     }
 
+    // Web'deki TestPage.chooseAnswer ile aynı: seçim hemen vurgulanır, 220ms
+    // sonra sıradaki soruya geçilir — son soruda ise geçilmez, kullanıcı
+    // "Sonucu Gör"e basana kadar seçimini değiştirebilir (bkz. finish()).
     fun chooseAnswer(questionId: Int, optionIndex: Int) {
         answers[questionId] = optionIndex
-        questionIndex++
+        (_uiState.value as? SolveUiState.Question)?.let {
+            _uiState.value = it.copy(selectedOptionIndex = optionIndex)
+        }
+        if (questionIndex < shuffledQuestions.size - 1) {
+            viewModelScope.launch {
+                delay(220)
+                questionIndex++
+                advance()
+            }
+        }
+    }
+
+    // Yalnız asıl sorular arasında geri gidilebilir (web'deki goPrev ile
+    // aynı) — bağlam soruları ileri-yönlü kalır.
+    fun goBack() {
+        if (questionIndex <= 0) return
+        questionIndex--
         advance()
     }
 
-    // Sıra: bağlam soruları (ör. yaş/rol) önce, sonra karıştırılmış asıl
-    // sorular — web'deki TestPage.tsx akışıyla aynı (ci < contextQuestions
-    // önce kontrol ediliyor).
+    fun finish() {
+        val t = test ?: return
+        val q = shuffledQuestions.getOrNull(questionIndex) ?: return
+        if (answers[q.id] == null) return
+        (_uiState.value as? SolveUiState.Question)?.let {
+            _uiState.value = it.copy(submitting = true)
+        }
+        submit(t)
+    }
+
     private fun advance() {
         val t = test ?: return
         val contextQuestions = t.contextQuestions
         _uiState.value = when {
             contextIndex < contextQuestions.size ->
                 SolveUiState.ContextQuestion(contextQuestions[contextIndex], contextIndex, contextQuestions.size)
-            questionIndex < shuffledQuestions.size ->
-                SolveUiState.Question(shuffledQuestions[questionIndex], questionIndex, shuffledQuestions.size)
-            else -> {
-                submit(t)
-                SolveUiState.Submitting
+            questionIndex < shuffledQuestions.size -> {
+                val q = shuffledQuestions[questionIndex]
+                SolveUiState.Question(
+                    question = q,
+                    position = questionIndex,
+                    total = shuffledQuestions.size,
+                    isLast = questionIndex == shuffledQuestions.size - 1,
+                    selectedOptionIndex = answers[q.id],
+                )
             }
+            else -> _uiState.value
         }
     }
 
