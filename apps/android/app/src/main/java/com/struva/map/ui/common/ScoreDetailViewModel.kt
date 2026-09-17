@@ -2,6 +2,7 @@ package com.struva.map.ui.common
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.struva.map.network.Analytics
 import com.struva.map.network.ApiService
 import com.struva.map.network.ResultsRepository
 import com.struva.map.network.dto.TestDetailDto
@@ -24,11 +25,28 @@ data class ScoreDetailState(val test: TestDetailDto? = null, val rsiHistory: Lis
 class ScoreDetailViewModel @Inject constructor(
     private val api: ApiService,
     private val resultsRepository: ResultsRepository,
+    private val analytics: Analytics,
 ) : ViewModel() {
     private val _state = MutableStateFlow(ScoreDetailState())
     val state: StateFlow<ScoreDetailState> = _state.asStateFlow()
 
     private var initializedFor: String? = null
+    private var trackedResultId: String? = null
+
+    // resultId testId'den ayrı idempotent — aynı test farklı sonuçlarla
+    // (geçmişte birden çok kez çözülmüş) tekrar açılırsa her biri kendi
+    // result_view'ini kaydetsin diye.
+    fun trackResultView(resultId: String, testId: String) {
+        if (trackedResultId == resultId) return
+        trackedResultId = resultId
+        analytics.track("result_view", testId = testId)
+    }
+
+    // Web'de "Bağlantıyı kopyala" — mobilde paylaşım sayfası (share sheet)
+    // aynı işi görüyor, aynı olay adıyla huniye yazılıyor.
+    fun trackResultShared(testId: String) {
+        analytics.track("link_copied", testId = testId)
+    }
 
     fun init(testId: String) {
         if (initializedFor == testId) return

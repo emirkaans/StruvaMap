@@ -3,6 +3,7 @@ package com.struva.map.ui.comparison
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.struva.map.network.Analytics
 import com.struva.map.network.ApiService
 import com.struva.map.network.dto.ComparisonDto
 import com.struva.map.network.dto.TestDetailDto
@@ -23,6 +24,7 @@ sealed interface ComparisonUiState {
 @HiltViewModel
 class ComparisonViewModel @Inject constructor(
     private val api: ApiService,
+    private val analytics: Analytics,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
     private val comparisonId: String = checkNotNull(savedStateHandle["comparisonId"])
@@ -40,6 +42,7 @@ class ComparisonViewModel @Inject constructor(
             _uiState.value = try {
                 val comparison = api.getComparison(comparisonId)
                 val test = api.getTest(comparison.testId)
+                analytics.track("comparison_view", testId = comparison.testId)
                 ComparisonUiState.Loaded(comparison, test)
             } catch (e: CancellationException) {
                 throw e

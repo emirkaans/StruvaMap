@@ -3,6 +3,7 @@ package com.struva.map.ui.solve
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.struva.map.network.Analytics
 import com.struva.map.network.ApiService
 import com.struva.map.network.SessionIdProvider
 import com.struva.map.network.dto.ContextQuestionDto
@@ -32,12 +33,17 @@ sealed interface SolveUiState {
     ) : SolveUiState
     data class Result(val resultId: String, val score: ScoreResultDto) : SolveUiState
     data class Error(val message: String) : SolveUiState
+    // Ağ hatası testin başından "load()" ile atmasın diye Error'dan ayrı —
+    // cevaplar (answers) bellekte duruyor, retrySubmit() sadece submit()'i
+    // tekrar dener, ilerlemeyi silmez.
+    data class SubmitFailed(val message: String) : SolveUiState
 }
 
 @HiltViewModel
 class SolveViewModel @Inject constructor(
     private val api: ApiService,
     private val sessionIdProvider: SessionIdProvider,
+    private val analytics: Analytics,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
     private val testId: String = checkNotNull(savedStateHandle["testId"])
@@ -67,6 +73,7 @@ class SolveViewModel @Inject constructor(
                 contextAnswers.clear()
                 contextIndex = 0
                 questionIndex = 0
+                analytics.track("test_start", testId = testId)
                 advance()
             } catch (e: CancellationException) {
                 throw e
@@ -89,6 +96,16 @@ class SolveViewModel @Inject constructor(
         answers[questionId] = optionIndex
         (_uiState.value as? SolveUiState.Question)?.let {
             _uiState.value = it.copy(selectedOptionIndex = optionIndex)
+        }
+        // Terk noktasını görebilmek için her 5 soruda bir ilerleme kaydı
+        // (web'deki TestPage.PROGRESS_STEP ile aynı).
+        val answered = questionIndex + 1
+        if (answered % 5 == 0) {
+            analytics.track(
+                "test_progress",
+                testId = testId,
+                props = mapOf("answered" to answered.toString(), "total" to shuffledQuestions.size.toString()),
+            )
         }
         if (questionIndex < shuffledQuestions.size - 1) {
             viewModelScope.launch {
@@ -114,6 +131,13 @@ class SolveViewModel @Inject constructor(
         (_uiState.value as? SolveUiState.Question)?.let {
             _uiState.value = it.copy(submitting = true)
         }
+        submit(t)
+    }
+
+    // Gönderim başarısız olunca (ör. ağ kopması) çağrılır — answers/contextAnswers
+    // bellekte hâlâ dolu, testi baştan başlatmadan sadece gönderimi tekrar dener.
+    fun retrySubmit() {
+        val t = test ?: return
         submit(t)
     }
 
@@ -148,11 +172,12 @@ class SolveViewModel @Inject constructor(
                         contextAnswers = contextAnswers.takeIf { it.isNotEmpty() },
                     ),
                 )
+                analytics.track("test_complete", testId = t.id)
                 SolveUiState.Result(response.id, response.score)
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                SolveUiState.Error(e.message ?: "Sonuç gönderilemedi")
+                SolveUiState.SubmitFailed(e.message ?: "Sonuç gönderilemedi, bağlantını kontrol et.")
             }
         }
     }

@@ -63,6 +63,21 @@ fun SolveScreen(
                     StruvaButton(onClick = viewModel::load) { Text("Tekrar dene") }
                 }
 
+                is SolveUiState.SubmitFailed -> Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.padding(24.dp),
+                ) {
+                    Text(s.message, color = StruvaColors.Bad)
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        "Cevapların kaybolmadı, sadece gönderim başarısız oldu — tekrar dene.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = StruvaColors.Muted,
+                    )
+                    Spacer(Modifier.height(16.dp))
+                    StruvaButton(onClick = viewModel::retrySubmit) { Text("Tekrar gönder") }
+                }
+
                 is SolveUiState.ContextQuestion -> Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
                     Text("Ek soru ${s.position + 1} / ${s.total}", style = EyebrowStyle)
                     Spacer(Modifier.height(16.dp))

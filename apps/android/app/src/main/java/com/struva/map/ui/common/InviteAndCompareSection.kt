@@ -58,7 +58,7 @@ fun InviteAndCompareSection(
                         putExtra(Intent.EXTRA_TEXT, url)
                     }
                     context.startActivity(Intent.createChooser(sendIntent, null))
-                    viewModel.invite(resultId)
+                    viewModel.invite(resultId, testId)
                 },
                 modifier = Modifier.fillMaxWidth(),
             ) { Text("Karşılaştırmak için davet et") }

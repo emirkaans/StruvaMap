@@ -12,7 +12,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -25,6 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.struva.map.network.dto.DimensionDefDto
+import com.struva.map.ui.common.BackIconButton
 import com.struva.map.ui.common.StruvaButton
 import com.struva.map.ui.common.StruvaCard
 import com.struva.map.ui.common.StruvaOutlinedButton
@@ -64,9 +64,7 @@ fun TestDetailScreen(
         topBar = {
             TopAppBar(
                 title = { Text("Test detayı") },
-                navigationIcon = {
-                    IconButton(onClick = onBack) { Text("←") }
-                },
+                navigationIcon = { BackIconButton(onClick = onBack) },
                 colors = struvaTopAppBarColors(),
             )
         },

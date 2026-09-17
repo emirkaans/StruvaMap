@@ -1,5 +1,6 @@
 package com.struva.map.ui.common
 
+import android.content.Intent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -20,6 +21,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -27,6 +29,8 @@ import com.struva.map.network.dto.ScoreResultDto
 import com.struva.map.ui.theme.EyebrowStyle
 import com.struva.map.ui.theme.StruvaColors
 import java.util.Locale
+
+private const val WEB_BASE_URL = "https://struvamap.netlify.app"
 
 // Yeni çözülen test sonucuyla ("Sonuç" ekranı) geçmişten açılan bir sonucun
 // ("Geçmişim" ekranı) aynı görünümü paylaşması için ortak bileşen. Web'deki
@@ -44,8 +48,10 @@ fun ScoreResultView(
 ) {
     val detail by detailViewModel.state.collectAsState()
     val test = detail.test
+    val context = LocalContext.current
 
     LaunchedEffect(score.testId) { detailViewModel.init(score.testId) }
+    LaunchedEffect(resultId) { detailViewModel.trackResultView(resultId, score.testId) }
 
     val profile = test?.let { computeProfileLabel(it.indices.mapValues { e -> e.value.name }, score.indices) }
     val story = profile?.let { composeProfileStory(it, score.interpretation, score.strengths, score.tensions) }
@@ -87,6 +93,19 @@ fun ScoreResultView(
             Spacer(Modifier.height(24.dp))
 
             InviteAndCompareSection(resultId, score.testId, onOpenComparison)
+            Spacer(Modifier.height(8.dp))
+            StruvaOutlinedButton(
+                onClick = {
+                    val url = "$WEB_BASE_URL/result/$resultId"
+                    val sendIntent = Intent(Intent.ACTION_SEND).apply {
+                        type = "text/plain"
+                        putExtra(Intent.EXTRA_TEXT, url)
+                    }
+                    context.startActivity(Intent.createChooser(sendIntent, null))
+                    detailViewModel.trackResultShared(score.testId)
+                },
+                modifier = Modifier.fillMaxWidth(),
+            ) { Text("Sonucu paylaş") }
             if (onDone != null) {
                 Spacer(Modifier.height(8.dp))
                 StruvaOutlinedButton(onClick = onDone, modifier = Modifier.fillMaxWidth()) {

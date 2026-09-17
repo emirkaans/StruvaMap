@@ -1,16 +1,23 @@
 package com.struva.map.network
 
+import com.struva.map.network.dto.ChangeUsernameRequest
+import com.struva.map.network.dto.ChangeUsernameResponse
 import com.struva.map.network.dto.ComparisonDto
 import com.struva.map.network.dto.RegisterDeviceRequest
 import com.struva.map.network.dto.RegisterRequest
 import com.struva.map.network.dto.RegisterResponse
+import com.struva.map.network.dto.ResetPasswordRequest
 import com.struva.map.network.dto.ResultRowDto
+import com.struva.map.network.dto.SecurityQuestionResponse
 import com.struva.map.network.dto.SubmitResultRequest
 import com.struva.map.network.dto.SubmitResultResponseDto
 import com.struva.map.network.dto.TestDetailDto
 import com.struva.map.network.dto.TestSummaryDto
+import com.struva.map.network.dto.TrackEventRequest
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
+import retrofit2.http.PATCH
 import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.Query
@@ -48,4 +55,22 @@ interface ApiService {
     // (bkz. apps/api/src/auth/auth.controller.ts yorumu).
     @POST("auth/register")
     suspend fun register(@Body body: RegisterRequest): RegisterResponse
+
+    // Şifremi unuttum — adım 1: kayıtlı soruyu getir (yoksa 404).
+    @GET("auth/security-question")
+    suspend fun getSecurityQuestion(@Query("username") username: String): SecurityQuestionResponse
+
+    // Şifremi unuttum — adım 2: cevap doğrulanırsa şifre değişir.
+    @POST("auth/reset-password")
+    suspend fun resetPassword(@Body body: ResetPasswordRequest)
+
+    @PATCH("auth/username")
+    suspend fun changeUsername(@Body body: ChangeUsernameRequest): ChangeUsernameResponse
+
+    @DELETE("auth/me")
+    suspend fun deleteAccount()
+
+    // apps/web/src/lib/analytics.ts ile aynı uç — huni web+mobil birleşik.
+    @POST("events")
+    suspend fun trackEvent(@Body body: TrackEventRequest)
 }

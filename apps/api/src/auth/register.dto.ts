@@ -1,4 +1,4 @@
-import { IsString, Length, Matches } from 'class-validator';
+import { IsOptional, IsString, Length, Matches } from 'class-validator';
 import { USERNAME_REGEX } from './username.util';
 
 export class RegisterDto {
@@ -11,4 +11,16 @@ export class RegisterDto {
   @IsString()
   @Length(8, 72)
   password!: string;
+
+  // İkisi de opsiyonel ama birlikte gelmeli (bkz. auth.controller.ts) — bu
+  // e-posta doğrulaması olmadan tek şifremi-unuttum mekanizması.
+  @IsOptional()
+  @IsString()
+  @Length(4, 200)
+  securityQuestion?: string;
+
+  @IsOptional()
+  @IsString()
+  @Length(1, 200)
+  securityAnswer?: string;
 }

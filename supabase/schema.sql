@@ -9,6 +9,9 @@ create table if not exists results (
   id uuid primary key default gen_random_uuid(),
   test_id text not null,
   session_id text not null,
+  -- Web'in anonim kayıtlarında hep null; mobilde hesap silinince de null'a
+  -- döner (bkz. auth.controller.ts deleteAccount) — sonuç kişisel veri
+  -- taşımadan (session_id zaten rastgele bir cihaz kimliği) korunur.
   user_id uuid references auth.users (id),
   answers jsonb not null,
   score jsonb not null,       -- ScoreResult (rsi, dimensions, indices, ...)
@@ -59,6 +62,10 @@ create table if not exists tests (
 create table if not exists profiles (
   id uuid primary key references auth.users (id) on delete cascade,
   username text not null,
+  -- E-posta doğrulaması yok; şifremi unuttum akışı bunun yerine opsiyonel bu
+  -- soru/cevaba dayanıyor (cevap hash'li, bkz. auth/security-answer.util.ts).
+  security_question text,
+  security_answer_hash text,
   created_at timestamptz not null default now()
 );
 

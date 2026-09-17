@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.struva.map.network.ApiService
 import com.struva.map.network.apiErrorMessage
 import com.struva.map.network.dto.RegisterRequest
+import com.struva.map.network.dto.ResetPasswordRequest
 import com.struva.map.network.usernameToEmail
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.jan.supabase.SupabaseClient
@@ -26,6 +27,17 @@ sealed interface AuthFormState {
     data class Error(val message: String) : AuthFormState
 }
 
+// Şifremi unuttum: e-posta doğrulaması yok, bu yüzden kayıtta opsiyonel
+// toplanan güvenlik sorusu/cevabı tek kurtarma mekanizması (bkz.
+// auth.controller.ts security-question/reset-password).
+sealed interface ForgotPasswordState {
+    data object EnterUsername : ForgotPasswordState
+    data object Loading : ForgotPasswordState
+    data class AnswerQuestion(val username: String, val question: String) : ForgotPasswordState
+    data object Done : ForgotPasswordState
+    data class Error(val fallback: ForgotPasswordState, val message: String) : ForgotPasswordState
+}
+
 @HiltViewModel
 class AuthViewModel @Inject constructor(
     private val api: ApiService,
@@ -35,12 +47,16 @@ class AuthViewModel @Inject constructor(
     private val _formState = MutableStateFlow<AuthFormState>(AuthFormState.Idle)
     val formState: StateFlow<AuthFormState> = _formState.asStateFlow()
 
+    private val _forgotPasswordState = MutableStateFlow<ForgotPasswordState>(ForgotPasswordState.EnterUsername)
+    val forgotPasswordState: StateFlow<ForgotPasswordState> = _forgotPasswordState.asStateFlow()
+
     val sessionStatus: StateFlow<SessionStatus> = supabase.auth.sessionStatus
 
-    fun register(username: String, password: String) = runAuthAction {
-        api.register(RegisterRequest(username, password))
-        signIn(username, password)
-    }
+    fun register(username: String, password: String, securityQuestion: String?, securityAnswer: String?) =
+        runAuthAction {
+            api.register(RegisterRequest(username, password, securityQuestion?.trim(), securityAnswer))
+            signIn(username, password)
+        }
 
     fun login(username: String, password: String) = runAuthAction {
         signIn(username, password)
@@ -48,6 +64,55 @@ class AuthViewModel @Inject constructor(
 
     fun logout() {
         viewModelScope.launch { supabase.auth.signOut() }
+    }
+
+    fun resetForgotPasswordFlow() {
+        _forgotPasswordState.value = ForgotPasswordState.EnterUsername
+    }
+
+    fun clearForgotPasswordError(fallback: ForgotPasswordState) {
+        _forgotPasswordState.value = fallback
+    }
+
+    fun fetchSecurityQuestion(username: String) {
+        viewModelScope.launch {
+            _forgotPasswordState.value = ForgotPasswordState.Loading
+            _forgotPasswordState.value = try {
+                val res = api.getSecurityQuestion(username)
+                ForgotPasswordState.AnswerQuestion(username, res.question)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: HttpException) {
+                ForgotPasswordState.Error(
+                    ForgotPasswordState.EnterUsername,
+                    e.apiErrorMessage(json) ?: "Kullanıcı bulunamadı.",
+                )
+            } catch (e: Exception) {
+                ForgotPasswordState.Error(ForgotPasswordState.EnterUsername, e.message ?: "Bir hata oluştu.")
+            }
+        }
+    }
+
+    fun resetPassword(username: String, securityAnswer: String, newPassword: String, question: String) {
+        viewModelScope.launch {
+            _forgotPasswordState.value = ForgotPasswordState.Loading
+            _forgotPasswordState.value = try {
+                api.resetPassword(ResetPasswordRequest(username, securityAnswer, newPassword))
+                ForgotPasswordState.Done
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: HttpException) {
+                ForgotPasswordState.Error(
+                    ForgotPasswordState.AnswerQuestion(username, question),
+                    e.apiErrorMessage(json) ?: "Sıfırlama başarısız.",
+                )
+            } catch (e: Exception) {
+                ForgotPasswordState.Error(
+                    ForgotPasswordState.AnswerQuestion(username, question),
+                    e.message ?: "Bir hata oluştu.",
+                )
+            }
+        }
     }
 
     private suspend fun signIn(username: String, password: String) {

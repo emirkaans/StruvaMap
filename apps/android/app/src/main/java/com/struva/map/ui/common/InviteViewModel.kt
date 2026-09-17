@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.messaging.FirebaseMessaging
+import com.struva.map.network.Analytics
 import com.struva.map.network.ApiService
 import com.struva.map.network.InvitedResultStore
 import com.struva.map.network.dto.RegisterDeviceRequest
@@ -25,6 +26,7 @@ private const val POLL_INTERVAL_MS = 6000L
 class InviteViewModel @Inject constructor(
     private val api: ApiService,
     private val invitedStore: InvitedResultStore,
+    private val analytics: Analytics,
 ) : ViewModel() {
     private val _state = MutableStateFlow(InviteState())
     val state: StateFlow<InviteState> = _state.asStateFlow()
@@ -42,9 +44,10 @@ class InviteViewModel @Inject constructor(
         if (invited) startPolling(resultId)
     }
 
-    fun invite(resultId: String) {
+    fun invite(resultId: String, testId: String) {
         invitedStore.markInvited(resultId)
         _state.value = _state.value.copy(invited = true)
+        analytics.track("invite_copied", testId = testId)
         startPolling(resultId)
         registerPushToken(resultId)
     }
@@ -71,6 +74,7 @@ class InviteViewModel @Inject constructor(
                 try {
                     val comparison = api.getComparisonByResult(resultId)
                     if (comparison != null) {
+                        analytics.track("comparison_ready", testId = comparison.testId)
                         _state.value = _state.value.copy(comparisonId = comparison.id)
                         return@launch
                     }
