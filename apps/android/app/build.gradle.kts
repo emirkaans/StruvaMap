@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -6,6 +8,16 @@ plugins {
     alias(libs.plugins.hilt)
     alias(libs.plugins.ksp)
     alias(libs.plugins.google.services)
+}
+
+// keystore.properties repo'ya girmez (bkz. keystore.properties.example).
+// Dosya yoksa (CI, yeni checkout) release imzasız derlenir — assemble
+// çalışır ama yüklenebilir bir paket üretmez; yayın için dosyayı doldur.
+val keystorePropertiesFile = rootProject.file("keystore.properties")
+val keystoreProperties = Properties().apply {
+    if (keystorePropertiesFile.exists()) {
+        keystorePropertiesFile.inputStream().use { load(it) }
+    }
 }
 
 android {
@@ -27,13 +39,29 @@ android {
         buildConfigField("String", "SUPABASE_ANON_KEY", "\"sb_publishable_y0_bB2607Z5TKRGdia9diA_CawSCouj\"")
     }
 
+    signingConfigs {
+        if (keystorePropertiesFile.exists()) {
+            create("release") {
+                storeFile = file(keystoreProperties.getProperty("storeFile"))
+                storePassword = keystoreProperties.getProperty("storePassword")
+                keyAlias = keystoreProperties.getProperty("keyAlias")
+                keyPassword = keystoreProperties.getProperty("keyPassword")
+            }
+        }
+    }
+
     buildTypes {
         debug {
-            buildConfigField("String", "API_BASE_URL", "\"http://10.0.2.2:3000/\"")
+            // Gerçek cihaz + USB: adb reverse tcp:3000 tcp:3000 gerekli.
+            // Emulator kullanacaksan 127.0.0.1 yerine 10.0.2.2 yaz.
+            buildConfigField("String", "API_BASE_URL", "\"http://127.0.0.1:3000/\"")
         }
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            if (keystorePropertiesFile.exists()) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
     }
 

@@ -75,6 +75,7 @@ bağımlılığı yok).
 apps/
   web/       React + Vite + TypeScript (frontend)
   api/       NestJS + TypeScript (backend)
+  android/   Kotlin + Jetpack Compose + Hilt (mobil istemci)
 packages/
   shared/    Test-agnostik tipler + deterministik puanlama motoru + test tanımları
 supabase/
@@ -108,4 +109,8 @@ pnpm dev:api    # http://localhost:3000
 - ✅ Bağlama duyarlı yorum ve denge/memnuniyet ayrımı (iş ve aile testleri).
 - ⏳ Web'de auth yok (bilinçli: anonim session). Mobil (Android) için kullanıcı
   adı+şifre auth backend'de hazır (`POST /auth/register`, `profiles` tablosu,
-  `results.user_id`) — Android istemcisi henüz yazılmadı.
+  `results.user_id`).
+- ✅ Android istemcisi (Kotlin + Compose + Hilt): auth, ana ekran, test çözme,
+  sonuç detayı, kıyaslama, geçmiş, profil ekranları; Room ile offline önbellek,
+  Retrofit ile API erişimi, FCM push bildirimleri. Şu an gerçek cihazda test
+  aşamasında; imzalı release build ve Play Store hazırlığı devam ediyor.
