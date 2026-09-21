@@ -1,10 +1,13 @@
 package com.struva.map.ui.auth
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.messaging.FirebaseMessaging
 import com.struva.map.network.ApiService
 import com.struva.map.network.apiErrorMessage
 import com.struva.map.network.dto.RegisterRequest
+import com.struva.map.network.dto.RegisterUserDeviceRequest
 import com.struva.map.network.dto.ResetPasswordRequest
 import com.struva.map.network.usernameToEmail
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -17,6 +20,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import kotlinx.serialization.json.Json
 import retrofit2.HttpException
 import javax.inject.Inject
@@ -51,6 +55,29 @@ class AuthViewModel @Inject constructor(
     val forgotPasswordState: StateFlow<ForgotPasswordState> = _forgotPasswordState.asStateFlow()
 
     val sessionStatus: StateFlow<SessionStatus> = supabase.auth.sessionStatus
+
+    private var pushTokenRegistered = false
+
+    // MainActivity'nin Authenticated dalında çağrılır — hem taze login hem
+    // "oturum açıkken app'i yeniden açma" senaryosunu kapsar. Süreç başına
+    // bir kez yeterli (InviteViewModel.registerPushToken ile aynı en iyi
+    // çaba stili: başarısız olsa da sabah/akşam cron'u bu kullanıcıyı
+    // token'sız bulup sessizce atlar, kritik bir hata değil).
+    fun registerPushTokenIfNeeded() {
+        if (pushTokenRegistered) return
+        pushTokenRegistered = true
+        viewModelScope.launch {
+            try {
+                val token = FirebaseMessaging.getInstance().token.await()
+                api.registerUserDevice(RegisterUserDeviceRequest(token))
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                pushTokenRegistered = false
+                Log.w("StruvaFcm", "kullanıcı push token kaydı başarısız", e)
+            }
+        }
+    }
 
     fun register(username: String, password: String, securityQuestion: String?, securityAnswer: String?) =
         runAuthAction {

@@ -52,8 +52,10 @@ android {
 
     buildTypes {
         debug {
-            // Gerçek cihaz + USB: adb reverse tcp:3000 tcp:3000 gerekli.
-            // Emulator kullanacaksan 127.0.0.1 yerine 10.0.2.2 yaz.
+            // 127.0.0.1 + adb reverse: emulator VE gerçek cihazda aynı adres
+            // çalışır (adb reverse ikisinde de desteklenir). Bu sayede
+            // emulator'a özel 10.0.2.2'ye geçmeye gerek yok — aşağıdaki
+            // adbReverse task'ı her installDebug'da otomatik kurar.
             buildConfigField("String", "API_BASE_URL", "\"http://127.0.0.1:3000/\"")
         }
         release {
@@ -79,8 +81,42 @@ android {
     }
 }
 
+// Debug API_BASE_URL 127.0.0.1'i hedefliyor; bu, çalışan tek bir emulator ya
+// da USB'ye takılı tek bir gerçek cihazın adb port'unu makinenin 3000
+// portuna forward eder (adb reverse ikisinde de aynı şekilde çalışır).
+// installDebug'a bağlı olduğu için Android Studio'dan Run/Debug bastığında
+// elle çalıştırmaya gerek kalmadan otomatik kurulur. Birden fazla cihaz/
+// emulator aynı anda bağlıysa adb hedef seçemez, komut sessizce atlanır —
+// o durumda `adb -s <serial> reverse tcp:3000 tcp:3000` elle gerekir.
+val localPropertiesFile = rootProject.file("local.properties")
+val localProperties = Properties().apply {
+    if (localPropertiesFile.exists()) {
+        localPropertiesFile.inputStream().use { load(it) }
+    }
+}
+val sdkDir = localProperties.getProperty("sdk.dir") ?: System.getenv("ANDROID_HOME")
+
+tasks.register("adbReverse") {
+    onlyIf { sdkDir != null }
+    doLast {
+        val adbExe = if (System.getProperty("os.name").lowercase().contains("win")) "adb.exe" else "adb"
+        val adb = File(sdkDir!!, "platform-tools/$adbExe")
+        if (adb.exists()) {
+            exec {
+                commandLine(adb.absolutePath, "reverse", "tcp:3000", "tcp:3000")
+                isIgnoreExitValue = true
+            }
+        }
+    }
+}
+
+tasks.matching { it.name == "installDebug" }.configureEach {
+    dependsOn("adbReverse")
+}
+
 dependencies {
     implementation(libs.core.ktx)
+    implementation(libs.core.splashscreen)
     implementation(libs.lifecycle.runtime.ktx)
     implementation(libs.lifecycle.viewmodel.compose)
     implementation(libs.activity.compose)

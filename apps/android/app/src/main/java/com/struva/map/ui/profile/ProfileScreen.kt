@@ -38,6 +38,8 @@ import com.struva.map.ui.theme.struvaTopAppBarColors
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
+    onOpenPrivacy: () -> Unit,
+    onOpenPulsePairing: () -> Unit,
     viewModel: ProfileViewModel = hiltViewModel(),
 ) {
     val username by viewModel.username.collectAsState()
@@ -84,7 +86,12 @@ fun ProfileScreen(
                 modifier = Modifier.fillMaxWidth(),
             ) { Text("Çıkış yap") }
 
-            Spacer(Modifier.height(28.dp))
+            Spacer(Modifier.height(12.dp))
+            TextButton(onClick = onOpenPulsePairing) { Text("Partner eşleştirme") }
+            Spacer(Modifier.height(4.dp))
+            TextButton(onClick = onOpenPrivacy) { Text("Gizlilik & KVKK") }
+
+            Spacer(Modifier.height(16.dp))
             HorizontalDivider(color = StruvaColors.Border)
             Spacer(Modifier.height(20.dp))
 

@@ -1,7 +1,9 @@
 package com.struva.map
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -10,6 +12,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.core.content.ContextCompat
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -20,8 +23,11 @@ import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -38,7 +44,9 @@ import com.struva.map.ui.comparison.ComparisonScreen
 import com.struva.map.ui.history.HistoryScreen
 import com.struva.map.ui.home.HomeScreen
 import com.struva.map.ui.myresults.MyResultsScreen
+import com.struva.map.ui.privacy.PrivacyScreen
 import com.struva.map.ui.profile.ProfileScreen
+import com.struva.map.ui.pulse.PulsePairingScreen
 import com.struva.map.ui.resultdetail.ResultDetailScreen
 import com.struva.map.ui.solve.SolveScreen
 import com.struva.map.ui.testdetail.TestDetailScreen
@@ -47,14 +55,32 @@ import com.struva.map.ui.theme.StruvaMapTheme
 import dagger.hilt.android.AndroidEntryPoint
 import io.github.jan.supabase.auth.status.SessionStatus
 
+// Push bildirimi (FcmService) veya https://struvamap.com deep link'i belirli
+// bir ekrana yönlendirmek istediğinde bu extra'ya NavHost route string'i
+// ("comparison/{id}" gibi) konur.
+const val EXTRA_ROUTE = "route"
+
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     private val authViewModel: AuthViewModel by viewModels()
     private val requestNotificationPermission =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) {}
 
+    // Sadece authlı kullanıcı için honoring ediyoruz (bkz. routeFromIntent
+    // çağrı yeri) — mobilde giriş zorunlu, deep link auth ekranını atlamıyor,
+    // kullanıcı login olduktan sonra normal akışla Home'a düşer.
+    private var pendingDeepLink by mutableStateOf<String?>(null)
+
     override fun onCreate(savedInstanceState: Bundle?) {
+        val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
+        // Oturum durumu netleşene kadar (Loading) splash'i ekranda tut —
+        // çıplak spinner yerine marka açılışı, HomeScreen/AuthScreen arasında
+        // ani geçiş flaşı olmadan.
+        splashScreen.setKeepOnScreenCondition {
+            val status = authViewModel.sessionStatus.value
+            status !is SessionStatus.Authenticated && status !is SessionStatus.NotAuthenticated
+        }
         enableEdgeToEdge()
         // Android 13'ten (API 33) önce bu izin gerekmiyor, çağırmaya gerek yok.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
@@ -63,11 +89,21 @@ class MainActivity : ComponentActivity() {
         ) {
             requestNotificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
         }
+        pendingDeepLink = routeFromIntent(intent)
         setContent {
             StruvaMapTheme {
                 val sessionStatus by authViewModel.sessionStatus.collectAsState()
                 when (sessionStatus) {
-                    is SessionStatus.Authenticated -> AppNavHost()
+                    is SessionStatus.Authenticated -> {
+                        // Taze login VE "oturum açıkken app'i yeniden açma" senaryosunu
+                        // kapsar — nabız check-in push'ları kalıcı, kullanıcı bazlı
+                        // token'a ihtiyaç duyar (bkz. AuthViewModel.registerPushTokenIfNeeded).
+                        LaunchedEffect(Unit) { authViewModel.registerPushTokenIfNeeded() }
+                        AppNavHost(
+                            pendingDeepLink = pendingDeepLink,
+                            onDeepLinkConsumed = { pendingDeepLink = null },
+                        )
+                    }
                     is SessionStatus.NotAuthenticated -> AuthScreen()
                     else -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         CircularProgressIndicator()
@@ -75,6 +111,31 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    // FLAG_ACTIVITY_CLEAR_TOP (push bildirimi) app zaten açıkken mevcut
+    // instance'a bu callback ile düşer — önceden hiç override edilmiyordu,
+    // yani bildirime tıklamak app'i öne getirmekten öteye gitmiyordu.
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        pendingDeepLink = routeFromIntent(intent)
+    }
+}
+
+// https://struvamap.com/test/{id} | /result/{id} | /comparisons/{id} (web ile
+// aynı path'ler, bkz. apps/web/src/App.tsx) ve push'un EXTRA_ROUTE'unu
+// AppNavHost'un anlayacağı route string'ine çevirir.
+private fun routeFromIntent(intent: Intent?): String? {
+    intent?.getStringExtra(EXTRA_ROUTE)?.let { return it }
+
+    val data: Uri = intent?.data ?: return null
+    val segments = data.pathSegments
+    return when (segments.getOrNull(0)) {
+        "test" -> segments.getOrNull(1)?.let { "testDetail/$it" }
+        "result" -> segments.getOrNull(1)?.let { "resultDetail/$it" }
+        "comparisons" -> segments.getOrNull(1)?.let { "comparison/$it" }
+        else -> null
     }
 }
 
@@ -92,11 +153,24 @@ private val TAB_ITEMS = listOf(
 // kasıtlı sade tutuldu (ikon yok, yalnız etiket — app genelindeki "←" gibi
 // metin tabanlı gezinme diliyle tutarlı).
 @Composable
-private fun AppNavHost() {
+private fun AppNavHost(
+    pendingDeepLink: String? = null,
+    onDeepLinkConsumed: () -> Unit = {},
+) {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
     val showTabBar = TAB_ITEMS.any { it.route == currentRoute }
+
+    // Graph "home" ile kurulduktan sonra bekleyen deep link'e (varsa) tek
+    // seferlik navigate eder — hem soğuk başlangıç hem app açıkken gelen
+    // push/link (onNewIntent → pendingDeepLink değişince yeniden tetiklenir).
+    LaunchedEffect(pendingDeepLink) {
+        if (pendingDeepLink != null) {
+            navController.navigate(pendingDeepLink)
+            onDeepLinkConsumed()
+        }
+    }
 
     Scaffold(
         bottomBar = {
@@ -137,13 +211,25 @@ private fun AppNavHost() {
             modifier = Modifier.padding(padding),
         ) {
             composable("home") {
-                HomeScreen(onTestClick = { testId -> navController.navigate("testDetail/$testId") })
+                HomeScreen(
+                    onTestClick = { testId -> navController.navigate("testDetail/$testId") },
+                    onOpenPulsePairing = { navController.navigate("pulsePairing") },
+                )
             }
             composable("history") {
                 HistoryScreen(onResultClick = { resultId -> navController.navigate("resultDetail/$resultId") })
             }
             composable("profile") {
-                ProfileScreen()
+                ProfileScreen(
+                    onOpenPrivacy = { navController.navigate("privacy") },
+                    onOpenPulsePairing = { navController.navigate("pulsePairing") },
+                )
+            }
+            composable("privacy") {
+                PrivacyScreen(onBack = { navController.popBackStack() })
+            }
+            composable("pulsePairing") {
+                PulsePairingScreen(onBack = { navController.popBackStack() })
             }
             composable(
                 "testDetail/{testId}",

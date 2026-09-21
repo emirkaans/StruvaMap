@@ -81,10 +81,60 @@ create table if not exists push_tokens (
   created_at timestamptz not null default now()
 );
 
+-- Kalıcı eş/partner eşleştirmesi. comparisons'tan farkı: tek seferlik değil,
+-- iki auth.users kaydını sürekli birbirine bağlar. Mobil-only (auth şart),
+-- bu yüzden result_id değil doğrudan user_id kullanılıyor.
+create table if not exists pulse_pairs (
+  id uuid primary key default gen_random_uuid(),
+  test_id text not null,
+  user_id_a uuid not null references auth.users (id) on delete cascade,
+  user_id_b uuid references auth.users (id) on delete cascade,
+  invite_code text not null,
+  status text not null default 'pending',
+  created_at timestamptz not null default now(),
+  accepted_at timestamptz
+);
+
+create unique index if not exists pulse_pairs_invite_code_idx on pulse_pairs (invite_code);
+create index if not exists pulse_pairs_user_a_idx on pulse_pairs (user_id_a);
+create index if not exists pulse_pairs_user_b_idx on pulse_pairs (user_id_b);
+
+-- Bir çift için günde tek satır: o günün sorusu + iki tarafın cevabı.
+-- Ayrı bir "answers" tablosu yerine tek satırda a/b kolonları — çift zaten
+-- yalnızca iki kişi, join gerekmiyor.
+create table if not exists pulse_checkins (
+  id uuid primary key default gen_random_uuid(),
+  pair_id uuid not null references pulse_pairs (id) on delete cascade,
+  checkin_date date not null,
+  question_key text not null,
+  answer_a smallint,
+  answer_b smallint,
+  answered_a_at timestamptz,
+  answered_b_at timestamptz,
+  morning_push_sent_at timestamptz,
+  evening_notified_a_at timestamptz,
+  evening_notified_b_at timestamptz,
+  created_at timestamptz not null default now()
+);
+
+create unique index if not exists pulse_checkins_pair_date_idx on pulse_checkins (pair_id, checkin_date);
+create index if not exists pulse_checkins_date_idx on pulse_checkins (checkin_date);
+
+-- Kalıcı, kullanıcı bazlı push token deposu. push_tokens (result_id bazlı,
+-- tek kullanımlık) tablosu bozulmuyor, bu ayrı bir sorumluluk.
+create table if not exists user_push_tokens (
+  user_id uuid primary key references auth.users (id) on delete cascade,
+  fcm_token text not null,
+  updated_at timestamptz not null default now()
+);
+
 alter table results enable row level security;
 alter table comparisons enable row level security;
 alter table events enable row level security;
 alter table tests enable row level security;
 alter table profiles enable row level security;
 alter table push_tokens enable row level security;
+alter table pulse_pairs enable row level security;
+alter table pulse_checkins enable row level security;
+alter table user_push_tokens enable row level security;
 -- Politika yok: yalnızca service-role key (backend) erişebilir.

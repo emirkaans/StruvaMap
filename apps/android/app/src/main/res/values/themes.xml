@@ -1,3 +1,13 @@
 <resources>
     <style name="Theme.StruvaMap" parent="android:Theme.Material.NoActionBar" />
+
+    <!-- core-splashscreen: Android 12 öncesinde de aynı davranışı taklit eder
+         (koyu arka plan + ortalanmış ikon), çıplak spinner yerine marka
+         açılışı gösterir. MainActivity.onCreate installSplashScreen() ile
+         oturum kontrolü bitene kadar bunu ekranda tutuyor. -->
+    <style name="Theme.StruvaMap.Splash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/ic_launcher_background</item>
+        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher_foreground</item>
+        <item name="postSplashScreenTheme">@style/Theme.StruvaMap</item>
+    </style>
 </resources>

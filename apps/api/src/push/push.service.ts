@@ -42,4 +42,25 @@ export class PushService {
       this.logger.warn(`Push gönderilemedi: ${(error as Error).message}`);
     }
   }
+
+  async sendPulseReady(
+    fcmToken: string,
+    pairId: string,
+    kind: 'morning' | 'partner_answered',
+    title: string,
+    body: string,
+  ): Promise<void> {
+    if (!this.app) return;
+    try {
+      await getMessaging(this.app).send({
+        token: fcmToken,
+        data: { title, body, pairId, kind },
+      });
+    } catch (error) {
+      // Cron her pair'i tek tek işliyor (bkz. pulse-cron.service.ts) — bir
+      // token'ın push'u başarısız olması diğer pair'leri etkilemesin diye
+      // burada da fırlatmıyoruz, yalnızca logluyoruz.
+      this.logger.warn(`Nabız push'u gönderilemedi: ${(error as Error).message}`);
+    }
+  }
 }

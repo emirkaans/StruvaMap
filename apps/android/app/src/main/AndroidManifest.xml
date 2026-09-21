@@ -14,10 +14,26 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:theme="@style/Theme.StruvaMap">
+            android:theme="@style/Theme.StruvaMap.Splash">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
+            <!-- struvamap.com paylaşım linklerini (davet, sonuç, kıyaslama)
+                 uygulama içinde açar. autoVerify yok — Digital Asset Links
+                 doğrulaması (assetlinks.json) production imza sertifikası
+                 gerektirir, henüz üretilmedi (bkz. keystore.properties.example).
+                 Bu haliyle Android bağlantıya tıklanınca "Chrome/StruvaMap ile
+                 aç" seçici gösterir, otomatik açmaz — imza anahtarı üretilince
+                 autoVerify="true" + assetlinks.json eklenip sağlamlaştırılabilir. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" android:host="struvamap.com" android:pathPrefix="/test" />
+                <data android:scheme="https" android:host="struvamap.com" android:pathPrefix="/result" />
+                <data android:scheme="https" android:host="struvamap.com" android:pathPrefix="/comparisons" />
             </intent-filter>
         </activity>
 

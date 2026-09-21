@@ -1,14 +1,20 @@
 package com.struva.map.network
 
+import com.struva.map.network.dto.AcceptInviteRequest
 import com.struva.map.network.dto.ChangeUsernameRequest
 import com.struva.map.network.dto.ChangeUsernameResponse
 import com.struva.map.network.dto.ComparisonDto
+import com.struva.map.network.dto.CreateInviteRequest
+import com.struva.map.network.dto.PairDto
+import com.struva.map.network.dto.PulseTodayDto
 import com.struva.map.network.dto.RegisterDeviceRequest
 import com.struva.map.network.dto.RegisterRequest
 import com.struva.map.network.dto.RegisterResponse
+import com.struva.map.network.dto.RegisterUserDeviceRequest
 import com.struva.map.network.dto.ResetPasswordRequest
 import com.struva.map.network.dto.ResultRowDto
 import com.struva.map.network.dto.SecurityQuestionResponse
+import com.struva.map.network.dto.SubmitPulseAnswerRequest
 import com.struva.map.network.dto.SubmitResultRequest
 import com.struva.map.network.dto.SubmitResultResponseDto
 import com.struva.map.network.dto.TestDetailDto
@@ -73,4 +79,25 @@ interface ApiService {
     // apps/web/src/lib/analytics.ts ile aynı uç — huni web+mobil birleşik.
     @POST("events")
     suspend fun trackEvent(@Body body: TrackEventRequest)
+
+    // Kalıcı, kullanıcı bazlı push token — nabız check-in bildirimleri için
+    // (bkz. AuthViewModel.registerPushTokenIfNeeded). Eski registerDevice
+    // (result_id bazlı, davet-anı) ayrı, dokunulmuyor.
+    @POST("devices/register-user")
+    suspend fun registerUserDevice(@Body body: RegisterUserDeviceRequest)
+
+    @POST("pairs/invite")
+    suspend fun createPairInvite(@Body body: CreateInviteRequest): PairDto
+
+    @POST("pairs/accept")
+    suspend fun acceptPairInvite(@Body body: AcceptInviteRequest): PairDto
+
+    @GET("pairs/mine")
+    suspend fun getMyPairs(): List<PairDto>
+
+    @GET("pulse/today")
+    suspend fun getPulseToday(@Query("pairId") pairId: String): PulseTodayDto
+
+    @POST("pulse/answer")
+    suspend fun submitPulseAnswer(@Body body: SubmitPulseAnswerRequest): PulseTodayDto
 }

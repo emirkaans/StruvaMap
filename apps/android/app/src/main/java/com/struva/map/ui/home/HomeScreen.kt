@@ -26,12 +26,14 @@ import com.struva.map.network.dto.TestSummaryDto
 import com.struva.map.ui.common.StruvaButton
 import com.struva.map.ui.common.StruvaCard
 import com.struva.map.ui.common.StruvaLogo
+import com.struva.map.ui.pulse.PulseCard
 import com.struva.map.ui.theme.struvaTopAppBarColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     onTestClick: (String) -> Unit = {},
+    onOpenPulsePairing: () -> Unit = {},
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsState()
@@ -56,6 +58,7 @@ fun HomeScreen(
                     StruvaButton(onClick = viewModel::load) { Text("Tekrar dene") }
                 }
                 is HomeUiState.Loaded -> LazyColumn(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+                    item { PulseCard(onOpenPairing = onOpenPulsePairing) }
                     items(s.tests) { test -> TestCard(test, onClick = { onTestClick(test.id) }) }
                 }
             }
