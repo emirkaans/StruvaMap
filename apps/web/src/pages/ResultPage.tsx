@@ -128,7 +128,7 @@ function buildShareSvg(test: TestDefinition, r: ScoreResult, profile: { title: s
     bars +
     `<text x="${PAD}" y="${H - 40}" font-size="22" font-weight="800" font-family="${SHARE_FONT}">` +
     `<tspan fill="#ecedef">Struva</tspan><tspan fill="#5470ff">Map</tspan></text>` +
-    `<text x="${W - PAD}" y="${H - 40}" font-size="16" fill="#9092a0" text-anchor="end" font-family="${SHARE_BODY_FONT}">struvamap.netlify.app</text>` +
+    `<text x="${W - PAD}" y="${H - 40}" font-size="16" fill="#9092a0" text-anchor="end" font-family="${SHARE_BODY_FONT}">struvamap.com</text>` +
     `</svg>`
   );
 }

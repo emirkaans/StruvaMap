@@ -43,7 +43,7 @@ import com.struva.map.ui.theme.struvaTopAppBarColors
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
-private const val WEB_BASE_URL = "https://struvamap.netlify.app"
+private const val WEB_BASE_URL = "https://struvamap.com"
 private const val PERCEPTION_GAP_THRESHOLD = 20
 
 // Web'deki ComparisonPage.tsx ile aynı yapı: eyebrow+"düello" halkaları+fark

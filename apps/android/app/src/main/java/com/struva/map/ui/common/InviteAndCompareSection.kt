@@ -17,7 +17,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.struva.map.ui.theme.StruvaColors
 
-private const val WEB_BASE_URL = "https://struvamap.netlify.app"
+private const val WEB_BASE_URL = "https://struvamap.com"
 
 // Web'deki ResultPage.tsx davet/kıyaslama akışının mobil karşılığı: davet
 // linki paylaş, karşı taraf tamamlayana kadar arka planda yokla (poll),

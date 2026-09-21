@@ -30,7 +30,7 @@ import com.struva.map.ui.theme.EyebrowStyle
 import com.struva.map.ui.theme.StruvaColors
 import java.util.Locale
 
-private const val WEB_BASE_URL = "https://struvamap.netlify.app"
+private const val WEB_BASE_URL = "https://struvamap.com"
 
 // Yeni çözülen test sonucuyla ("Sonuç" ekranı) geçmişten açılan bir sonucun
 // ("Geçmişim" ekranı) aynı görünümü paylaşması için ortak bileşen. Web'deki
