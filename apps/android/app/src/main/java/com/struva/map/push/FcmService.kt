@@ -49,7 +49,8 @@ class FcmService : FirebaseMessagingService() {
         )
 
         val notification = NotificationCompat.Builder(this, COMPARISON_CHANNEL_ID)
-            .setSmallIcon(android.R.drawable.ic_dialog_info)
+            .setSmallIcon(com.struva.map.R.drawable.ic_notification)
+            .setColor(android.graphics.Color.parseColor("#5470FF")) // StruvaColors.Accent
             .setContentTitle(title)
             .setContentText(body)
             .setContentIntent(pendingIntent)
