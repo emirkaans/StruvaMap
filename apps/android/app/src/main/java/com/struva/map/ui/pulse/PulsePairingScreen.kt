@@ -100,7 +100,7 @@ private fun CreateSection(state: PulseUiState, onBack: () -> Unit) {
     val context = LocalContext.current
 
     when (state) {
-        is PulseUiState.Loading -> CircularProgressIndicator()
+        is PulseUiState.Idle, is PulseUiState.Loading -> CircularProgressIndicator()
 
         is PulseUiState.PendingInvite -> {
             Text("Kodun hazır", style = MaterialTheme.typography.titleSmall)

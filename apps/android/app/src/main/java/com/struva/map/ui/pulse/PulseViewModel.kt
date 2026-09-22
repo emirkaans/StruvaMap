@@ -23,6 +23,12 @@ private const val PULSE_TEST_ID = "romantic"
 private const val POLL_INTERVAL_MS = 6000L
 
 sealed interface PulseUiState {
+    // Henüz hiçbir ağ çağrısı yapılmamış başlangıç durumu — Loading'den ayrı
+    // tutuluyor çünkü PulsePairingScreen'in "Kod gir" akışı hiç refresh()
+    // çağırmıyor, viewModel state'i acceptInvite() tetiklenene kadar burada
+    // kalıyor. Loading ile aynı sayılsaydı "Katıl" butonu kod girilse bile
+    // hep pasif kalırdı (bkz. JoinSection'daki `state !is Loading` şartı).
+    data object Idle : PulseUiState
     data object Loading : PulseUiState
     data class Error(val message: String) : PulseUiState
     data object NoPair : PulseUiState
@@ -37,7 +43,7 @@ class PulseViewModel @Inject constructor(
     private val repository: PulseRepository,
     private val json: Json,
 ) : ViewModel() {
-    private val _state = MutableStateFlow<PulseUiState>(PulseUiState.Loading)
+    private val _state = MutableStateFlow<PulseUiState>(PulseUiState.Idle)
     val state: StateFlow<PulseUiState> = _state.asStateFlow()
 
     private var activePairId: String? = null

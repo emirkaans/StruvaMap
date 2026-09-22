@@ -36,7 +36,8 @@ fun PulseCard(
 
     StruvaCard(modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp)) {
         when (val s = state) {
-            is PulseUiState.Loading -> CircularProgressIndicator(modifier = Modifier.height(20.dp))
+            is PulseUiState.Idle, is PulseUiState.Loading ->
+                CircularProgressIndicator(modifier = Modifier.height(20.dp))
 
             is PulseUiState.Error -> {
                 Text("Nabız yüklenemedi", style = MaterialTheme.typography.titleSmall)
