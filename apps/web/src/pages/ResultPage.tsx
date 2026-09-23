@@ -476,7 +476,7 @@ export function ResultPage() {
         {test.disclaimerNote && <p className="small muted">{test.disclaimerNote}</p>}
       </Reveal>
 
-      <AppCta variant="compact" />
+      <AppCta variant="compact" resultId={result.id} />
 
       <Footer />
     </main>

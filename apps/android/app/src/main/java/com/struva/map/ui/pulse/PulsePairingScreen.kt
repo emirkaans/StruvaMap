@@ -1,7 +1,9 @@
 package com.struva.map.ui.pulse
 
 import android.content.Intent
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -27,6 +29,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.struva.map.ui.auth.AuthViewModel
+import com.struva.map.ui.auth.isGuestSession
 import com.struva.map.ui.common.BackIconButton
 import com.struva.map.ui.common.StruvaButton
 import com.struva.map.ui.common.StruvaOutlinedButton
@@ -45,9 +49,14 @@ private val FieldShape = RoundedCornerShape(8.dp)
 @Composable
 fun PulsePairingScreen(
     onBack: () -> Unit,
+    onOpenLogin: () -> Unit,
+    onOpenRegister: () -> Unit,
     viewModel: PulseViewModel = hiltViewModel(),
+    authViewModel: AuthViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsState()
+    val sessionStatus by authViewModel.sessionStatus.collectAsState()
+    val isGuest = sessionStatus.isGuestSession()
     var mode by remember { mutableStateOf(PairingMode.Choose) }
     val context = LocalContext.current
 
@@ -66,6 +75,14 @@ fun PulsePairingScreen(
                 .padding(padding)
                 .padding(16.dp),
         ) {
+            if (isGuest) {
+                // Nabız eşleştirme çok cihazlı, kalıcı kimlik istiyor — anonim
+                // oturum bunu karşılamaz (bkz. plan Faz B). Backend'de zorlayıcı
+                // bir kısıt yok (pulse_pairs herhangi bir auth.users'ı kabul
+                // ediyor), bu yalnızca bir UX yönlendirmesi.
+                GuestGateSection(onOpenLogin = onOpenLogin, onOpenRegister = onOpenRegister)
+                return@Column
+            }
             when (mode) {
                 PairingMode.Choose -> ChooseSection(
                     onCreate = { mode = PairingMode.Create; viewModel.startPairing() },
@@ -79,6 +96,22 @@ fun PulsePairingScreen(
                 )
             }
         }
+    }
+}
+
+@Composable
+private fun GuestGateSection(onOpenLogin: () -> Unit, onOpenRegister: () -> Unit) {
+    Text("Önce bir hesap gerekiyor", style = MaterialTheme.typography.titleSmall)
+    Spacer(Modifier.height(8.dp))
+    Text(
+        "Partnerinle eşleşip günlük nabız check-in'ine başlamak için bir hesaba ihtiyacın var — yeni bir hesap açabilir ya da elindeki hesaba giriş yapabilirsin.",
+        style = MaterialTheme.typography.bodyMedium,
+        color = StruvaColors.Muted,
+    )
+    Spacer(Modifier.height(16.dp))
+    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        StruvaOutlinedButton(onClick = onOpenLogin, modifier = Modifier.weight(1f)) { Text("Giriş yap") }
+        StruvaButton(onClick = onOpenRegister, modifier = Modifier.weight(1f)) { Text("Kayıt ol") }
     }
 }
 

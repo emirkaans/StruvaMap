@@ -1,6 +1,8 @@
 package com.struva.map
 
 import android.Manifest
+import android.content.ClipboardManager
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -30,6 +32,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
@@ -38,8 +41,10 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.struva.map.ui.auth.AuthMode
 import com.struva.map.ui.auth.AuthScreen
 import com.struva.map.ui.auth.AuthViewModel
+import com.struva.map.ui.auth.CompleteProfileScreen
 import com.struva.map.ui.comparison.ComparisonScreen
 import com.struva.map.ui.history.HistoryScreen
 import com.struva.map.ui.home.HomeScreen
@@ -67,19 +72,31 @@ class MainActivity : ComponentActivity() {
         registerForActivityResult(ActivityResultContracts.RequestPermission()) {}
 
     // Sadece authlı kullanıcı için honoring ediyoruz (bkz. routeFromIntent
-    // çağrı yeri) — mobilde giriş zorunlu, deep link auth ekranını atlamıyor,
-    // kullanıcı login olduktan sonra normal akışla Home'a düşer.
+    // çağrı yeri) — anonim giriş de authlı sayıldığı için deep link'ler artık
+    // form beklemeden çalışır, yalnızca anonim giriş denemesi bitene kadar
+    // (aşağıdaki anonymousSignInAttempted) bekler.
     private var pendingDeepLink by mutableStateOf<String?>(null)
+
+    // NotAuthenticated dalında bir kez sessiz signInAnonymously() denenir;
+    // başarısız olursa AuthScreen'e düşülür. Activity-seviyesinde tutuluyor
+    // (Compose remember değil) çünkü splash'in setKeepOnScreenCondition'ı da
+    // aynı bilgiye ihtiyaç duyuyor (bkz. altta) — ikisi ayrı yerlerde aynı
+    // duruma bakıp senkron kalmalı.
+    private var anonymousSignInAttempted by mutableStateOf(false)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
-        // Oturum durumu netleşene kadar (Loading) splash'i ekranda tut —
-        // çıplak spinner yerine marka açılışı, HomeScreen/AuthScreen arasında
-        // ani geçiş flaşı olmadan.
+        // Oturum durumu netleşene kadar splash'i ekranda tut — NotAuthenticated
+        // artık bir "son durum" değil, anonim giriş denemesi bitene kadar geçici
+        // bir ara durum (bkz. AuthViewModel.signInAnonymously). Çıplak spinner
+        // ya da Home/Auth arasında ani geçiş flaşı olmadan tek bir açılış.
         splashScreen.setKeepOnScreenCondition {
-            val status = authViewModel.sessionStatus.value
-            status !is SessionStatus.Authenticated && status !is SessionStatus.NotAuthenticated
+            when (authViewModel.sessionStatus.value) {
+                is SessionStatus.Authenticated -> false
+                is SessionStatus.NotAuthenticated -> !anonymousSignInAttempted
+                else -> true
+            }
         }
         enableEdgeToEdge()
         // Android 13'ten (API 33) önce bu izin gerekmiyor, çağırmaya gerek yok.
@@ -99,12 +116,30 @@ class MainActivity : ComponentActivity() {
                         // kapsar — nabız check-in push'ları kalıcı, kullanıcı bazlı
                         // token'a ihtiyaç duyar (bkz. AuthViewModel.registerPushTokenIfNeeded).
                         LaunchedEffect(Unit) { authViewModel.registerPushTokenIfNeeded() }
+                        // Web → app sonuç taşıma: kullanıcı web'de "İndir"e basınca
+                        // panoya bir claim token'ı kopyalanmış olabilir (bkz.
+                        // AppCta.tsx). Her açılışta (ve tab geçişinde) kontrol etmek
+                        // zararsız — token zaten sunucu tarafında tek kullanımlık.
+                        val context = LocalContext.current
+                        LaunchedEffect(Unit) { checkClipboardForClaim(context, authViewModel) }
                         AppNavHost(
                             pendingDeepLink = pendingDeepLink,
                             onDeepLinkConsumed = { pendingDeepLink = null },
                         )
                     }
-                    is SessionStatus.NotAuthenticated -> AuthScreen()
+                    is SessionStatus.NotAuthenticated -> {
+                        if (anonymousSignInAttempted) {
+                            AuthScreen()
+                        } else {
+                            LaunchedEffect(Unit) {
+                                authViewModel.signInAnonymously()
+                                anonymousSignInAttempted = true
+                            }
+                            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                CircularProgressIndicator()
+                            }
+                        }
+                    }
                     else -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         CircularProgressIndicator()
                     }
@@ -137,6 +172,23 @@ private fun routeFromIntent(intent: Intent?): String? {
         "comparisons" -> segments.getOrNull(1)?.let { "comparison/$it" }
         else -> null
     }
+}
+
+// Web'in navigator.clipboard.writeText'i ile aynı önek (bkz.
+// apps/web/src/components/AppCta.tsx CLAIM_CLIPBOARD_PREFIX) — rastgele bir
+// pano içeriğini yanlışlıkla token zannetmeyelim diye.
+private const val CLAIM_CLIPBOARD_PREFIX = "struvamap-claim:"
+
+private suspend fun checkClipboardForClaim(context: Context, authViewModel: AuthViewModel) {
+    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager ?: return
+    val text = clipboard.primaryClip
+        ?.takeIf { it.itemCount > 0 }
+        ?.getItemAt(0)
+        ?.text
+        ?.toString()
+        ?: return
+    if (!text.startsWith(CLAIM_CLIPBOARD_PREFIX)) return
+    authViewModel.redeemClaim(text.removePrefix(CLAIM_CLIPBOARD_PREFIX))
 }
 
 private data class TabItem(val route: String, val label: String)
@@ -223,13 +275,34 @@ private fun AppNavHost(
                 ProfileScreen(
                     onOpenPrivacy = { navController.navigate("privacy") },
                     onOpenPulsePairing = { navController.navigate("pulsePairing") },
+                    onOpenLogin = { navController.navigate("completeProfile/login") },
+                    onOpenRegister = { navController.navigate("completeProfile/register") },
                 )
             }
             composable("privacy") {
                 PrivacyScreen(onBack = { navController.popBackStack() })
             }
             composable("pulsePairing") {
-                PulsePairingScreen(onBack = { navController.popBackStack() })
+                PulsePairingScreen(
+                    onBack = { navController.popBackStack() },
+                    onOpenLogin = { navController.navigate("completeProfile/login") },
+                    onOpenRegister = { navController.navigate("completeProfile/register") },
+                )
+            }
+            composable(
+                "completeProfile/{mode}",
+                arguments = listOf(navArgument("mode") { type = NavType.StringType }),
+            ) { backStackEntry ->
+                val initialMode = if (backStackEntry.arguments?.getString("mode") == "login") {
+                    AuthMode.LOGIN
+                } else {
+                    AuthMode.REGISTER
+                }
+                CompleteProfileScreen(
+                    initialMode = initialMode,
+                    onDone = { navController.popBackStack() },
+                    onBack = { navController.popBackStack() },
+                )
             }
             composable(
                 "testDetail/{testId}",

@@ -70,6 +70,53 @@ export class AuthController {
     return { id: created.user.id, username };
   }
 
+  // Anonim → gerçek hesap yükseltme (bkz. plan: düşük sürtünmeli mobil giriş).
+  // /auth/register'daki admin.createUser'dan farkı: YENİ bir kullanıcı
+  // yaratmak yerine req.user.id'yi (istemci zaten signInAnonymously ile
+  // authlı) yerinde günceller — aynı user_id kalır, results/pulse_pairs gibi
+  // hiçbir foreign key'e dokunulmadan "gerçek" hesaba döner. Bilerek
+  // updateUserById (admin API) kullanılıyor, istemci tarafı supabase.auth.
+  // updateUser değil: o yol e-posta değişikliğini "onay bekliyor" durumuna
+  // sokar (senkron e-posta doğrulaması yok, sentetik adresler gerçek posta
+  // kutusu değil) ve hiç tamamlanmaz. Admin API ile email_confirm:true
+  // vererek register()'daki gibi anında kesinleştiriyoruz.
+  @Patch('complete-profile')
+  @UseGuards(UserGuard)
+  @Throttle({ default: { ttl: 60000, limit: 5 } })
+  async completeProfile(@Body() dto: RegisterDto, @Req() req: AuthedRequest) {
+    const username = dto.username.toLowerCase();
+    if ((dto.securityQuestion == null) !== (dto.securityAnswer == null)) {
+      throw new BadRequestException('Güvenlik sorusu ve cevabı birlikte gönderilmeli.');
+    }
+
+    const { data: existing } = await this.supabase.client
+      .from('profiles')
+      .select('id')
+      .eq('username', username)
+      .maybeSingle();
+    if (existing) throw new ConflictException('Bu kullanıcı adı zaten alınmış.');
+
+    const { error: authError } = await this.supabase.client.auth.admin.updateUserById(req.user.id, {
+      email: usernameToEmail(username),
+      password: dto.password,
+      email_confirm: true,
+      user_metadata: { username },
+    });
+    if (authError) throw new BadRequestException(authError.message);
+
+    // Anonim kullanıcının hiç profiles satırı yoktu — upsert, register()'daki
+    // insert'ten farklı olarak burada "zaten var" durumunu da tolere eder.
+    const { error: profileError } = await this.supabase.client.from('profiles').upsert({
+      id: req.user.id,
+      username,
+      security_question: dto.securityQuestion ?? null,
+      security_answer_hash: dto.securityAnswer ? hashSecurityAnswer(dto.securityAnswer) : null,
+    });
+    if (profileError) throw new InternalServerErrorException('Profil tamamlanamadı, tekrar deneyin.');
+
+    return { id: req.user.id, username };
+  }
+
   // Şifremi unuttum — adım 1: kullanıcı adına kayıtlı soruyu döner (varsa).
   @Get('security-question')
   @Throttle({ default: { ttl: 60000, limit: 10 } })

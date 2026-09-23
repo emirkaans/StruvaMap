@@ -1,6 +1,8 @@
 package com.struva.map.ui.profile
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -40,9 +42,12 @@ import com.struva.map.ui.theme.struvaTopAppBarColors
 fun ProfileScreen(
     onOpenPrivacy: () -> Unit,
     onOpenPulsePairing: () -> Unit,
+    onOpenLogin: () -> Unit,
+    onOpenRegister: () -> Unit,
     viewModel: ProfileViewModel = hiltViewModel(),
 ) {
     val username by viewModel.username.collectAsState()
+    val isGuest by viewModel.isGuest.collectAsState()
     val actionState by viewModel.actionState.collectAsState()
     var showDeleteConfirm by remember { mutableStateOf(false) }
     var pendingUsernameFieldReset by remember { mutableStateOf(0) }
@@ -67,10 +72,37 @@ fun ProfileScreen(
                 .padding(padding)
                 .padding(16.dp),
         ) {
-            Text("Kullanıcı adı", style = MaterialTheme.typography.labelMedium)
-            Spacer(Modifier.height(4.dp))
-            Text(username ?: "…", style = MaterialTheme.typography.titleMedium)
-            Spacer(Modifier.height(24.dp))
+            if (isGuest) {
+                // Anonim oturum: kullanıcı adı/şifre/hesap silme burada anlamsız —
+                // bunların hepsi profiles satırı ve email+şifre kimliği gerektiriyor,
+                // ikisi de yok (bkz. ProfileViewModel.isGuest). Yükseltme CTA'sı
+                // ayrı bir işte eklenecek (bkz. plan Faz B) — burada yalnızca durumu
+                // açıklıyoruz, çıkış yapma da bilerek gösterilmiyor: anonim oturumdan
+                // çıkarsan geri dönecek bir kullanıcı adı/şifren olmadığı için o
+                // kimliğe (ve sonuçlarına) bir daha erişemezsin.
+                Text("Misafir olarak kullanıyorsun", style = MaterialTheme.typography.titleMedium)
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    "Sonuçların bu cihazda tutuluyor. Başka bir cihazdan erişmek ya da partnerinle eşleşmek istersen bir hesap oluşturman gerekir.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = StruvaColors.Muted,
+                )
+                Spacer(Modifier.height(16.dp))
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    StruvaOutlinedButton(onClick = onOpenLogin, modifier = Modifier.weight(1f)) {
+                        Text("Giriş yap")
+                    }
+                    StruvaButton(onClick = onOpenRegister, modifier = Modifier.weight(1f)) {
+                        Text("Kayıt ol")
+                    }
+                }
+                Spacer(Modifier.height(24.dp))
+            } else {
+                Text("Kullanıcı adı", style = MaterialTheme.typography.labelMedium)
+                Spacer(Modifier.height(4.dp))
+                Text(username ?: "…", style = MaterialTheme.typography.titleMedium)
+                Spacer(Modifier.height(24.dp))
+            }
 
             val currentAction = actionState
             if (currentAction is ProfileActionState.Error) {
@@ -81,52 +113,55 @@ fun ProfileScreen(
                 Spacer(Modifier.height(16.dp))
             }
 
-            StruvaOutlinedButton(
-                onClick = viewModel::logout,
-                modifier = Modifier.fillMaxWidth(),
-            ) { Text("Çıkış yap") }
-
-            Spacer(Modifier.height(12.dp))
+            if (!isGuest) {
+                StruvaOutlinedButton(
+                    onClick = viewModel::logout,
+                    modifier = Modifier.fillMaxWidth(),
+                ) { Text("Çıkış yap") }
+                Spacer(Modifier.height(12.dp))
+            }
             TextButton(onClick = onOpenPulsePairing) { Text("Partner eşleştirme") }
             Spacer(Modifier.height(4.dp))
             TextButton(onClick = onOpenPrivacy) { Text("Gizlilik & KVKK") }
 
-            Spacer(Modifier.height(16.dp))
-            HorizontalDivider(color = StruvaColors.Border)
-            Spacer(Modifier.height(20.dp))
+            if (!isGuest) {
+                Spacer(Modifier.height(16.dp))
+                HorizontalDivider(color = StruvaColors.Border)
+                Spacer(Modifier.height(20.dp))
 
-            ChangeUsernameSection(
-                isLoading = actionState is ProfileActionState.Loading,
-                resetKey = pendingUsernameFieldReset,
-                onSubmit = { viewModel.changeUsername(it) },
-            )
+                ChangeUsernameSection(
+                    isLoading = actionState is ProfileActionState.Loading,
+                    resetKey = pendingUsernameFieldReset,
+                    onSubmit = { viewModel.changeUsername(it) },
+                )
 
-            Spacer(Modifier.height(28.dp))
-            HorizontalDivider(color = StruvaColors.Border)
-            Spacer(Modifier.height(20.dp))
+                Spacer(Modifier.height(28.dp))
+                HorizontalDivider(color = StruvaColors.Border)
+                Spacer(Modifier.height(20.dp))
 
-            ChangePasswordSection(
-                isLoading = actionState is ProfileActionState.Loading,
-                resetKey = pendingUsernameFieldReset,
-                onSubmit = { current, new -> viewModel.changePassword(current, new) },
-            )
+                ChangePasswordSection(
+                    isLoading = actionState is ProfileActionState.Loading,
+                    resetKey = pendingUsernameFieldReset,
+                    onSubmit = { current, new -> viewModel.changePassword(current, new) },
+                )
 
-            Spacer(Modifier.height(28.dp))
-            HorizontalDivider(color = StruvaColors.Border)
-            Spacer(Modifier.height(20.dp))
+                Spacer(Modifier.height(28.dp))
+                HorizontalDivider(color = StruvaColors.Border)
+                Spacer(Modifier.height(20.dp))
 
-            Text("Hesabı sil", style = MaterialTheme.typography.titleSmall)
-            Spacer(Modifier.height(8.dp))
-            Text(
-                "Hesabın ve girişin kalıcı olarak silinir. Geçmiş sonuçların kişisel bilgi taşımadan (kime ait olduğu bilgisi silinerek) saklanmaya devam eder.",
-                style = MaterialTheme.typography.bodySmall,
-                color = StruvaColors.Muted,
-            )
-            Spacer(Modifier.height(12.dp))
-            TextButton(
-                onClick = { showDeleteConfirm = true },
-                colors = ButtonDefaults.textButtonColors(contentColor = StruvaColors.Bad),
-            ) { Text("Hesabımı sil") }
+                Text("Hesabı sil", style = MaterialTheme.typography.titleSmall)
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    "Hesabın ve girişin kalıcı olarak silinir. Geçmiş sonuçların kişisel bilgi taşımadan (kime ait olduğu bilgisi silinerek) saklanmaya devam eder.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = StruvaColors.Muted,
+                )
+                Spacer(Modifier.height(12.dp))
+                TextButton(
+                    onClick = { showDeleteConfirm = true },
+                    colors = ButtonDefaults.textButtonColors(contentColor = StruvaColors.Bad),
+                ) { Text("Hesabımı sil") }
+            }
         }
     }
 

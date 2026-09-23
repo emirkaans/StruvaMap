@@ -128,6 +128,21 @@ create table if not exists user_push_tokens (
   updated_at timestamptz not null default now()
 );
 
+-- Web'de çözülen bir sonucu mobil app'e (formsuz, anonim ya da gerçek
+-- kimliğe) taşımak için kısa ömürlü, tek kullanımlık kod. session_id'nin
+-- kendisi değil, ayrı üretilmiş rastgele bir token — session_id zaten
+-- localStorage'da taşınabilir bir değer, claim gibi tek seferlik bir yetki
+-- için ayrı bir sır olması gerekiyor.
+create table if not exists claim_tokens (
+  token text primary key,
+  result_id uuid not null references results (id) on delete cascade,
+  expires_at timestamptz not null,
+  claimed_at timestamptz,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists claim_tokens_result_id_idx on claim_tokens (result_id);
+
 alter table results enable row level security;
 alter table comparisons enable row level security;
 alter table events enable row level security;
@@ -137,4 +152,5 @@ alter table push_tokens enable row level security;
 alter table pulse_pairs enable row level security;
 alter table pulse_checkins enable row level security;
 alter table user_push_tokens enable row level security;
+alter table claim_tokens enable row level security;
 -- Politika yok: yalnızca service-role key (backend) erişebilir.

@@ -41,12 +41,15 @@ private val fieldColors
         cursorColor = StruvaColors.Accent,
     )
 
-private enum class AuthMode { LOGIN, REGISTER, FORGOT_PASSWORD }
+// private değil: CompleteProfileScreen.kt (anonim → gerçek hesap yükseltme)
+// aynı LOGIN/REGISTER/FORGOT_PASSWORD akışını kendi Scaffold'unun içinde
+// yeniden kullanıyor — misafir kullanıcının hem yeni hesap açabilmesi hem
+// de (elinde zaten bir hesabı varsa) ona giriş yapabilmesi gerekiyor, tek
+// yönlü "kaydet" formu bunu karşılamıyordu.
+enum class AuthMode { LOGIN, REGISTER, FORGOT_PASSWORD }
 
 @Composable
 fun AuthScreen(viewModel: AuthViewModel = hiltViewModel()) {
-    var mode by remember { mutableStateOf(AuthMode.LOGIN) }
-
     Scaffold { padding ->
         Column(
             modifier = Modifier
@@ -57,22 +60,31 @@ fun AuthScreen(viewModel: AuthViewModel = hiltViewModel()) {
         ) {
             StruvaLogo(style = MaterialTheme.typography.headlineLarge)
             Spacer(Modifier.height(40.dp))
-            when (mode) {
-                AuthMode.LOGIN, AuthMode.REGISTER -> LoginOrRegisterForm(
-                    viewModel = viewModel,
-                    isRegisterMode = mode == AuthMode.REGISTER,
-                    onToggleMode = { mode = if (mode == AuthMode.REGISTER) AuthMode.LOGIN else AuthMode.REGISTER },
-                    onForgotPassword = {
-                        viewModel.resetForgotPasswordFlow()
-                        mode = AuthMode.FORGOT_PASSWORD
-                    },
-                )
-                AuthMode.FORGOT_PASSWORD -> ForgotPasswordForm(
-                    viewModel = viewModel,
-                    onBackToLogin = { mode = AuthMode.LOGIN },
-                )
-            }
+            AuthFlowBody(viewModel = viewModel, initialMode = AuthMode.LOGIN)
         }
+    }
+}
+
+// initialMode dışında AuthScreen ile CompleteProfileScreen arasında hiçbir
+// davranış farkı yok — ikisi de aynı toggle'lara (giriş/kayıt/şifremi
+// unuttum) sahip, yalnızca hangi modda açıldıkları farklı.
+@Composable
+fun AuthFlowBody(viewModel: AuthViewModel, initialMode: AuthMode) {
+    var mode by remember { mutableStateOf(initialMode) }
+    when (mode) {
+        AuthMode.LOGIN, AuthMode.REGISTER -> LoginOrRegisterForm(
+            viewModel = viewModel,
+            isRegisterMode = mode == AuthMode.REGISTER,
+            onToggleMode = { mode = if (mode == AuthMode.REGISTER) AuthMode.LOGIN else AuthMode.REGISTER },
+            onForgotPassword = {
+                viewModel.resetForgotPasswordFlow()
+                mode = AuthMode.FORGOT_PASSWORD
+            },
+        )
+        AuthMode.FORGOT_PASSWORD -> ForgotPasswordForm(
+            viewModel = viewModel,
+            onBackToLogin = { mode = AuthMode.LOGIN },
+        )
     }
 }
 

@@ -4,6 +4,7 @@ import com.struva.map.network.ApiService
 import com.struva.map.network.apiErrorMessage
 import com.struva.map.network.dto.ChangeUsernameRequest
 import com.struva.map.network.usernameToEmail
+import com.struva.map.ui.auth.isGuestSession
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -48,6 +49,13 @@ class ProfileViewModel @Inject constructor(
                 ?.content
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    // Anonim kullanıcıda profiles satırı yok, username hep null gelir — bunu
+    // ayrı bir sinyal olarak tutuyoruz (username==null yeterli olmazdı: normal
+    // authlı kullanıcı için de ilk composition'da geçici olarak null olabilir).
+    val isGuest: StateFlow<Boolean> = supabase.auth.sessionStatus
+        .map { it.isGuestSession() }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
     private val _actionState = MutableStateFlow<ProfileActionState>(ProfileActionState.Idle)
     val actionState: StateFlow<ProfileActionState> = _actionState.asStateFlow()

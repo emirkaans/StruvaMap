@@ -64,6 +64,10 @@ export function fetchComparisonByResultId(resultId: string): Promise<ComparisonR
   return request(`/comparisons/by-result/${resultId}`);
 }
 
+export function createClaim(resultId: string): Promise<{ token: string; expiresAt: string }> {
+  return request("/claims", { method: "POST", body: JSON.stringify({ resultId }) });
+}
+
 /* Admin uçları oturum gerektirir. supabase istemcisi burada dinamik import
    edilir ki genel ziyaretçi akışı VITE_SUPABASE_* değişkenlerine bağımlı
    olmasın — bu istemci yalnızca admin panelinde gerçekten kullanılır. */

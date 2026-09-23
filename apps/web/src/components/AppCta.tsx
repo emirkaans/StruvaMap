@@ -1,7 +1,13 @@
 import { PLAY_STORE_URL } from "../lib/config";
 import { track } from "../lib/analytics";
+import { createClaim } from "../lib/api";
 import { toTurkishUpper } from "../lib/text";
 import { Reveal } from "./Reveal";
+
+// Android app'in pano kontrolü bu önekle eşleşen bir değer arıyor (bkz.
+// MainActivity.kt claim akışı) — rastgele bir string'i yanlışlıkla claim
+// zannetmesin diye.
+const CLAIM_CLIPBOARD_PREFIX = "struvamap-claim:";
 
 function GooglePlayGlyph() {
   return (
@@ -19,14 +25,24 @@ function GooglePlayGlyph() {
   );
 }
 
-function AppCtaButton() {
+function AppCtaButton({ resultId }: { resultId?: string }) {
   return (
     <a
       href={PLAY_STORE_URL}
       className="btn app-cta-btn"
       target="_blank"
       rel="noopener"
-      onClick={() => track("playstore_click")}
+      onClick={() => {
+        track("playstore_click");
+        // Mağaza linki zaten href ile açılıyor — bu en iyi çaba, gecikirse ya
+        // da başarısız olursa (pano izni yok, ağ hatası) indirmeyi bloklamaz,
+        // sessizce yutulur (bkz. plan: claim bir bonus, akışı bozmamalı).
+        if (resultId) {
+          createClaim(resultId)
+            .then(({ token }) => navigator.clipboard.writeText(`${CLAIM_CLIPBOARD_PREFIX}${token}`))
+            .catch(() => {});
+        }
+      }}
     >
       <GooglePlayGlyph />
       Google Play&apos;den İndir
@@ -34,7 +50,7 @@ function AppCtaButton() {
   );
 }
 
-export function AppCta({ variant }: { variant: "full" | "compact" }) {
+export function AppCta({ variant, resultId }: { variant: "full" | "compact"; resultId?: string }) {
   if (variant === "compact") {
     return (
       <Reveal className="app-cta app-cta-compact no-print">
@@ -48,7 +64,7 @@ export function AppCta({ variant }: { variant: "full" | "compact" }) {
             Ekonomik güç, duygusal emek, yaşam tarzı uyumu ve &quot;istenen yapı vs mevcut yapı&quot; farkı
             gibi derin analizler mobil uygulamada.
           </p>
-          <AppCtaButton />
+          <AppCtaButton resultId={resultId} />
         </div>
       </Reveal>
     );

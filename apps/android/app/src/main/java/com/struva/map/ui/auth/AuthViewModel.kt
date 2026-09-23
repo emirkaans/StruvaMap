@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.google.firebase.messaging.FirebaseMessaging
 import com.struva.map.network.ApiService
 import com.struva.map.network.apiErrorMessage
+import com.struva.map.network.dto.RedeemClaimRequest
 import com.struva.map.network.dto.RegisterRequest
 import com.struva.map.network.dto.RegisterUserDeviceRequest
 import com.struva.map.network.dto.ResetPasswordRequest
@@ -24,6 +25,14 @@ import kotlinx.coroutines.tasks.await
 import kotlinx.serialization.json.Json
 import retrofit2.HttpException
 import javax.inject.Inject
+
+// supabase-kt'de UserInfo.isAnonymous alanı yok (3.0.3 bytecode'unda
+// doğrulandı) — standart tespit yöntemi "hiç bağlı identity'si yok" (anonim
+// kullanıcıda identities boş, email/şifre eklenince — complete-profile —
+// dolar). ProfileViewModel/CompleteProfileScreen/PulsePairingScreen üçünde
+// de aynı mantık tekrarlanmasın diye tek yerde.
+fun SessionStatus.isGuestSession(): Boolean =
+    (this as? SessionStatus.Authenticated)?.session?.user?.identities.isNullOrEmpty()
 
 sealed interface AuthFormState {
     data object Idle : AuthFormState
@@ -79,10 +88,53 @@ class AuthViewModel @Inject constructor(
         }
     }
 
+    // MainActivity'nin NotAuthenticated dalında (kendi LaunchedEffect'inden)
+    // çağrılır — açılışta form göstermeden sessiz bir cihaz kimliği kurar
+    // (bkz. plan: düşük sürtünmeli mobil giriş). Bilerek suspend: çağıran
+    // taraf tamamlanmasını bekleyip splash'i/yüklenme durumunu ona göre
+    // yönetiyor (kendi viewModelScope'unda fire-and-forget çalışsaydı bu
+    // senkronizasyon mümkün olmazdı). Başarısız olursa AuthScreen fallback
+    // olarak kalır (sessionStatus NotAuthenticated'da takılı kalır, kullanıcı
+    // elle giriş/kayıt yapabilir) — bu yüzden burada özel bir hata durumu
+    // tutmuyoruz, yalnızca loglayıp yutuyoruz.
+    suspend fun signInAnonymously() {
+        try {
+            supabase.auth.signInAnonymously()
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Log.w("StruvaAuth", "anonim giriş başarısız", e)
+        }
+    }
+
+    // MainActivity'nin panodan bulduğu claim token'ını en iyi çaba ile
+    // sunucuya gönderir (bkz. AppCta.tsx claim akışı, ApiService.redeemClaim).
+    // Süresi geçmiş/zaten kullanılmış token sessizce yutulur — kullanıcıya
+    // görünür bir hata göstermeye değecek bir senaryo değil, ve pano metni
+    // her app açılışında aynı kalabileceğinden bu çağrı tekrar tekrar
+    // (zararsızca) denenebilir.
+    suspend fun redeemClaim(token: String) {
+        try {
+            api.redeemClaim(RedeemClaimRequest(token))
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Log.w("StruvaAuth", "claim redeem başarısız", e)
+        }
+    }
+
+    // Artık her zaman bir "yükseltme": MainActivity açılışta zaten sessizce
+    // signInAnonymously() çağırdığı için buraya gelindiğinde oturum daima
+    // authlı (anonim) — /auth/register (admin.createUser, YENİ kullanıcı)
+    // yerine /auth/complete-profile (admin.updateUserById, AYNI kullanıcıyı
+    // yerinde günceller) çağrılıyor. signIn() gerekmiyor: user_id hiç
+    // değişmedi, yalnızca yerel oturumun e-posta/metadata'yı görmesi için
+    // refreshCurrentSession yeterli (ProfileViewModel.changeUsername ile
+    // aynı desen).
     fun register(username: String, password: String, securityQuestion: String?, securityAnswer: String?) =
         runAuthAction {
-            api.register(RegisterRequest(username, password, securityQuestion?.trim(), securityAnswer))
-            signIn(username, password)
+            api.completeProfile(RegisterRequest(username, password, securityQuestion?.trim(), securityAnswer))
+            supabase.auth.refreshCurrentSession()
         }
 
     fun login(username: String, password: String) = runAuthAction {
