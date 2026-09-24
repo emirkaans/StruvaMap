@@ -8,7 +8,9 @@ import com.struva.map.network.ApiService
 import com.struva.map.network.SessionIdProvider
 import com.struva.map.network.dto.AssignResultRequest
 import com.struva.map.network.dto.ContextQuestionDto
+import com.struva.map.network.dto.CreateRelationshipRequest
 import com.struva.map.network.dto.QuestionDto
+import com.struva.map.network.dto.RelationshipDto
 import com.struva.map.network.dto.ScoreResultDto
 import com.struva.map.network.dto.SubmitResultRequest
 import com.struva.map.network.dto.TestDetailDto
@@ -23,6 +25,8 @@ import javax.inject.Inject
 
 sealed interface SolveUiState {
     data object Loading : SolveUiState
+    // Sorulardan önce: "Kimin için çözüyorsun?" — options bu test türündeki ilişkiler.
+    data class ChooseRelationship(val options: List<RelationshipDto>) : SolveUiState
     data class ContextQuestion(val question: ContextQuestionDto, val position: Int, val total: Int) : SolveUiState
     data class Question(
         val question: QuestionDto,
@@ -53,6 +57,13 @@ class SolveViewModel @Inject constructor(
     // ilişkiye otomatik bağlanır (elle "İlişkiye bağla" adımı gerekmez).
     private var relationshipId: String? = savedStateHandle["relationshipId"]
 
+    // "Kimin için?" adımı: ilişki zaten verildiyse ya da ilişkiler
+    // yüklenemediyse atlanır. Yeni ilişki, test yarıda bırakılırsa boş bir
+    // ilişki kalmasın diye ancak sonuç gönderilirken oluşturulur.
+    private var relationshipChosen = relationshipId != null
+    private var relationshipOptions: List<RelationshipDto> = emptyList()
+    private var pendingNewLabel: String? = null
+
     private val _uiState = MutableStateFlow<SolveUiState>(SolveUiState.Loading)
     val uiState: StateFlow<SolveUiState> = _uiState.asStateFlow()
 
@@ -79,12 +90,32 @@ class SolveViewModel @Inject constructor(
                 contextIndex = 0
                 questionIndex = 0
                 analytics.track("test_start", testId = testId)
+                if (!relationshipChosen) loadRelationshipOptions()
                 advance()
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
                 _uiState.value = SolveUiState.Error(e.message ?: "Bilinmeyen hata")
             }
+        }
+    }
+
+    // existingId → o ilişki; newLabel → gönderimde oluşturulacak yeni ilişki;
+    // ikisi de null → "Şimdilik geç" (sonuç bağsız kalır).
+    fun chooseRelationship(existingId: String?, newLabel: String?) {
+        relationshipId = existingId
+        pendingNewLabel = newLabel?.trim()?.takeIf { existingId == null && it.isNotEmpty() }
+        relationshipChosen = true
+        advance()
+    }
+
+    private suspend fun loadRelationshipOptions() {
+        try {
+            relationshipOptions = api.getRelationships().filter { it.testId == testId }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            relationshipChosen = true // seçim adımı olmadan devam
         }
     }
 
@@ -150,6 +181,7 @@ class SolveViewModel @Inject constructor(
         val t = test ?: return
         val contextQuestions = t.contextQuestions
         _uiState.value = when {
+            !relationshipChosen -> SolveUiState.ChooseRelationship(relationshipOptions)
             contextIndex < contextQuestions.size ->
                 SolveUiState.ContextQuestion(contextQuestions[contextIndex], contextIndex, contextQuestions.size)
             questionIndex < shuffledQuestions.size -> {
@@ -168,9 +200,17 @@ class SolveViewModel @Inject constructor(
 
     // En iyi çaba: bağlama başarısız olursa sonuç yine kaydedildi; kullanıcı
     // sonuç ekranındaki "İlişki" kartından elle bağlayabilir.
-    private suspend fun assignToRelationship(resultId: String, relationshipId: String) {
+    private suspend fun assignToRelationship(resultId: String) {
         try {
-            api.assignResult(AssignResultRequest(resultId, relationshipId))
+            val targetId = relationshipId
+                ?: pendingNewLabel?.let { label ->
+                    api.createRelationship(CreateRelationshipRequest(testId, label)).id.also {
+                        relationshipId = it
+                        pendingNewLabel = null
+                    }
+                }
+                ?: return
+            api.assignResult(AssignResultRequest(resultId, targetId))
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
@@ -190,7 +230,7 @@ class SolveViewModel @Inject constructor(
                     ),
                 )
                 analytics.track("test_complete", testId = t.id)
-                relationshipId?.let { assignToRelationship(response.id, it) }
+                assignToRelationship(response.id)
                 SolveUiState.Result(response.id, response.score)
             } catch (e: CancellationException) {
                 throw e
