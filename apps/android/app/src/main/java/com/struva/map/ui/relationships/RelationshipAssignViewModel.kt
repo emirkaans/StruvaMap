@@ -24,6 +24,8 @@ data class RelationshipAssignState(
     val current: RelationshipDto? = null,
     val saving: Boolean = false,
     val errorMessage: String? = null,
+    // İlk yükleme başarısızsa kart gizlenmez, hatayı + "Tekrar dene"yi gösterir.
+    val loadError: String? = null,
 )
 
 @HiltViewModel
@@ -42,19 +44,27 @@ class RelationshipAssignViewModel @Inject constructor(
         if (this.resultId == resultId) return
         this.resultId = resultId
         this.testId = testId
+        load()
+    }
+
+    fun load() {
+        val resultId = resultId ?: return
+        val testId = testId ?: return
         viewModelScope.launch {
-            try {
+            _state.value = try {
                 val options = api.getRelationships().filter { it.testId == testId }
                 val currentId = api.getResult(resultId).relationshipId
-                _state.value = RelationshipAssignState(
+                RelationshipAssignState(
                     loaded = true,
                     options = options,
                     current = options.firstOrNull { it.id == currentId },
                 )
             } catch (e: CancellationException) {
                 throw e
+            } catch (e: HttpException) {
+                RelationshipAssignState(loadError = e.apiErrorMessage(json) ?: "HTTP ${e.code()}")
             } catch (e: Exception) {
-                // Bölüm gizli kalır; sonuç ekranının geri kalanı etkilenmez.
+                RelationshipAssignState(loadError = e.message ?: "Bağlantı hatası")
             }
         }
     }

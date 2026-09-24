@@ -47,6 +47,20 @@ fun RelationshipAssignSection(
     var showDialog by remember { mutableStateOf(false) }
     LaunchedEffect(resultId) { viewModel.init(resultId, testId) }
 
+    val loadError = state.loadError
+    if (loadError != null) {
+        StruvaCard(modifier = Modifier.fillMaxWidth()) {
+            Text("İLİŞKİ", style = EyebrowStyle)
+            Spacer(Modifier.height(6.dp))
+            Text(
+                "İlişki bilgisi yüklenemedi: $loadError",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.error,
+            )
+            TextButton(onClick = viewModel::load) { Text("Tekrar dene") }
+        }
+        return
+    }
     if (!state.loaded) return
 
     StruvaCard(modifier = Modifier.fillMaxWidth()) {
