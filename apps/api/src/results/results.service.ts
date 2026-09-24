@@ -19,6 +19,8 @@ export interface ResultRow {
   answers: Record<number, number>;
   score: ScoreResult;
   created_at: string;
+  // Mobilde kullanıcının bağladığı ilişki (bkz. relationships modülü); web'de hep null.
+  relationship_id?: string | null;
 }
 
 export interface FindAllResultsParams {

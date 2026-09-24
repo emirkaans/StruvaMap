@@ -5,3 +5,5 @@ export * from "./tests/index.js";
 export * from "./pulse.js";
 export * from "./prediction.js";
 export * from "./conversation-prompts.js";
+export * from "./relationships.js";
+export * from "./labour.js";

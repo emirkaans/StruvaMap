@@ -124,3 +124,7 @@ pnpm dev:api    # http://localhost:3000
   öngörmedin" gibi içgörüler çıkar (`evaluatePrediction`, `predictions`
   tablosu). Algı farkı ve gerilim alanları için açık uçlu konuşma soruları
   (`CONVERSATION_PROMPTS`).
+- ✅ Kişisel ilişki haritası: sonuçlar adlandırılmış ilişkilere bağlanır
+  (`relationships` tablosu, `results.relationship_id`); Harita sekmesi her
+  ilişkinin son skorunu ve ilişkiler arası tekrar eden gerilim/güç
+  örüntülerini gösterir (`findRelationshipPatterns`).

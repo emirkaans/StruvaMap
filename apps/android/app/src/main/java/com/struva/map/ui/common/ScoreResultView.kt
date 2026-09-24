@@ -26,6 +26,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.struva.map.network.dto.ScoreResultDto
+import com.struva.map.ui.relationships.RelationshipAssignSection
 import com.struva.map.ui.theme.EyebrowStyle
 import com.struva.map.ui.theme.StruvaColors
 import java.util.Locale
@@ -113,6 +114,8 @@ fun ScoreResultView(
                     Text("Ana sayfaya dön")
                 }
             }
+            Spacer(Modifier.height(16.dp))
+            RelationshipAssignSection(resultId = resultId, testId = score.testId)
             Spacer(Modifier.height(28.dp))
 
             if (test != null && score.indices.isNotEmpty()) {

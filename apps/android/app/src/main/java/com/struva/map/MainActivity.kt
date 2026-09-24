@@ -51,6 +51,7 @@ import com.struva.map.ui.home.HomeScreen
 import com.struva.map.ui.myresults.MyResultsScreen
 import com.struva.map.ui.prediction.PredictionScreen
 import com.struva.map.ui.privacy.PrivacyScreen
+import com.struva.map.ui.relationships.MapScreen
 import com.struva.map.ui.profile.ProfileScreen
 import com.struva.map.ui.pulse.PulseHistoryScreen
 import com.struva.map.ui.pulse.PulsePairingScreen
@@ -197,11 +198,12 @@ private data class TabItem(val route: String, val label: String)
 
 private val TAB_ITEMS = listOf(
     TabItem("home", "Anasayfa"),
+    TabItem("map", "Harita"),
     TabItem("history", "Geçmiş"),
     TabItem("profile", "Profil"),
 )
 
-// Sekme çubuğu yalnız 3 üst-seviye ekranda görünür — testDetail/solve/
+// Sekme çubuğu yalnız 4 üst-seviye ekranda görünür — testDetail/solve/
 // myResults/resultDetail/comparison gibi akış (task) ekranları tam ekran
 // kalır, web'de olmayan mobile özel bir gezinme kavramı olduğu için burada
 // kasıtlı sade tutuldu (ikon yok, yalnız etiket — app genelindeki "←" gibi
@@ -271,6 +273,18 @@ private fun AppNavHost(
                     onOpenPulseHistory = { navController.navigate("pulseHistory") },
                     onOpenComparison = { comparisonId -> navController.navigate("comparison/$comparisonId") },
                     onOpenPrediction = { resultId -> navController.navigate("predict/$resultId") },
+                )
+            }
+            composable("map") {
+                MapScreen(
+                    onOpenResult = { resultId -> navController.navigate("resultDetail/$resultId") },
+                    onOpenHistory = {
+                        navController.navigate("history") {
+                            popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    },
                 )
             }
             composable("history") {

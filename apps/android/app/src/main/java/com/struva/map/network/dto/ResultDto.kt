@@ -39,6 +39,9 @@ data class ResultRowDto(
     val id: String,
     @SerialName("created_at") val createdAt: String,
     val score: ScoreResultDto,
+    // Kullanıcının bu sonucu bağladığı ilişki (bkz. RelationshipAssignSection).
+    // Room önbelleği bunu tutmuyor; yalnız doğrudan API'den gelen satırda dolu.
+    @SerialName("relationship_id") val relationshipId: String? = null,
 )
 
 @Serializable

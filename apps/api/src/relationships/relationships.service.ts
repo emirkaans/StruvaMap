@@ -1,0 +1,242 @@
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
+import {
+  findRelationshipPatterns,
+  type RelationshipPattern,
+  type ScoreResult,
+} from '@struva/shared';
+import { SupabaseService } from '../supabase/supabase.service';
+import { ResultsService } from '../results/results.service';
+import { TestsService } from '../tests/tests.service';
+import { AssignResultDto, CreateRelationshipDto } from './relationship.dto';
+
+export interface RelationshipRow {
+  id: string;
+  user_id: string;
+  test_id: string;
+  label: string;
+  created_at: string;
+}
+
+export interface RelationshipDto {
+  id: string;
+  testId: string;
+  label: string;
+  createdAt: string;
+}
+
+export interface RelationshipMapNode extends RelationshipDto {
+  testName: string;
+  resultCount: number;
+  latest: {
+    resultId: string;
+    rsi: number;
+    indices: Record<string, number>;
+    createdAt: string;
+  } | null;
+}
+
+export interface RelationshipMapDto {
+  relationships: RelationshipMapNode[];
+  // Henüz hiçbir ilişkiye bağlanmamış sonuç sayısı — "bağla" çağrısı için.
+  unassignedCount: number;
+  patterns: RelationshipPattern[];
+}
+
+// Harita için bakılan en yeni sonuç sayısı — kullanıcı başına pratikte
+// fazlasıyla yeterli; sorguyu sınırlı tutar.
+const MAP_RESULT_LIMIT = 200;
+
+interface MapResultRow {
+  id: string;
+  test_id: string;
+  score: ScoreResult;
+  created_at: string;
+  relationship_id: string | null;
+}
+
+@Injectable()
+export class RelationshipsService {
+  constructor(
+    private readonly supabase: SupabaseService,
+    private readonly results: ResultsService,
+    private readonly tests: TestsService,
+  ) {}
+
+  async list(userId: string): Promise<RelationshipDto[]> {
+    const { data, error } = await this.supabase.client
+      .from('relationships')
+      .select()
+      .eq('user_id', userId)
+      .order('created_at', { ascending: true });
+    if (error) throw new InternalServerErrorException(error.message);
+    return ((data ?? []) as RelationshipRow[]).map(toDto);
+  }
+
+  async create(
+    userId: string,
+    dto: CreateRelationshipDto,
+  ): Promise<RelationshipDto> {
+    await this.tests.getById(dto.testId); // geçersiz testId → NotFoundException
+    const { data, error } = await this.supabase.client
+      .from('relationships')
+      .insert({
+        user_id: userId,
+        test_id: dto.testId,
+        label: cleanLabel(dto.label),
+      })
+      .select()
+      .single();
+    if (error) throw new InternalServerErrorException(error.message);
+    return toDto(data as RelationshipRow);
+  }
+
+  async rename(
+    userId: string,
+    id: string,
+    label: string,
+  ): Promise<RelationshipDto> {
+    await this.owned(userId, id);
+    const { data, error } = await this.supabase.client
+      .from('relationships')
+      .update({ label: cleanLabel(label) })
+      .eq('id', id)
+      .select()
+      .single();
+    if (error) throw new InternalServerErrorException(error.message);
+    return toDto(data as RelationshipRow);
+  }
+
+  // Bağlı sonuçlar silinmez; FK "on delete set null" ile bağsız kalır.
+  async remove(userId: string, id: string): Promise<void> {
+    await this.owned(userId, id);
+    const { error } = await this.supabase.client
+      .from('relationships')
+      .delete()
+      .eq('id', id);
+    if (error) throw new InternalServerErrorException(error.message);
+  }
+
+  async assign(
+    userId: string,
+    dto: AssignResultDto,
+  ): Promise<{ resultId: string; relationshipId: string | null }> {
+    const result = await this.results.findById(dto.resultId);
+    if (result.user_id !== userId)
+      throw new ForbiddenException('Bu sonuç sana ait değil.');
+
+    const relationshipId = dto.relationshipId ?? null;
+    if (relationshipId) {
+      const relationship = await this.owned(userId, relationshipId);
+      if (relationship.test_id !== result.test_id) {
+        throw new BadRequestException(
+          'Sonuç ile ilişki aynı test türünde olmalı.',
+        );
+      }
+    }
+
+    const { error } = await this.supabase.client
+      .from('results')
+      .update({ relationship_id: relationshipId })
+      .eq('id', result.id);
+    if (error) throw new InternalServerErrorException(error.message);
+    return { resultId: result.id, relationshipId };
+  }
+
+  async map(userId: string): Promise<RelationshipMapDto> {
+    const [relationships, results, tests] = await Promise.all([
+      this.list(userId),
+      this.recentResults(userId),
+      this.tests.listAll(true),
+    ]);
+    const testsById = new Map(tests.map((t) => [t.id, t]));
+
+    const nodes: RelationshipMapNode[] = relationships.map((r) => {
+      const own = results.filter((row) => row.relationship_id === r.id); // en yeni önce
+      const latest = own[0];
+      return {
+        ...r,
+        testName: testsById.get(r.testId)?.name ?? r.testId,
+        resultCount: own.length,
+        latest: latest
+          ? {
+              resultId: latest.id,
+              rsi: latest.score.rsi,
+              indices: latest.score.indices,
+              createdAt: latest.created_at,
+            }
+          : null,
+      };
+    });
+
+    const patterns = findRelationshipPatterns(
+      nodes.flatMap((n) =>
+        n.latest
+          ? [
+              {
+                relationshipId: n.id,
+                label: n.label,
+                indices: n.latest.indices,
+                indexNames: Object.fromEntries(
+                  Object.entries(testsById.get(n.testId)?.indices ?? {}).map(
+                    ([id, def]) => [id, def.name],
+                  ),
+                ),
+              },
+            ]
+          : [],
+      ),
+    );
+
+    return {
+      relationships: nodes,
+      unassignedCount: results.filter((row) => !row.relationship_id).length,
+      patterns,
+    };
+  }
+
+  private async recentResults(userId: string): Promise<MapResultRow[]> {
+    const { data, error } = await this.supabase.client
+      .from('results')
+      .select('id, test_id, score, created_at, relationship_id')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(MAP_RESULT_LIMIT);
+    if (error) throw new InternalServerErrorException(error.message);
+    return (data ?? []) as MapResultRow[];
+  }
+
+  private async owned(userId: string, id: string): Promise<RelationshipRow> {
+    const { data, error } = await this.supabase.client
+      .from('relationships')
+      .select()
+      .eq('id', id)
+      .maybeSingle();
+    if (error) throw new InternalServerErrorException(error.message);
+    if (!data) throw new NotFoundException('İlişki bulunamadı.');
+    const row = data as RelationshipRow;
+    if (row.user_id !== userId)
+      throw new ForbiddenException('Bu ilişki sana ait değil.');
+    return row;
+  }
+}
+
+function cleanLabel(label: string): string {
+  const trimmed = label.trim();
+  if (!trimmed) throw new BadRequestException('İlişki adı boş olamaz.');
+  return trimmed;
+}
+
+function toDto(row: RelationshipRow): RelationshipDto {
+  return {
+    id: row.id,
+    testId: row.test_id,
+    label: row.label,
+    createdAt: row.created_at,
+  };
+}
