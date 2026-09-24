@@ -20,26 +20,22 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -54,6 +50,9 @@ import com.struva.map.ui.theme.IBMPlexMono
 import com.struva.map.ui.theme.StruvaColors
 import com.struva.map.ui.theme.bandColorForScore
 import com.struva.map.ui.theme.struvaTopAppBarColors
+import java.time.Duration
+import java.time.Instant
+import java.time.OffsetDateTime
 import kotlin.math.cos
 import kotlin.math.sin
 
@@ -69,10 +68,14 @@ private val NodeLabelShift = 11.dp
 // hepsi yine de alttaki listede yer alır.
 private const val MAX_MAP_NODES = 8
 
+// Son ölçümü bundan eski ilişkiler haritada soluk görünür (tasarım kararı).
+private const val STALE_AFTER_DAYS = 180L
+private const val STALE_ALPHA = 0.45f
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MapScreen(
-    onOpenResult: (String) -> Unit,
+    onOpenRelationship: (String) -> Unit,
     onOpenHistory: () -> Unit,
     viewModel: MapViewModel = hiltViewModel(),
 ) {
@@ -92,11 +95,8 @@ fun MapScreen(
                 }
                 is MapUiState.Loaded -> MapContent(
                     map = s.map,
-                    actionError = s.actionError,
-                    onOpenResult = onOpenResult,
+                    onOpenRelationship = onOpenRelationship,
                     onOpenHistory = onOpenHistory,
-                    onRename = viewModel::rename,
-                    onDelete = viewModel::delete,
                 )
             }
         }
@@ -106,39 +106,23 @@ fun MapScreen(
 @Composable
 private fun MapContent(
     map: RelationshipMapDto,
-    actionError: String?,
-    onOpenResult: (String) -> Unit,
+    onOpenRelationship: (String) -> Unit,
     onOpenHistory: () -> Unit,
-    onRename: (String, String) -> Unit,
-    onDelete: (String) -> Unit,
 ) {
-    var renaming by remember { mutableStateOf<RelationshipMapNodeDto?>(null) }
-    var deleting by remember { mutableStateOf<RelationshipMapNodeDto?>(null) }
-
     LazyColumn(modifier = Modifier.fillMaxSize().padding(16.dp)) {
         if (map.relationships.isEmpty()) {
             item { EmptyMap(hasUnassigned = map.unassignedCount > 0, onOpenHistory = onOpenHistory) }
         } else {
             item {
-                EgoMap(map.relationships.take(MAX_MAP_NODES), onNodeClick = { node ->
-                    node.latest?.let { onOpenResult(it.resultId) }
-                })
+                EgoMap(map.relationships.take(MAX_MAP_NODES), onNodeClick = { onOpenRelationship(it.id) })
                 Spacer(Modifier.height(20.dp))
             }
             item { PatternsSection(map) }
             item {
                 Text("İlişkilerin", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(top = 20.dp, bottom = 6.dp))
-                actionError?.let {
-                    Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
-                }
             }
             items(map.relationships, key = { it.id }) { node ->
-                RelationshipRow(
-                    node = node,
-                    onOpen = { node.latest?.let { onOpenResult(it.resultId) } },
-                    onRename = { renaming = node },
-                    onDelete = { deleting = node },
-                )
+                RelationshipRow(node = node, onOpen = { onOpenRelationship(node.id) })
             }
             if (map.unassignedCount > 0) {
                 item {
@@ -157,37 +141,12 @@ private fun MapContent(
         item {
             Spacer(Modifier.height(20.dp))
             Text(
-                "TEŞHİS DEĞİL · Harita her ilişkinin en son sonucunu gösterir. Örüntüler bir eğilime işaret eder; " +
-                    "kişiliğin ya da ilişkilerin hakkında bir yargı değildir.",
+                "TEŞHİS DEĞİL · Harita her ilişkinin en son sonucunu ve bir önceki ölçüme göre yönünü gösterir. " +
+                    "Örüntüler bir eğilime işaret eder; kişiliğin ya da ilişkilerin hakkında bir yargı değildir.",
                 style = MaterialTheme.typography.bodySmall,
             )
             Spacer(Modifier.height(16.dp))
         }
-    }
-
-    renaming?.let { node ->
-        RenameDialog(
-            initial = node.label,
-            onDismiss = { renaming = null },
-            onConfirm = { label ->
-                renaming = null
-                onRename(node.id, label)
-            },
-        )
-    }
-    deleting?.let { node ->
-        AlertDialog(
-            onDismissRequest = { deleting = null },
-            title = { Text("\"${node.label}\" silinsin mi?") },
-            text = { Text("Bağlı sonuçlar silinmez; yalnızca bu ilişkiden ayrılır ve Harita'dan kalkar.") },
-            confirmButton = {
-                TextButton(onClick = {
-                    deleting = null
-                    onDelete(node.id)
-                }) { Text("Sil", color = StruvaColors.Bad) }
-            },
-            dismissButton = { TextButton(onClick = { deleting = null }) { Text("Vazgeç") } },
-        )
     }
 }
 
@@ -231,7 +190,8 @@ private fun EgoMap(nodes: List<RelationshipMapNodeDto>, onNodeClick: (Relationsh
                     .align(Alignment.Center)
                     .offset(x = x, y = y + NodeLabelShift)
                     .width(LabelWidth)
-                    .clickable(enabled = node.latest != null) { onNodeClick(node) },
+                    .alpha(if (isStale(node)) STALE_ALPHA else 1f)
+                    .clickable { onNodeClick(node) },
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 val score = node.latest?.rsi
@@ -243,10 +203,15 @@ private fun EgoMap(nodes: List<RelationshipMapNodeDto>, onNodeClick: (Relationsh
                         .border(2.dp, score?.let(::bandColorForScore) ?: StruvaColors.Border, CircleShape),
                     contentAlignment = Alignment.Center,
                 ) {
-                    Text(
-                        score?.toString() ?: "–",
-                        style = MaterialTheme.typography.titleSmall.copy(fontFamily = IBMPlexMono),
-                    )
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            score?.toString() ?: "–",
+                            style = MaterialTheme.typography.titleSmall.copy(fontFamily = IBMPlexMono),
+                        )
+                        trendLabel(node)?.let { (text, color) ->
+                            Text(text, style = MaterialTheme.typography.labelSmall, color = color)
+                        }
+                    }
                 }
                 Spacer(Modifier.height(4.dp))
                 Text(
@@ -311,39 +276,58 @@ private fun PatternCard(pattern: RelationshipPatternDto) {
 }
 
 @Composable
-private fun RelationshipRow(
-    node: RelationshipMapNodeDto,
-    onOpen: () -> Unit,
-    onRename: () -> Unit,
-    onDelete: () -> Unit,
-) {
-    StruvaCard(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp),
-        onClick = if (node.latest != null) onOpen else null,
-    ) {
+private fun RelationshipRow(node: RelationshipMapNodeDto, onOpen: () -> Unit) {
+    StruvaCard(modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp), onClick = onOpen) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
                 Text(node.label, style = MaterialTheme.typography.titleMedium)
                 Text(node.testName, style = MaterialTheme.typography.labelSmall, color = StruvaColors.Muted)
             }
             node.latest?.let {
-                Text(
-                    "${it.rsi}",
-                    style = MaterialTheme.typography.titleMedium.copy(fontFamily = IBMPlexMono),
-                    color = bandColorForScore(it.rsi),
-                )
+                Column(horizontalAlignment = Alignment.End) {
+                    Text(
+                        "${it.rsi}",
+                        style = MaterialTheme.typography.titleMedium.copy(fontFamily = IBMPlexMono),
+                        color = bandColorForScore(it.rsi),
+                    )
+                    trendLabel(node)?.let { (text, color) ->
+                        Text(text, style = MaterialTheme.typography.labelSmall, color = color)
+                    }
+                }
             }
         }
         Spacer(Modifier.height(4.dp))
         Text(
-            if (node.resultCount == 0) "Henüz bağlı sonuç yok." else "${node.resultCount} sonuç · son skor gösteriliyor",
+            when {
+                node.resultCount == 0 -> "Henüz bağlı sonuç yok."
+                isStale(node) -> "${node.resultCount} ölçüm · son ölçüm 6 aydan eski, yeniden çözmeyi düşünebilirsin"
+                else -> "${node.resultCount} ölçüm"
+            },
             style = MaterialTheme.typography.bodySmall,
             color = StruvaColors.Muted,
         )
-        Row {
-            TextButton(onClick = onRename) { Text("Adını değiştir") }
-            TextButton(onClick = onDelete) { Text("Sil", color = StruvaColors.Bad) }
-        }
+    }
+}
+
+// Bir önceki ölçüme göre yön: "↑12" / "↓8" / "=". Tek ölçümde null.
+private fun trendLabel(node: RelationshipMapNodeDto): Pair<String, Color>? {
+    val latest = node.latest?.rsi ?: return null
+    val previous = node.previousRsi ?: return null
+    val delta = latest - previous
+    return when {
+        delta > 0 -> "↑$delta" to StruvaColors.Good
+        delta < 0 -> "↓${-delta}" to StruvaColors.Bad
+        else -> "=" to StruvaColors.Muted
+    }
+}
+
+// Son ölçüm STALE_AFTER_DAYS günden eskiyse düğüm soluk: "bu bilgi eski".
+private fun isStale(node: RelationshipMapNodeDto): Boolean {
+    val createdAt = node.latest?.createdAt ?: return false
+    return try {
+        Duration.between(OffsetDateTime.parse(createdAt).toInstant(), Instant.now()).toDays() >= STALE_AFTER_DAYS
+    } catch (e: Exception) {
+        false
     }
 }
 
@@ -364,27 +348,6 @@ private fun EmptyMap(hasUnassigned: Boolean, onOpenHistory: () -> Unit) {
             StruvaButton(onClick = onOpenHistory) { Text("Sonuçlarıma git") }
         }
     }
-}
-
-@Composable
-private fun RenameDialog(initial: String, onDismiss: () -> Unit, onConfirm: (String) -> Unit) {
-    var label by remember { mutableStateOf(initial) }
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("İlişkinin adı") },
-        text = {
-            OutlinedTextField(
-                value = label,
-                onValueChange = { label = it.take(40) },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
-            )
-        },
-        confirmButton = {
-            TextButton(onClick = { onConfirm(label) }, enabled = label.isNotBlank()) { Text("Kaydet") }
-        },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Vazgeç") } },
-    )
 }
 
 // "Ayşe, Can ve Ece" — ProfileLabel.kt'deki joinNamesTr ile aynı kalıp.

@@ -57,6 +57,7 @@ import com.struva.map.ui.myresults.MyResultsScreen
 import com.struva.map.ui.prediction.PredictionScreen
 import com.struva.map.ui.privacy.PrivacyScreen
 import com.struva.map.ui.relationships.MapScreen
+import com.struva.map.ui.relationships.RelationshipDetailScreen
 import com.struva.map.ui.profile.ProfileScreen
 import com.struva.map.ui.pulse.PulseHistoryScreen
 import com.struva.map.ui.pulse.PulsePairingScreen
@@ -296,7 +297,7 @@ private fun AppNavHost(
             }
             composable("map") {
                 MapScreen(
-                    onOpenResult = { resultId -> navController.navigate("resultDetail/$resultId") },
+                    onOpenRelationship = { id -> navController.navigate("relationship/$id") },
                     onOpenHistory = {
                         navController.navigate("history") {
                             popUpTo(navController.graph.findStartDestination().id) { saveState = true }
@@ -366,11 +367,37 @@ private fun AppNavHost(
                 )
             }
             composable(
-                "solve/{testId}",
-                arguments = listOf(navArgument("testId") { type = NavType.StringType }),
+                "relationship/{relationshipId}",
+                arguments = listOf(navArgument("relationshipId") { type = NavType.StringType }),
+            ) {
+                RelationshipDetailScreen(
+                    onBack = { navController.popBackStack() },
+                    onOpenResult = { resultId -> navController.navigate("resultDetail/$resultId") },
+                    onRetake = { testId, relationshipId ->
+                        navController.navigate("solve/$testId?relationshipId=$relationshipId")
+                    },
+                )
+            }
+            // relationshipId isteğe bağlı: verilirse sonuç o ilişkiye otomatik bağlanır.
+            composable(
+                "solve/{testId}?relationshipId={relationshipId}",
+                arguments = listOf(
+                    navArgument("testId") { type = NavType.StringType },
+                    navArgument("relationshipId") {
+                        type = NavType.StringType
+                        nullable = true
+                        defaultValue = null
+                    },
+                ),
             ) {
                 SolveScreen(
-                    onFinished = { navController.popBackStack("home", inclusive = false) },
+                    // İlişki detayından "Yeniden çöz" ile gelindiyse oraya (yeni sonuç
+                    // grafikte görünsün), yoksa eskisi gibi anasayfaya dön.
+                    onFinished = {
+                        if (!navController.popBackStack("relationship/{relationshipId}", inclusive = false)) {
+                            navController.popBackStack("home", inclusive = false)
+                        }
+                    },
                     onOpenComparison = { comparisonId -> navController.navigate("comparison/$comparisonId") },
                     onOpenPrediction = { resultId -> navController.navigate("predict/$resultId") },
                 )

@@ -7,6 +7,8 @@ import {
 } from '@nestjs/common';
 import {
   findRelationshipPatterns,
+  summarizeRelationshipHistory,
+  type RelationshipHistorySummary,
   type RelationshipPattern,
   type ScoreResult,
 } from '@struva/shared';
@@ -39,6 +41,25 @@ export interface RelationshipMapNode extends RelationshipDto {
     indices: Record<string, number>;
     createdAt: string;
   } | null;
+  // Bir önceki sonucun RSI'si — düğümde değişim yönü (↑/↓) için.
+  previousRsi: number | null;
+}
+
+export interface RelationshipDetailResult {
+  resultId: string;
+  createdAt: string;
+  rsi: number;
+  dimensions: Record<string, number>;
+  indices: Record<string, number>;
+}
+
+export interface RelationshipDetailDto extends RelationshipDto {
+  testName: string;
+  dimensionNames: Record<string, string>;
+  indexNames: Record<string, string>;
+  // Eskiden yeniye.
+  results: RelationshipDetailResult[];
+  summary: RelationshipHistorySummary;
 }
 
 export interface RelationshipMapDto {
@@ -163,6 +184,7 @@ export class RelationshipsService {
         ...r,
         testName: testsById.get(r.testId)?.name ?? r.testId,
         resultCount: own.length,
+        previousRsi: own[1]?.score.rsi ?? null,
         latest: latest
           ? {
               resultId: latest.id,
@@ -198,6 +220,50 @@ export class RelationshipsService {
       unassignedCount: results.filter((row) => !row.relationship_id).length,
       patterns,
     };
+  }
+
+  async detail(userId: string, id: string): Promise<RelationshipDetailDto> {
+    const row = await this.owned(userId, id);
+    const [test, results] = await Promise.all([
+      this.tests.getById(row.test_id),
+      this.resultsOf(userId, id),
+    ]);
+
+    const points = results.map((r) => ({
+      resultId: r.id,
+      createdAt: r.created_at,
+      rsi: r.score.rsi,
+      dimensions: r.score.dimensions,
+      indices: r.score.indices,
+    }));
+
+    return {
+      ...toDto(row),
+      testName: test.name,
+      dimensionNames: Object.fromEntries(
+        Object.entries(test.dimensions).map(([dim, def]) => [dim, def.name]),
+      ),
+      indexNames: Object.fromEntries(
+        Object.entries(test.indices).map(([index, def]) => [index, def.name]),
+      ),
+      results: points,
+      summary: summarizeRelationshipHistory(points),
+    };
+  }
+
+  private async resultsOf(
+    userId: string,
+    relationshipId: string,
+  ): Promise<MapResultRow[]> {
+    const { data, error } = await this.supabase.client
+      .from('results')
+      .select('id, test_id, score, created_at, relationship_id')
+      .eq('user_id', userId)
+      .eq('relationship_id', relationshipId)
+      .order('created_at', { ascending: true })
+      .limit(MAP_RESULT_LIMIT);
+    if (error) throw new InternalServerErrorException(error.message);
+    return (data ?? []) as MapResultRow[];
   }
 
   private async recentResults(userId: string): Promise<MapResultRow[]> {

@@ -46,6 +46,12 @@ function makeService(
   const supabase = fakeSupabase(tables);
   const results = { findById: jest.fn().mockResolvedValue(result) };
   const tests = {
+    getById: jest.fn().mockResolvedValue({
+      id: 'romantic',
+      name: 'Romantik',
+      dimensions: { domestic: { name: 'Ev İçi Emek' } },
+      indices: { labour: { name: 'Emek' } },
+    }),
     listAll: jest.fn().mockResolvedValue([
       {
         id: 'romantic',
@@ -161,6 +167,11 @@ describe('RelationshipsService.map', () => {
       ['Boş', 0, null],
     ]);
     expect(map.relationships[0].testName).toBe('Romantik');
+    expect(map.relationships.map((n) => n.previousRsi)).toEqual([
+      80,
+      null,
+      null,
+    ]);
     expect(map.unassignedCount).toBe(1);
     expect(map.patterns).toEqual([
       {
@@ -171,5 +182,59 @@ describe('RelationshipsService.map', () => {
         total: 2,
       },
     ]);
+  });
+});
+
+describe('RelationshipsService.detail', () => {
+  it('ilişkinin sonuçlarını, adları ve geçmiş özetini döner', async () => {
+    const score = (rsi: number, domestic: number) => ({
+      rsi,
+      dimensions: { domestic },
+      indices: { labour: domestic },
+    });
+    const { service } = makeService({
+      relationships: [rel('rel1', 'romantic', 'Ayşe')],
+      results: [
+        {
+          id: 'r1',
+          user_id: 'u1',
+          score: score(45, 30),
+          created_at: '2026-01-01',
+          relationship_id: 'rel1',
+        },
+        {
+          id: 'r2',
+          user_id: 'u1',
+          score: score(64, 61),
+          created_at: '2026-09-01',
+          relationship_id: 'rel1',
+        },
+        {
+          id: 'x',
+          user_id: 'u1',
+          score: score(10, 10),
+          created_at: '2026-05-01',
+          relationship_id: 'other',
+        },
+      ],
+    });
+
+    const detail = await service.detail('u1', 'rel1');
+
+    expect(detail.label).toBe('Ayşe');
+    expect(detail.dimensionNames).toEqual({ domestic: 'Ev İçi Emek' });
+    expect(detail.indexNames).toEqual({ labour: 'Emek' });
+    expect(detail.results.map((r) => r.resultId)).toEqual(['r1', 'r2']);
+    expect(detail.summary.rsiDelta).toBe(19);
+    expect(detail.summary.recovered).toEqual(['domestic']);
+  });
+
+  it('başkasının ilişkisini göstermez', async () => {
+    const { service } = makeService({
+      relationships: [rel('rel1', 'romantic', 'Ayşe', 'u2')],
+    });
+    await expect(service.detail('u1', 'rel1')).rejects.toBeInstanceOf(
+      ForbiddenException,
+    );
   });
 });

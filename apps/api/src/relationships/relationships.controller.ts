@@ -46,6 +46,11 @@ export class RelationshipsController {
     return this.relationships.create(req.user.id, dto);
   }
 
+  @Get(':id')
+  detail(@Param('id') id: string, @Req() req: AuthedRequest) {
+    return this.relationships.detail(req.user.id, id);
+  }
+
   @Patch(':id')
   rename(
     @Param('id') id: string,

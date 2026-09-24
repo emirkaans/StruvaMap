@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.struva.map.network.Analytics
 import com.struva.map.network.ApiService
 import com.struva.map.network.SessionIdProvider
+import com.struva.map.network.dto.AssignResultRequest
 import com.struva.map.network.dto.ContextQuestionDto
 import com.struva.map.network.dto.QuestionDto
 import com.struva.map.network.dto.ScoreResultDto
@@ -47,6 +48,10 @@ class SolveViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
     private val testId: String = checkNotNull(savedStateHandle["testId"])
+
+    // İlişki detayındaki "Yeniden çöz"den gelindiyse sonuç gönderilince bu
+    // ilişkiye otomatik bağlanır (elle "İlişkiye bağla" adımı gerekmez).
+    private var relationshipId: String? = savedStateHandle["relationshipId"]
 
     private val _uiState = MutableStateFlow<SolveUiState>(SolveUiState.Loading)
     val uiState: StateFlow<SolveUiState> = _uiState.asStateFlow()
@@ -161,6 +166,18 @@ class SolveViewModel @Inject constructor(
         }
     }
 
+    // En iyi çaba: bağlama başarısız olursa sonuç yine kaydedildi; kullanıcı
+    // sonuç ekranındaki "İlişki" kartından elle bağlayabilir.
+    private suspend fun assignToRelationship(resultId: String, relationshipId: String) {
+        try {
+            api.assignResult(AssignResultRequest(resultId, relationshipId))
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            // yut
+        }
+    }
+
     private fun submit(t: TestDetailDto) {
         viewModelScope.launch {
             _uiState.value = try {
@@ -173,6 +190,7 @@ class SolveViewModel @Inject constructor(
                     ),
                 )
                 analytics.track("test_complete", testId = t.id)
+                relationshipId?.let { assignToRelationship(response.id, it) }
                 SolveUiState.Result(response.id, response.score)
             } catch (e: CancellationException) {
                 throw e

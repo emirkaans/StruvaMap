@@ -7,6 +7,7 @@ import com.struva.map.network.dto.CreateRelationshipRequest
 import com.struva.map.network.dto.LabourEntryDto
 import com.struva.map.network.dto.LabourWeekDto
 import com.struva.map.network.dto.LogLabourRequest
+import com.struva.map.network.dto.RelationshipDetailDto
 import com.struva.map.network.dto.RelationshipDto
 import com.struva.map.network.dto.RelationshipMapDto
 import com.struva.map.network.dto.RenameRelationshipRequest
@@ -147,6 +148,9 @@ interface ApiService {
 
     @GET("relationships/map")
     suspend fun getRelationshipMap(): RelationshipMapDto
+
+    @GET("relationships/{id}")
+    suspend fun getRelationship(@Path("id") id: String): RelationshipDetailDto
 
     @POST("relationships")
     suspend fun createRelationship(@Body body: CreateRelationshipRequest): RelationshipDto

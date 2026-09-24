@@ -51,3 +51,75 @@ export function findRelationshipPatterns(snapshots: RelationshipSnapshot[]): Rel
     (a, b) => (a.kind === b.kind ? 0 : a.kind === "tension" ? -1 : 1) || b.labels.length - a.labels.length,
   );
 }
+
+// ---- Tek ilişkinin zaman içindeki seyri (ilişki detay sayfası) ----
+
+export interface RelationshipResultPoint {
+  resultId: string;
+  createdAt: string; // ISO
+  rsi: number;
+  dimensions: Record<string, number>;
+}
+
+export interface DimensionChange {
+  dim: string;
+  from: number;
+  to: number;
+  delta: number;
+}
+
+export interface RelationshipHistorySummary {
+  // Son sonuç − ilk sonuç (en az 2 sonuç varsa).
+  rsiDelta: number | null;
+  // Son iki sonuç arasında en az CHANGE_THRESHOLD değişen boyutlar,
+  // mutlak değişime göre büyükten küçüğe, en fazla MAX_CHANGES.
+  changes: DimensionChange[];
+  // Son PERSISTENCE_WINDOW sonucun (en az 2) hepsinde gerilim/güçlü bandında.
+  persistentTensions: string[];
+  persistentStrengths: string[];
+  // Önceki sonuçta gerilim değilken son sonuçta gerilime düşenler, ve tersi.
+  newTensions: string[];
+  recovered: string[];
+}
+
+// Tasarım kararları (ampirik değil): 10 puan, 0-100 ölçeğinde bir bant
+// geçişinin yarısı; "kalıcı" için en fazla son 3 ölçüme bakılır ki çok eski
+// bir sonuç bugünkü tabloyu belirlemesin.
+export const CHANGE_THRESHOLD = 10;
+export const MAX_CHANGES = 3;
+export const PERSISTENCE_WINDOW = 3;
+
+export function summarizeRelationshipHistory(points: RelationshipResultPoint[]): RelationshipHistorySummary {
+  const sorted = [...points].sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+  const empty: RelationshipHistorySummary = {
+    rsiDelta: null,
+    changes: [],
+    persistentTensions: [],
+    persistentStrengths: [],
+    newTensions: [],
+    recovered: [],
+  };
+  if (sorted.length < 2) return empty;
+
+  const last = sorted[sorted.length - 1];
+  const previous = sorted[sorted.length - 2];
+  const window = sorted.slice(-PERSISTENCE_WINDOW);
+  const dims = Object.keys(last.dimensions).filter((dim) => previous.dimensions[dim] != null);
+  const isTension = (score: number) => score < DEFAULT_THRESHOLDS.tensionThreshold;
+  const isStrength = (score: number) => score >= DEFAULT_THRESHOLDS.strengthThreshold;
+  const inAll = (dim: string, test: (score: number) => boolean) =>
+    window.every((p) => p.dimensions[dim] != null && test(p.dimensions[dim]));
+
+  return {
+    rsiDelta: last.rsi - sorted[0].rsi,
+    changes: dims
+      .map((dim) => ({ dim, from: previous.dimensions[dim], to: last.dimensions[dim], delta: last.dimensions[dim] - previous.dimensions[dim] }))
+      .filter((c) => Math.abs(c.delta) >= CHANGE_THRESHOLD)
+      .sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta))
+      .slice(0, MAX_CHANGES),
+    persistentTensions: dims.filter((dim) => inAll(dim, isTension)),
+    persistentStrengths: dims.filter((dim) => inAll(dim, isStrength)),
+    newTensions: dims.filter((dim) => isTension(last.dimensions[dim]) && !isTension(previous.dimensions[dim])),
+    recovered: dims.filter((dim) => !isTension(last.dimensions[dim]) && isTension(previous.dimensions[dim])),
+  };
+}
