@@ -81,6 +81,18 @@ data class RelationshipDetailDto(
     val labour: LabourWeekSummaryDto? = null,
     // Bağ yoksa, aynı test türündeki aktif eşleşme (bağlanmaya aday).
     val linkablePairId: String? = null,
+    // Bu ilişkinin sonuçlarını içeren kıyaslamalar, eskiden yeniye.
+    val comparisons: List<RelationshipComparisonDto> = emptyList(),
+)
+
+@Serializable
+data class RelationshipComparisonDto(
+    val comparisonId: String,
+    val createdAt: String,
+    val myRsi: Int,
+    val otherRsi: Int,
+    val gap: Int,
+    val predictionAccuracy: Int? = null,
 )
 
 @Serializable

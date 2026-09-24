@@ -6,6 +6,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import {
+  evaluatePrediction,
   findRelationshipPatterns,
   summarizeRelationshipHistory,
   type RelationshipHistorySummary,
@@ -73,6 +74,18 @@ export interface RelationshipDetailDto extends RelationshipDto {
   labour: LabourWeekSummary | null;
   // Bağ yoksa ve kullanıcının aynı test türünde aktif eşleşmesi varsa, bağlanabilecek eşleşme.
   linkablePairId: string | null;
+  // Bu ilişkinin sonuçlarını içeren kıyaslamalar, eskiden yeniye.
+  comparisons: RelationshipComparisonDto[];
+}
+
+export interface RelationshipComparisonDto {
+  comparisonId: string;
+  createdAt: string;
+  myRsi: number;
+  otherRsi: number;
+  gap: number; // |myRsi - otherRsi|
+  // Kullanıcının karşı taraf için yaptığı tahminin isabeti (bkz. predictions); yoksa null.
+  predictionAccuracy: number | null;
 }
 
 export interface RelationshipMapDto {
@@ -268,7 +281,88 @@ export class RelationshipsService {
       results: points,
       summary: summarizeRelationshipHistory(points),
       ...linked,
+      comparisons: await this.comparisonsOf(results),
     };
+  }
+
+  // En iyi çaba: kıyaslamalar alınamazsa bölüm boş kalır, detay yine döner.
+  private async comparisonsOf(
+    results: MapResultRow[],
+  ): Promise<RelationshipComparisonDto[]> {
+    if (results.length === 0) return [];
+    const mine = new Map(results.map((r) => [r.id, r]));
+    const idList = [...mine.keys()].join(',');
+    try {
+      const { data, error } = await this.supabase.client
+        .from('comparisons')
+        .select('id, result_id_a, result_id_b, created_at')
+        .or(`result_id_a.in.(${idList}),result_id_b.in.(${idList})`)
+        .order('created_at', { ascending: true });
+      if (error || !data || data.length === 0) return [];
+      const rows = data as {
+        id: string;
+        result_id_a: string;
+        result_id_b: string;
+        created_at: string;
+      }[];
+
+      const pairsOf = rows.map((c) => {
+        const myId = mine.has(c.result_id_a) ? c.result_id_a : c.result_id_b;
+        return {
+          c,
+          myId,
+          otherId: myId === c.result_id_a ? c.result_id_b : c.result_id_a,
+        };
+      });
+      const [others, predictions] = await Promise.all([
+        this.supabase.client
+          .from('results')
+          .select('id, score')
+          .in(
+            'id',
+            pairsOf.map((p) => p.otherId),
+          ),
+        this.supabase.client
+          .from('predictions')
+          .select('result_id, dimensions')
+          .in('result_id', [...mine.keys()]),
+      ]);
+      const otherScores = new Map(
+        ((others.data ?? []) as { id: string; score: ScoreResult }[]).map(
+          (r) => [r.id, r.score],
+        ),
+      );
+      const predicted = new Map(
+        (
+          (predictions.data ?? []) as {
+            result_id: string;
+            dimensions: Record<string, number>;
+          }[]
+        ).map((p) => [p.result_id, p.dimensions]),
+      );
+
+      return pairsOf.flatMap(({ c, myId, otherId }) => {
+        const my = mine.get(myId)?.score;
+        const other = otherScores.get(otherId);
+        if (!my || !other) return [];
+        const prediction = predicted.get(myId);
+        return [
+          {
+            comparisonId: c.id,
+            createdAt: c.created_at,
+            myRsi: my.rsi,
+            otherRsi: other.rsi,
+            gap: Math.abs(my.rsi - other.rsi),
+            predictionAccuracy: prediction
+              ? (evaluatePrediction(my.dimensions, prediction, other.dimensions)
+                  ?.accuracy ?? null)
+              : null,
+          },
+        ];
+      });
+    } catch {
+      return [];
+    }
   }
 
   async linkPulse(

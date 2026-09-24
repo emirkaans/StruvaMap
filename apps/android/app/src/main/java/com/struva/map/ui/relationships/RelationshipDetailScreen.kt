@@ -35,6 +35,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.struva.map.network.dto.RelationshipComparisonDto
 import com.struva.map.network.dto.RelationshipDetailDto
 import com.struva.map.network.dto.RelationshipResultPointDto
 import com.struva.map.ui.common.BackIconButton
@@ -54,6 +55,9 @@ import java.util.Locale
 private val TR = Locale("tr")
 private val DateFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy", TR)
 
+// Kıyaslama ekranı ve packages/shared PERCEPTION_GAP_THRESHOLD ile aynı.
+private const val PERCEPTION_GAP_THRESHOLD = 20
+
 // Bir ilişkinin zaman içindeki seyri: skor grafiği, endeks değişimleri,
 // "ne değişti", kalıcı/yeni/toparlanan alanlar ve tüm sonuçlar. Hesaplar
 // sunucuda (packages/shared summarizeRelationshipHistory), burada yalnız gösterim.
@@ -65,6 +69,7 @@ fun RelationshipDetailScreen(
     onRetake: (testId: String, relationshipId: String) -> Unit,
     onOpenPulseHistory: () -> Unit,
     onOpenLabour: () -> Unit,
+    onOpenComparison: (String) -> Unit,
     viewModel: RelationshipDetailViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsState()
@@ -133,6 +138,7 @@ fun RelationshipDetailScreen(
                     onLinkPulse = viewModel::linkPulse,
                     onOpenPulseHistory = onOpenPulseHistory,
                     onOpenLabour = onOpenLabour,
+                    onOpenComparison = onOpenComparison,
                 )
             }
         }
@@ -189,6 +195,7 @@ private fun DetailContent(
     onLinkPulse: (String) -> Unit,
     onOpenPulseHistory: () -> Unit,
     onOpenLabour: () -> Unit,
+    onOpenComparison: (String) -> Unit,
 ) {
     val summary = detail.summary
     val latest = detail.results.lastOrNull()
@@ -253,6 +260,17 @@ private fun DetailContent(
                 PulseSection(detail, onLinkPulse, onOpenPulseHistory, onOpenLabour)
                 Spacer(Modifier.height(24.dp))
             }
+        }
+
+        if (detail.comparisons.isNotEmpty()) {
+            item {
+                Section("Karşı Tarafın Gözünden")
+                ComparisonTrend(detail.comparisons)
+            }
+            items(detail.comparisons.reversed(), key = { it.comparisonId }) { comparison ->
+                ComparisonRow(comparison, onClick = { onOpenComparison(comparison.comparisonId) })
+            }
+            item { Spacer(Modifier.height(24.dp)) }
         }
 
         if (summary.changes.isNotEmpty()) {
@@ -390,6 +408,53 @@ private fun PulseSection(
                 TextButton(onClick = onOpenLabour) { Text("Emek defteri →") }
             }
         }
+    }
+}
+
+// İlk ve son kıyaslama arasında algı farkı ve tahmin isabetinin yönü.
+@Composable
+private fun ComparisonTrend(comparisons: List<RelationshipComparisonDto>) {
+    val first = comparisons.first()
+    val last = comparisons.last()
+    val lines = buildList {
+        if (comparisons.size >= 2) {
+            val direction = when {
+                last.gap < first.gap -> "aranızdaki algı farkı kapanıyor"
+                last.gap > first.gap -> "aranızdaki algı farkı açılıyor"
+                else -> "algı farkı aynı kalmış"
+            }
+            add("Algı farkı ${first.gap} → ${last.gap}: $direction.")
+        } else {
+            add("Tek kıyaslama var: aranızda ${last.gap} puan algı farkı.")
+        }
+        val accuracies = comparisons.mapNotNull { it.predictionAccuracy }
+        if (accuracies.size >= 2) {
+            add("Tahmin isabetin %${accuracies.first()} → %${accuracies.last()}.")
+        }
+    }
+    lines.forEach {
+        Text(it, style = MaterialTheme.typography.bodyMedium)
+    }
+    Spacer(Modifier.height(8.dp))
+}
+
+@Composable
+private fun ComparisonRow(comparison: RelationshipComparisonDto, onClick: () -> Unit) {
+    StruvaCard(modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp), onClick = onClick) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(formatDate(comparison.createdAt), modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
+            Text(
+                "fark ${comparison.gap}",
+                style = MaterialTheme.typography.labelMedium.copy(fontFamily = IBMPlexMono),
+                color = if (comparison.gap >= PERCEPTION_GAP_THRESHOLD) StruvaColors.Bad else StruvaColors.Muted,
+            )
+        }
+        Text(
+            "Sen ${comparison.myRsi} · Karşı taraf ${comparison.otherRsi}" +
+                (comparison.predictionAccuracy?.let { " · tahmin isabeti %$it" } ?: ""),
+            style = MaterialTheme.typography.bodySmall,
+            color = StruvaColors.Muted,
+        )
     }
 }
 
