@@ -9,4 +9,6 @@ data class ComparisonDto(
     val testId: String,
     val a: ResultRowDto,
     val b: ResultRowDto,
+    // Tahmin modu öncesi API sürümleri bu alanı döndürmüyor.
+    val predictions: ComparisonPredictionsDto? = null,
 )

@@ -16,6 +16,7 @@ import { PushModule } from './push/push.module';
 import { PairsModule } from './pairs/pairs.module';
 import { PulseModule } from './pulse/pulse.module';
 import { ClaimsModule } from './claims/claims.module';
+import { PredictionsModule } from './predictions/predictions.module';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { ClaimsModule } from './claims/claims.module';
     PairsModule,
     PulseModule,
     ClaimsModule,
+    PredictionsModule,
   ],
   providers: [
     // SENTRY_DSN yoksa Sentry.init hiç çalışmadığı için bu filtre de sessiz kalır;

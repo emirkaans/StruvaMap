@@ -23,6 +23,8 @@ export const EVENT_NAMES = [
   // Android: nabız cevabı; props.source = app | notification | widget —
   // hızlı cevap yüzeylerinin cevap oranına etkisini ölçmek için.
   'pulse_answer',
+  // Android: kıyaslama öncesi karşı taraf için tahmin kaydedildi.
+  'prediction_saved',
 ] as const;
 
 export type EventName = (typeof EVENT_NAMES)[number];

@@ -143,6 +143,18 @@ create table if not exists claim_tokens (
 
 create index if not exists claim_tokens_result_id_idx on claim_tokens (result_id);
 
+-- Tahmin modu: davet eden kişi, karşı taraf testi bitirmeden önce onun her
+-- boyuttaki skorunu tahmin eder (bkz. packages/shared/src/prediction.ts).
+-- Sonuç başına tek tahmin; kıyaslama oluşunca API artık değiştirmeye izin
+-- vermez (bkz. apps/api/src/predictions/predictions.service.ts).
+create table if not exists predictions (
+  result_id uuid primary key references results (id) on delete cascade,
+  user_id uuid not null references auth.users (id) on delete cascade,
+  dimensions jsonb not null, -- { [boyutId]: 0-100 }
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
 alter table results enable row level security;
 alter table comparisons enable row level security;
 alter table events enable row level security;
@@ -153,4 +165,5 @@ alter table pulse_pairs enable row level security;
 alter table pulse_checkins enable row level security;
 alter table user_push_tokens enable row level security;
 alter table claim_tokens enable row level security;
+alter table predictions enable row level security;
 -- Politika yok: yalnızca service-role key (backend) erişebilir.

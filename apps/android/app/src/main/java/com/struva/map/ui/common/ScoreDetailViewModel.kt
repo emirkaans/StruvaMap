@@ -14,7 +14,12 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-data class ScoreDetailState(val test: TestDetailDto? = null, val rsiHistory: List<Int> = emptyList())
+data class ScoreDetailState(
+    val test: TestDetailDto? = null,
+    val rsiHistory: List<Int> = emptyList(),
+    // boyut id → konuşma kartı soruları (gerilim alanları için).
+    val prompts: Map<String, List<String>> = emptyMap(),
+)
 
 // ScoreResultView'in kendi başına yeterli olması için: hem yeni çözülen
 // sonuç ekranında hem de geçmişten açılan sonuçta aynı şekilde çağrılıyor
@@ -61,6 +66,16 @@ class ScoreDetailViewModel @Inject constructor(
             } catch (e: Exception) {
                 // Hero zenginleştirmesi (başlık/öykü/endeks isimleri) olmadan
                 // devam eder — skor kartı zaten elde, ekran boş kalmaz.
+            }
+        }
+        viewModelScope.launch {
+            try {
+                val prompts = api.getConversationPrompts(testId)
+                _state.value = _state.value.copy(prompts = prompts)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                // Konuşma kartları olmadan devam eder.
             }
         }
         viewModelScope.launch {

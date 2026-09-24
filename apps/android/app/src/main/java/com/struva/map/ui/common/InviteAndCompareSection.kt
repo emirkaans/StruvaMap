@@ -28,6 +28,9 @@ fun InviteAndCompareSection(
     resultId: String,
     testId: String,
     onOpenComparison: (String) -> Unit,
+    // Verilirse davet sonrası bekleme durumunda "Beklerken tahmin et" çıkar
+    // (bkz. PredictionScreen).
+    onOpenPrediction: ((String) -> Unit)? = null,
     viewModel: InviteViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsState()
@@ -45,11 +48,20 @@ fun InviteAndCompareSection(
                     modifier = Modifier.fillMaxWidth(),
                 ) { Text("Kıyaslamayı gör") }
             }
-            state.invited -> Text(
-                "Davet gönderildi. Karşı taraf testi tamamladığında kıyaslama burada görünecek.",
-                style = MaterialTheme.typography.bodyMedium,
-                color = StruvaColors.Muted,
-            )
+            state.invited -> {
+                Text(
+                    "Davet gönderildi. Karşı taraf testi tamamladığında kıyaslama burada görünecek.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = StruvaColors.Muted,
+                )
+                if (onOpenPrediction != null) {
+                    Spacer(Modifier.height(8.dp))
+                    StruvaOutlinedButton(
+                        onClick = { onOpenPrediction(resultId) },
+                        modifier = Modifier.fillMaxWidth(),
+                    ) { Text("Beklerken onun cevaplarını tahmin et") }
+                }
+            }
             else -> StruvaOutlinedButton(
                 onClick = {
                     val url = "$WEB_BASE_URL/test/$testId?compareWith=$resultId"

@@ -44,6 +44,7 @@ fun ScoreResultView(
     resultId: String,
     onOpenComparison: (String) -> Unit,
     onDone: (() -> Unit)? = null,
+    onOpenPrediction: ((String) -> Unit)? = null,
     detailViewModel: ScoreDetailViewModel = hiltViewModel(),
 ) {
     val detail by detailViewModel.state.collectAsState()
@@ -92,7 +93,7 @@ fun ScoreResultView(
             }
             Spacer(Modifier.height(24.dp))
 
-            InviteAndCompareSection(resultId, score.testId, onOpenComparison)
+            InviteAndCompareSection(resultId, score.testId, onOpenComparison, onOpenPrediction)
             Spacer(Modifier.height(8.dp))
             StruvaOutlinedButton(
                 onClick = {
@@ -199,6 +200,27 @@ fun ScoreResultView(
                 }
             }
             Spacer(Modifier.height(28.dp))
+
+            // Gerilim alanlarını kendi kendine ya da karşı tarafla konuşmaya
+            // çevirmek için — kıyaslama ekranındaki kartlarla aynı içerik.
+            val tensionPrompts = score.tensions.filter { !detail.prompts[it].isNullOrEmpty() }.take(2)
+            if (tensionPrompts.isNotEmpty()) {
+                Text("Üzerine Düşünmek İçin", style = MaterialTheme.typography.titleLarge)
+                Spacer(Modifier.height(6.dp))
+                Text(
+                    "Gerilim çıkan alanlar için birkaç soru; kendine sorabilir ya da karşı tarafla konuşabilirsin.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = StruvaColors.Muted,
+                )
+                Spacer(Modifier.height(8.dp))
+                tensionPrompts.forEach { dim ->
+                    ConversationCard(
+                        dimensionName = interpByDim[dim]?.name ?: dim,
+                        prompts = detail.prompts[dim].orEmpty(),
+                    )
+                }
+                Spacer(Modifier.height(28.dp))
+            }
 
             Text("Sosyolojik Yorum", style = MaterialTheme.typography.titleLarge)
             Spacer(Modifier.height(12.dp))

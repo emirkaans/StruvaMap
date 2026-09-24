@@ -8,6 +8,8 @@ import com.struva.map.network.dto.ChangeUsernameResponse
 import com.struva.map.network.dto.ComparisonDto
 import com.struva.map.network.dto.CreateInviteRequest
 import com.struva.map.network.dto.PairDto
+import com.struva.map.network.dto.PredictionDto
+import com.struva.map.network.dto.SavePredictionRequest
 import com.struva.map.network.dto.PulseHistoryDto
 import com.struva.map.network.dto.PulseTodayDto
 import com.struva.map.network.dto.RegisterDeviceRequest
@@ -37,6 +39,10 @@ interface ApiService {
 
     @GET("tests/{testId}")
     suspend fun getTest(@Path("testId") testId: String): TestDetailDto
+
+    // Konuşma kartları: boyut id → sorular (bkz. packages/shared/src/conversation-prompts.ts).
+    @GET("tests/{testId}/conversation-prompts")
+    suspend fun getConversationPrompts(@Path("testId") testId: String): Map<String, List<String>>
 
     @POST("results")
     suspend fun submitResult(@Body body: SubmitResultRequest): SubmitResultResponseDto
@@ -113,6 +119,14 @@ interface ApiService {
 
     @POST("pulse/answer")
     suspend fun submitPulseAnswer(@Body body: SubmitPulseAnswerRequest): PulseTodayDto
+
+    // Tahmin modu: kıyaslama oluşana kadar kaydedilebilir/güncellenebilir.
+    @POST("predictions")
+    suspend fun savePrediction(@Body body: SavePredictionRequest): PredictionDto
+
+    // Henüz tahmin yoksa sunucu 404 değil null döner.
+    @GET("predictions/by-result/{resultId}")
+    suspend fun getMyPrediction(@Path("resultId") resultId: String): PredictionDto?
 
     // Web'de çözülen bir sonucu formsuz bu cihaza bağlar (bkz. MainActivity
     // pano kontrolü, apps/web/src/components/AppCta.tsx claim akışı).
