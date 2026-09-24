@@ -10,6 +10,7 @@ import java.lang.reflect.Type
 // dönüştürücüsü boş gövdede "Expected start of the object, but had EOF"
 // fırlatıyor; bu fabrika boş gövdeyi null'a çevirip gerisini JSON
 // dönüştürücüsüne bırakıyor. Retrofit'e JSON fabrikasından ÖNCE eklenmeli.
+// null dönebilen uçlar Response<T> ile tanımlanmalı (bkz. ApiServiceNullable.kt).
 class NullOnEmptyConverterFactory : Converter.Factory() {
     override fun responseBodyConverter(
         type: Type,

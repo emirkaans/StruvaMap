@@ -7,6 +7,7 @@ import com.google.firebase.messaging.FirebaseMessaging
 import com.struva.map.network.Analytics
 import com.struva.map.network.ApiService
 import com.struva.map.network.InvitedResultStore
+import com.struva.map.network.getComparisonByResult
 import com.struva.map.network.dto.RegisterDeviceRequest
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job

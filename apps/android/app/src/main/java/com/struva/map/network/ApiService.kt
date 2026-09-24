@@ -25,6 +25,7 @@ import com.struva.map.network.dto.SubmitResultResponseDto
 import com.struva.map.network.dto.TestDetailDto
 import com.struva.map.network.dto.TestSummaryDto
 import com.struva.map.network.dto.TrackEventRequest
+import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
@@ -55,9 +56,12 @@ interface ApiService {
     @GET("results/{id}")
     suspend fun getResult(@Path("id") id: String): ResultRowDto
 
-    // Karşı taraf henüz testi bitirmediyse sunucu 404 değil null döner.
+    // Karşı taraf henüz testi bitirmediyse sunucu 404 değil null (boş gövde)
+    // döner. Retrofit suspend dönüş tipindeki `?`'i göremediği için ham
+    // Response alınıyor — çağıranlar ApiServiceNullable.kt'deki
+    // getComparisonByResult() uzantısını kullanır.
     @GET("comparisons/by-result/{resultId}")
-    suspend fun getComparisonByResult(@Path("resultId") resultId: String): ComparisonDto?
+    suspend fun getComparisonByResultResponse(@Path("resultId") resultId: String): Response<ComparisonDto>
 
     @GET("comparisons/{id}")
     suspend fun getComparison(@Path("id") id: String): ComparisonDto
@@ -124,9 +128,9 @@ interface ApiService {
     @POST("predictions")
     suspend fun savePrediction(@Body body: SavePredictionRequest): PredictionDto
 
-    // Henüz tahmin yoksa sunucu 404 değil null döner.
+    // Henüz tahmin yoksa sunucu 404 değil null döner (bkz. getComparisonByResultResponse).
     @GET("predictions/by-result/{resultId}")
-    suspend fun getMyPrediction(@Path("resultId") resultId: String): PredictionDto?
+    suspend fun getMyPredictionResponse(@Path("resultId") resultId: String): Response<PredictionDto>
 
     // Web'de çözülen bir sonucu formsuz bu cihaza bağlar (bkz. MainActivity
     // pano kontrolü, apps/web/src/components/AppCta.tsx claim akışı).

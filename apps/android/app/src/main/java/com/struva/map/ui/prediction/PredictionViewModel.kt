@@ -6,6 +6,8 @@ import androidx.lifecycle.viewModelScope
 import com.struva.map.network.Analytics
 import com.struva.map.network.ApiService
 import com.struva.map.network.apiErrorMessage
+import com.struva.map.network.getComparisonByResult
+import com.struva.map.network.getMyPrediction
 import com.struva.map.network.dto.SavePredictionRequest
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
