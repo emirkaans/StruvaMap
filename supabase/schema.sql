@@ -155,6 +155,34 @@ create table if not exists predictions (
   updated_at timestamptz not null default now()
 );
 
+-- Kişisel ilişki haritası: kullanıcının adlandırdığı ilişkiler ("Ayşe",
+-- "Yöneticim"). Her ilişki tek test türüne bağlı; sonuçlar isteğe bağlı
+-- olarak bir ilişkiye bağlanır (web anonim akışı etkilenmez, alan boş kalır).
+create table if not exists relationships (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users (id) on delete cascade,
+  test_id text not null,
+  label text not null,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists relationships_user_idx on relationships (user_id);
+
+alter table results add column if not exists relationship_id uuid references relationships (id) on delete set null;
+
+-- Emek defteri: nabız eşleşmesindeki iki kişinin günlük iş kayıtları
+-- (bkz. packages/shared/src/labour.ts LABOUR_CATEGORIES).
+create table if not exists labour_entries (
+  id uuid primary key default gen_random_uuid(),
+  pair_id uuid not null references pulse_pairs (id) on delete cascade,
+  user_id uuid not null references auth.users (id) on delete cascade,
+  category text not null,
+  entry_date date not null,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists labour_entries_pair_date_idx on labour_entries (pair_id, entry_date);
+
 alter table results enable row level security;
 alter table comparisons enable row level security;
 alter table events enable row level security;
@@ -166,4 +194,6 @@ alter table pulse_checkins enable row level security;
 alter table user_push_tokens enable row level security;
 alter table claim_tokens enable row level security;
 alter table predictions enable row level security;
+alter table relationships enable row level security;
+alter table labour_entries enable row level security;
 -- Politika yok: yalnızca service-role key (backend) erişebilir.

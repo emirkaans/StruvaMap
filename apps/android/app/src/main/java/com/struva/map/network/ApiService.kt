@@ -1,6 +1,15 @@
 package com.struva.map.network
 
 import com.struva.map.network.dto.AcceptInviteRequest
+import com.struva.map.network.dto.AssignResultRequest
+import com.struva.map.network.dto.AssignResultResponse
+import com.struva.map.network.dto.CreateRelationshipRequest
+import com.struva.map.network.dto.LabourEntryDto
+import com.struva.map.network.dto.LabourWeekDto
+import com.struva.map.network.dto.LogLabourRequest
+import com.struva.map.network.dto.RelationshipDto
+import com.struva.map.network.dto.RelationshipMapDto
+import com.struva.map.network.dto.RenameRelationshipRequest
 import com.struva.map.network.dto.ChangeUsernameRequest
 import com.struva.map.network.dto.RedeemClaimRequest
 import com.struva.map.network.dto.RedeemClaimResponse
@@ -131,6 +140,36 @@ interface ApiService {
     // Henüz tahmin yoksa sunucu 404 değil null döner (bkz. getComparisonByResultResponse).
     @GET("predictions/by-result/{resultId}")
     suspend fun getMyPredictionResponse(@Path("resultId") resultId: String): Response<PredictionDto>
+
+    // Kişisel ilişki haritası (bkz. MapScreen).
+    @GET("relationships")
+    suspend fun getRelationships(): List<RelationshipDto>
+
+    @GET("relationships/map")
+    suspend fun getRelationshipMap(): RelationshipMapDto
+
+    @POST("relationships")
+    suspend fun createRelationship(@Body body: CreateRelationshipRequest): RelationshipDto
+
+    @PATCH("relationships/{id}")
+    suspend fun renameRelationship(@Path("id") id: String, @Body body: RenameRelationshipRequest): RelationshipDto
+
+    @DELETE("relationships/{id}")
+    suspend fun deleteRelationship(@Path("id") id: String)
+
+    // relationshipId null → sonucun ilişki bağı kaldırılır.
+    @POST("relationships/assign")
+    suspend fun assignResult(@Body body: AssignResultRequest): AssignResultResponse
+
+    // Emek defteri (bkz. LabourScreen) — aktif nabız eşleşmesine bağlı.
+    @GET("labour/week")
+    suspend fun getLabourWeek(@Query("pairId") pairId: String): LabourWeekDto
+
+    @POST("labour")
+    suspend fun logLabour(@Body body: LogLabourRequest): LabourEntryDto
+
+    @DELETE("labour/{id}")
+    suspend fun deleteLabour(@Path("id") id: String)
 
     // Web'de çözülen bir sonucu formsuz bu cihaza bağlar (bkz. MainActivity
     // pano kontrolü, apps/web/src/components/AppCta.tsx claim akışı).
