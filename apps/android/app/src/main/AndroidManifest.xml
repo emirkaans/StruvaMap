@@ -37,6 +37,24 @@
             </intent-filter>
         </activity>
 
+        <!-- Nabız bildirimindeki 1-5 düğmeleri (bkz. PulseNotifications). -->
+        <receiver
+            android:name=".pulse.PulseAnswerReceiver"
+            android:exported="false" />
+
+        <!-- Ana ekran "bugünün nabzı" widget'ı (Glance). -->
+        <receiver
+            android:name=".pulse.widget.PulseWidgetReceiver"
+            android:exported="true"
+            android:label="Günlük nabız">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/pulse_widget_info" />
+        </receiver>
+
         <service
             android:name=".push.FcmService"
             android:exported="false">

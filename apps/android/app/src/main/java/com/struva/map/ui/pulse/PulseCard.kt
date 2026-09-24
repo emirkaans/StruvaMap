@@ -6,6 +6,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -19,6 +20,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -54,6 +56,7 @@ private val KnobSize = 30.dp
 @Composable
 fun PulseCard(
     onOpenPairing: () -> Unit,
+    onOpenHistory: () -> Unit,
     viewModel: PulseViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsState()
@@ -104,6 +107,7 @@ fun PulseCard(
                 Text(s.questionText, style = MaterialTheme.typography.titleSmall)
                 Spacer(Modifier.height(16.dp))
                 UnansweredGauge(checkinId = s.checkinId, onSubmit = viewModel::submitAnswer)
+                HistoryLink(onOpenHistory)
             }
 
             is PulseUiState.WaitingForPartner -> {
@@ -114,6 +118,7 @@ fun PulseCard(
                 GaugeEndLabels()
                 Spacer(Modifier.height(16.dp))
                 PulsePartnerRow(value = null, waiting = true)
+                HistoryLink(onOpenHistory)
             }
 
             is PulseUiState.BothAnswered -> {
@@ -128,6 +133,7 @@ fun PulseCard(
                 GaugeEndLabels()
                 Spacer(Modifier.height(16.dp))
                 PulsePartnerRow(value = s.partnerAnswer, waiting = false)
+                HistoryLink(onOpenHistory)
             }
         }
     }
@@ -211,6 +217,16 @@ private fun PulseGaugeTrack(value: Int?, onTap: ((Int) -> Unit)? = null) {
                 }
             }
         }
+    }
+}
+
+// Yalnızca aktif eşleşmede (soru durumlarında) görünür — geçmiş/özet
+// eşleşmesiz anlamsız.
+@Composable
+private fun HistoryLink(onClick: () -> Unit) {
+    Spacer(Modifier.height(8.dp))
+    TextButton(onClick = onClick, contentPadding = PaddingValues(0.dp)) {
+        Text("Geçmiş ve haftalık özet →", style = MaterialTheme.typography.labelMedium, color = StruvaColors.Accent)
     }
 }
 

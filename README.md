@@ -114,3 +114,8 @@ pnpm dev:api    # http://localhost:3000
   sonuç detayı, kıyaslama, geçmiş, profil ekranları; Room ile offline önbellek,
   Retrofit ile API erişimi, FCM push bildirimleri. Şu an gerçek cihazda test
   aşamasında; imzalı release build ve Play Store hazırlığı devam ediyor.
+- ✅ Mobil "Bugün" ekranı ve günlük nabız döngüsü: nabız geçmişi (4 haftalık
+  takvim) ve deterministik haftalık özet (`summarizePulseWeek`, pazar akşamı
+  push'u), bildirimden 1-5 hızlı cevap, ana ekran widget'ı (Glance), duruma
+  göre değişen ana ekran kartları (hazır kıyaslama, bekleyen davet, 90 günde
+  yeniden çözme hatırlatması).

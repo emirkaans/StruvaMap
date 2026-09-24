@@ -1,11 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
-import { pickPulseQuestion } from '@struva/shared';
+import { findPulseQuestionById, pickPulseQuestion } from '@struva/shared';
 import { SupabaseService } from '../supabase/supabase.service';
 import { PairsService, PulsePairRow } from '../pairs/pairs.service';
 import { DevicesService } from '../devices/devices.service';
 import { PushService } from '../push/push.service';
-import { PulseCheckinRow } from './pulse.service';
+import { PulseCheckinRow, PulseService } from './pulse.service';
 import { todayDateString } from './pulse-date.util';
 
 // Render'da servis her zaman-açık (always-on) planda çalışmalı — idle
@@ -21,6 +21,7 @@ export class PulseCronService {
     private readonly pairs: PairsService,
     private readonly devices: DevicesService,
     private readonly push: PushService,
+    private readonly pulse: PulseService,
   ) {}
 
   @Cron('0 8 * * *')
@@ -31,6 +32,43 @@ export class PulseCronService {
   @Cron('0 19 * * *')
   async sendEveningReminders(): Promise<void> {
     await this.runEveningJob();
+  }
+
+  // Pazar akşamı: son 7 günün özeti (bkz. PulseService.getHistory). Tek
+  // instance varsayımı burada da geçerli; haftada bir koştuğu için ayrı bir
+  // "gönderildi" kolonu tutulmuyor.
+  @Cron('0 20 * * 0')
+  async sendWeeklySummaries(): Promise<void> {
+    await this.runWeeklySummaryJob();
+  }
+
+  async runWeeklySummaryJob(): Promise<void> {
+    const activePairs = await this.pairs.findAllActive();
+    for (const pair of activePairs) {
+      if (!pair.user_id_b) continue;
+      for (const userId of [pair.user_id_a, pair.user_id_b]) {
+        try {
+          await this.notifyWeeklySummary(pair, userId);
+        } catch (error) {
+          this.logger.warn(`Haftalık özet push'u başarısız (pair ${pair.id}): ${(error as Error).message}`);
+        }
+      }
+    }
+  }
+
+  private async notifyWeeklySummary(pair: PulsePairRow, userId: string): Promise<void> {
+    const { week } = await this.pulse.getHistory(userId, pair.id, 7);
+    // Hiç cevap olmayan haftada "özetin hazır" demek boş bir bildirim olur.
+    if (week.answeredDays === 0 && week.bothAnsweredDays === 0) return;
+
+    const token = await this.devices.getTokenForUser(userId);
+    if (!token) return;
+
+    const body =
+      week.bothAnsweredDays > 0
+        ? `Bu hafta ${week.bothAnsweredDays} gün birlikte cevapladınız. Haftanın özetine göz at.`
+        : `Bu hafta ${week.answeredDays} gün cevapladın. Haftanın özetine göz at.`;
+    await this.push.sendPulseReady(token, pair.id, 'weekly_summary', 'Haftalık nabız özetin hazır', body);
   }
 
   async runMorningJob(): Promise<void> {
@@ -106,10 +144,13 @@ export class PulseCronService {
       this.devices.getTokenForUser(pair.user_id_b),
     ]);
 
+    // Gövde doğrudan sorunun kendisi: bildirimdeki 1-5 düğmeleriyle uygulamayı
+    // açmadan cevaplanabiliyor (bkz. Android FcmService).
     const title = 'Bugünkü nabız hazır';
-    const body = 'Partnerinle günlük check-in seni bekliyor.';
-    if (tokenA) await this.push.sendPulseReady(tokenA, pair.id, 'morning', title, body);
-    if (tokenB) await this.push.sendPulseReady(tokenB, pair.id, 'morning', title, body);
+    const body = findPulseQuestionById(pair.test_id, row.question_key)?.text ?? 'Partnerinle günlük check-in seni bekliyor.';
+    const extra = { checkinId: row.id };
+    if (tokenA) await this.push.sendPulseReady(tokenA, pair.id, 'morning', title, body, extra);
+    if (tokenB) await this.push.sendPulseReady(tokenB, pair.id, 'morning', title, body, extra);
 
     await this.supabase.client
       .from('pulse_checkins')
@@ -148,11 +189,11 @@ export class PulseCronService {
       if (!token) continue;
 
       const partnerAnswered = target.field === 'evening_notified_a_at' ? row.answer_b != null : row.answer_a != null;
-      const body = partnerAnswered
-        ? 'Partnerin yanıtladı, bugünkü nabza sen de bak.'
-        : 'Bugünkü nabız sorusunu henüz yanıtlamadın.';
+      const question = findPulseQuestionById(pair.test_id, row.question_key)?.text;
+      const lead = partnerAnswered ? 'Partnerin yanıtladı, sıra sende' : 'Bugünkü soruyu henüz yanıtlamadın';
+      const body = question ? `${lead}: ${question}` : `${lead}.`;
 
-      await this.push.sendPulseReady(token, pair.id, 'partner_answered', 'Bugünün nabzı', body);
+      await this.push.sendPulseReady(token, pair.id, 'partner_answered', 'Bugünün nabzı', body, { checkinId: row.id });
       await this.supabase.client
         .from('pulse_checkins')
         .update({ [target.field]: new Date().toISOString() })

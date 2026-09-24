@@ -152,5 +152,8 @@ dependencies {
     implementation(libs.firebase.messaging)
     implementation(libs.kotlinx.coroutines.play.services)
 
+    // Ana ekran "bugünün nabzı" widget'ı (bkz. pulse/widget/PulseWidget.kt).
+    implementation(libs.glance.appwidget)
+
     testImplementation(libs.junit)
 }

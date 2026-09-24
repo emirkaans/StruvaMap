@@ -1,10 +1,16 @@
 import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
-import { findPulseQuestionById, pickPulseQuestion } from '@struva/shared';
+import {
+  findPulseQuestionById,
+  pickPulseQuestion,
+  summarizePulseWeek,
+  type PulseHistoryEntry,
+  type PulseWeekSummary,
+} from '@struva/shared';
 import { SupabaseService } from '../supabase/supabase.service';
 import { PairsService, PulsePairRow } from '../pairs/pairs.service';
 import { DevicesService } from '../devices/devices.service';
 import { PushService } from '../push/push.service';
-import { todayDateString } from './pulse-date.util';
+import { daysAgoDateString, todayDateString } from './pulse-date.util';
 
 export interface PulseCheckinRow {
   id: string;
@@ -29,6 +35,25 @@ export interface PulseTodayDto {
   partnerAnswer: number | null;
 }
 
+export interface PulseHistoryDayDto {
+  date: string;
+  questionText: string;
+  myAnswer: number | null;
+  partnerAnswer: number | null;
+}
+
+export interface PulseHistoryDto {
+  pairId: string;
+  // Tarih artan sırada, yalnızca satırı olan günler — boş günleri takvim
+  // (istemci) dolduruyor.
+  days: PulseHistoryDayDto[];
+  // Bugün dahil son 7 gün (bkz. WEEK_DAYS).
+  week: PulseWeekSummary;
+}
+
+const DEFAULT_HISTORY_DAYS = 28;
+const WEEK_DAYS = 7;
+
 @Injectable()
 export class PulseService {
   constructor(
@@ -44,6 +69,48 @@ export class PulseService {
 
     const row = await this.findOrCreateToday(pair);
     return this.toDto(row, pair, userId);
+  }
+
+  async getHistory(userId: string, pairId: string, days = DEFAULT_HISTORY_DAYS): Promise<PulseHistoryDto> {
+    const pair = await this.pairs.findById(pairId);
+    this.pairs.assertMember(pair, userId);
+
+    const entries = await this.findEntries(pair, userId, days);
+    const weekStart = daysAgoDateString(WEEK_DAYS - 1);
+
+    return {
+      pairId: pair.id,
+      days: entries.map((e) => ({
+        date: e.date,
+        questionText: findPulseQuestionById(pair.test_id, e.questionKey)?.text ?? 'Bugün nasıl geçti?',
+        myAnswer: e.myAnswer,
+        partnerAnswer: e.partnerAnswer,
+      })),
+      week: summarizePulseWeek(
+        pair.test_id,
+        entries.filter((e) => e.date >= weekStart),
+      ),
+    };
+  }
+
+  // Haftalık özet push'u da (bkz. pulse-cron.service.ts) aynı sorguyu
+  // kullanıyor — kullanıcının bakış açısına (A/B → my/partner) çevrilmiş.
+  async findEntries(pair: PulsePairRow, userId: string, days: number): Promise<PulseHistoryEntry[]> {
+    const { data, error } = await this.supabase.client
+      .from('pulse_checkins')
+      .select()
+      .eq('pair_id', pair.id)
+      .gte('checkin_date', daysAgoDateString(days - 1))
+      .order('checkin_date', { ascending: true });
+    if (error) throw new InternalServerErrorException(error.message);
+
+    const isA = pair.user_id_a === userId;
+    return ((data ?? []) as PulseCheckinRow[]).map((row) => ({
+      date: row.checkin_date,
+      questionKey: row.question_key,
+      myAnswer: (isA ? row.answer_a : row.answer_b) ?? null,
+      partnerAnswer: (isA ? row.answer_b : row.answer_a) ?? null,
+    }));
   }
 
   async submitAnswer(userId: string, checkinId: string, answer: number): Promise<PulseTodayDto> {
@@ -93,13 +160,10 @@ export class PulseService {
     const token = await this.devices.getTokenForUser(partnerId);
     if (!token) return;
 
-    await this.push.sendPulseReady(
-      token,
-      pair.id,
-      'partner_answered',
-      'Partnerin yanıtladı',
-      'Bugünkü nabız sorusuna sen de bakabilirsin.',
-    );
+    const question = findPulseQuestionById(pair.test_id, row.question_key);
+    await this.push.sendPulseReady(token, pair.id, 'partner_answered', 'Partnerin yanıtladı', question?.text ?? 'Bugünkü nabız sorusuna sen de bakabilirsin.', {
+      checkinId: row.id,
+    });
 
     await this.supabase.client
       .from('pulse_checkins')

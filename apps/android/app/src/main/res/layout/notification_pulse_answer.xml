@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Nabız bildiriminin genişletilmiş görünümü (bkz. PulseNotifications).
+     RemoteViews yalnızca sınırlı view türlerini destekler: LinearLayout +
+     TextView bilerek seçildi. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingTop="4dp"
+    android:paddingBottom="8dp">
+
+    <TextView
+        android:id="@+id/pulse_question"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:maxLines="3"
+        android:textAppearance="@style/TextAppearance.Compat.Notification.Title" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/pulse_answer_1"
+            style="@style/PulseAnswerChip"
+            android:text="1" />
+
+        <TextView
+            android:id="@+id/pulse_answer_2"
+            style="@style/PulseAnswerChip"
+            android:text="2" />
+
+        <TextView
+            android:id="@+id/pulse_answer_3"
+            style="@style/PulseAnswerChip"
+            android:text="3" />
+
+        <TextView
+            android:id="@+id/pulse_answer_4"
+            style="@style/PulseAnswerChip"
+            android:text="4" />
+
+        <TextView
+            android:id="@+id/pulse_answer_5"
+            style="@style/PulseAnswerChip"
+            android:text="5" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/pulse_scale_low"
+            android:textAppearance="@style/TextAppearance.Compat.Notification.Info" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/pulse_scale_high"
+            android:textAppearance="@style/TextAppearance.Compat.Notification.Info" />
+    </LinearLayout>
+</LinearLayout>

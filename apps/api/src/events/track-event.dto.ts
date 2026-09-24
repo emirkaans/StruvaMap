@@ -20,6 +20,9 @@ export const EVENT_NAMES = [
   'share_image_download',
   'print_pdf',
   'playstore_click',
+  // Android: nabız cevabı; props.source = app | notification | widget —
+  // hızlı cevap yüzeylerinin cevap oranına etkisini ölçmek için.
+  'pulse_answer',
 ] as const;
 
 export type EventName = (typeof EVENT_NAMES)[number];

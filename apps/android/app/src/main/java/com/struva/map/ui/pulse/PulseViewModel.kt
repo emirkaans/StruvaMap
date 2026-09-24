@@ -5,6 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.struva.map.network.PulseRepository
 import com.struva.map.network.apiErrorMessage
 import com.struva.map.network.dto.PulseTodayDto
+import com.struva.map.pulse.PulseAnswerSource
+import com.struva.map.pulse.PulseAnswerSubmitter
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
@@ -41,6 +43,7 @@ sealed interface PulseUiState {
 @HiltViewModel
 class PulseViewModel @Inject constructor(
     private val repository: PulseRepository,
+    private val answerSubmitter: PulseAnswerSubmitter,
     private val json: Json,
 ) : ViewModel() {
     private val _state = MutableStateFlow<PulseUiState>(PulseUiState.Idle)
@@ -120,7 +123,7 @@ class PulseViewModel @Inject constructor(
         val checkinId = (_state.value as? PulseUiState.Unanswered)?.checkinId ?: return
         viewModelScope.launch {
             _state.value = try {
-                applyToday(repository.submitAnswer(checkinId, answer))
+                applyToday(answerSubmitter.submit(checkinId, answer, PulseAnswerSource.APP))
             } catch (e: CancellationException) {
                 throw e
             } catch (e: HttpException) {
