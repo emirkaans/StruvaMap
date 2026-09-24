@@ -59,6 +59,8 @@ data class RelationshipPatternDto(
     val indexName: String,
     val kind: String, // "tension" | "strength"
     val labels: List<String>,
+    // labels içinden bir önceki ölçümde de aynı bantta olanlar.
+    val persistentLabels: List<String> = emptyList(),
     val total: Int,
 )
 
@@ -74,7 +76,18 @@ data class RelationshipDetailDto(
     val indexNames: Map<String, String>,
     val results: List<RelationshipResultPointDto>, // eskiden yeniye
     val summary: RelationshipHistorySummaryDto,
+    // Bağlı nabız eşleşmesi (son 7 gün) ve emek defteri özeti; bağ yoksa null.
+    val pulse: RelationshipPulseDto? = null,
+    val labour: LabourWeekSummaryDto? = null,
+    // Bağ yoksa, aynı test türündeki aktif eşleşme (bağlanmaya aday).
+    val linkablePairId: String? = null,
 )
+
+@Serializable
+data class RelationshipPulseDto(val pairId: String, val week: PulseWeekSummaryDto)
+
+@Serializable
+data class LinkPulseRequest(val pairId: String?)
 
 @Serializable
 data class RelationshipResultPointDto(

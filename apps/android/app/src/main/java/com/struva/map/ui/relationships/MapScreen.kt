@@ -272,6 +272,16 @@ private fun PatternCard(pattern: RelationshipPatternDto) {
             style = MaterialTheme.typography.bodySmall,
             color = StruvaColors.Muted,
         )
+        if (pattern.persistentLabels.isNotEmpty()) {
+            Spacer(Modifier.height(6.dp))
+            Text(
+                "Kalıcı: ${joinTr(pattern.persistentLabels)} ile " +
+                    (if (pattern.persistentLabels.size > 1) "ilişkilerinde" else "ilişkinde") +
+                    " son iki ölçümde de " + (if (tension) "düşük." else "güçlü."),
+                style = MaterialTheme.typography.bodySmall,
+                color = if (tension) StruvaColors.Bad else StruvaColors.Good,
+            )
+        }
     }
 }
 

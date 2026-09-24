@@ -20,7 +20,7 @@ describe("findRelationshipPatterns", () => {
       snap("Annem", { power: 80, labour: 90 }),
     ]);
     expect(patterns).toEqual([
-      { indexId: "labour", indexName: "Emek", kind: "tension", labels: ["Ayşe", "Patron"], total: 3 },
+      { indexId: "labour", indexName: "Emek", kind: "tension", labels: ["Ayşe", "Patron"], persistentLabels: [], total: 3 },
     ]);
   });
 
@@ -55,8 +55,19 @@ describe("findRelationshipPatterns", () => {
       snap("Ece", { support: 45 }),
     ]);
     expect(patterns).toEqual([
-      { indexId: "support", indexName: "Destek", kind: "tension", labels: ["Can", "Ece"], total: 2 },
+      { indexId: "support", indexName: "Destek", kind: "tension", labels: ["Can", "Ece"], persistentLabels: [], total: 2 },
     ]);
+  });
+});
+
+describe("findRelationshipPatterns kalıcılık", () => {
+  it("önceki ölçümde de aynı bantta olan ilişkileri kalıcı sayar", () => {
+    const patterns = findRelationshipPatterns([
+      { ...snap("Ayşe", { labour: 40 }), previousIndices: { labour: 50 } }, // önceden de düşük
+      { ...snap("Patron", { labour: 30 }), previousIndices: { labour: 70 } }, // yeni düştü
+      snap("Can", { labour: 20 }), // tek ölçüm
+    ]);
+    expect(patterns[0].persistentLabels).toEqual(["Ayşe"]);
   });
 });
 

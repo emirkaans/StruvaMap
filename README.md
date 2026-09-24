@@ -131,3 +131,8 @@ pnpm dev:api    # http://localhost:3000
 - ✅ Emek defteri: nabız eşleşmesindeki iki kişi günlük işleri tek dokunuşla
   kaydeder, son 7 günün kategori bazlı dağılımı gösterilir
   (`labour_entries`, `summarizeLabourWeek`).
+- ✅ İlişki detay sayfası: zaman grafiği, "ne değişti", kalıcı/yeni gerilim
+  ve toparlanan alanlar (`summarizeRelationshipHistory`), "Yeniden çöz" ile
+  otomatik bağlama; test başında "Kimin için çözüyorsun?"; ilişkiye
+  bağlanan nabız eşleşmesiyle nabız ve emek defteri özetleri
+  (`relationships.pulse_pair_id`).

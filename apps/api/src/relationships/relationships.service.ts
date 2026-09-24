@@ -9,12 +9,17 @@ import {
   findRelationshipPatterns,
   summarizeRelationshipHistory,
   type RelationshipHistorySummary,
+  type LabourWeekSummary,
+  type PulseWeekSummary,
   type RelationshipPattern,
   type ScoreResult,
 } from '@struva/shared';
 import { SupabaseService } from '../supabase/supabase.service';
 import { ResultsService } from '../results/results.service';
 import { TestsService } from '../tests/tests.service';
+import { PairsService } from '../pairs/pairs.service';
+import { PulseService } from '../pulse/pulse.service';
+import { LabourService } from '../labour/labour.service';
 import { AssignResultDto, CreateRelationshipDto } from './relationship.dto';
 
 export interface RelationshipRow {
@@ -23,6 +28,7 @@ export interface RelationshipRow {
   test_id: string;
   label: string;
   created_at: string;
+  pulse_pair_id?: string | null;
 }
 
 export interface RelationshipDto {
@@ -43,6 +49,8 @@ export interface RelationshipMapNode extends RelationshipDto {
   } | null;
   // Bir önceki sonucun RSI'si — düğümde değişim yönü (↑/↓) için.
   previousRsi: number | null;
+  // Bir önceki sonucun endeksleri — örüntülerde "kalıcı" ayrımı için.
+  previousIndices?: Record<string, number>;
 }
 
 export interface RelationshipDetailResult {
@@ -60,6 +68,11 @@ export interface RelationshipDetailDto extends RelationshipDto {
   // Eskiden yeniye.
   results: RelationshipDetailResult[];
   summary: RelationshipHistorySummary;
+  // Bağlı nabız eşleşmesinin son 7 günü ve emek defteri özeti; bağ yoksa null.
+  pulse: { pairId: string; week: PulseWeekSummary } | null;
+  labour: LabourWeekSummary | null;
+  // Bağ yoksa ve kullanıcının aynı test türünde aktif eşleşmesi varsa, bağlanabilecek eşleşme.
+  linkablePairId: string | null;
 }
 
 export interface RelationshipMapDto {
@@ -87,6 +100,9 @@ export class RelationshipsService {
     private readonly supabase: SupabaseService,
     private readonly results: ResultsService,
     private readonly tests: TestsService,
+    private readonly pairs: PairsService,
+    private readonly pulse: PulseService,
+    private readonly labour: LabourService,
   ) {}
 
   async list(userId: string): Promise<RelationshipDto[]> {
@@ -185,6 +201,7 @@ export class RelationshipsService {
         testName: testsById.get(r.testId)?.name ?? r.testId,
         resultCount: own.length,
         previousRsi: own[1]?.score.rsi ?? null,
+        previousIndices: own[1]?.score.indices,
         latest: latest
           ? {
               resultId: latest.id,
@@ -204,6 +221,7 @@ export class RelationshipsService {
                 relationshipId: n.id,
                 label: n.label,
                 indices: n.latest.indices,
+                previousIndices: n.previousIndices,
                 indexNames: Object.fromEntries(
                   Object.entries(testsById.get(n.testId)?.indices ?? {}).map(
                     ([id, def]) => [id, def.name],
@@ -224,9 +242,10 @@ export class RelationshipsService {
 
   async detail(userId: string, id: string): Promise<RelationshipDetailDto> {
     const row = await this.owned(userId, id);
-    const [test, results] = await Promise.all([
+    const [test, results, linked] = await Promise.all([
       this.tests.getById(row.test_id),
       this.resultsOf(userId, id),
+      this.linkedPulse(userId, row),
     ]);
 
     const points = results.map((r) => ({
@@ -248,7 +267,68 @@ export class RelationshipsService {
       ),
       results: points,
       summary: summarizeRelationshipHistory(points),
+      ...linked,
     };
+  }
+
+  async linkPulse(
+    userId: string,
+    id: string,
+    pairId: string | null,
+  ): Promise<RelationshipDto> {
+    const row = await this.owned(userId, id);
+    if (pairId) {
+      const pair = await this.pairs.findById(pairId);
+      this.pairs.assertMember(pair, userId);
+      if (pair.status !== 'active')
+        throw new BadRequestException('Eşleşme henüz kabul edilmedi.');
+      if (pair.test_id !== row.test_id) {
+        throw new BadRequestException(
+          'Eşleşme ile ilişki aynı test türünde olmalı.',
+        );
+      }
+    }
+    const { data, error } = await this.supabase.client
+      .from('relationships')
+      .update({ pulse_pair_id: pairId })
+      .eq('id', id)
+      .select()
+      .single();
+    if (error) throw new InternalServerErrorException(error.message);
+    return toDto(data as RelationshipRow);
+  }
+
+  // En iyi çaba: nabız/emek verisi alınamazsa ilişki detayı yine döner.
+  private async linkedPulse(
+    userId: string,
+    row: RelationshipRow,
+  ): Promise<
+    Pick<RelationshipDetailDto, 'pulse' | 'labour' | 'linkablePairId'>
+  > {
+    try {
+      if (row.pulse_pair_id) {
+        const [history, labour] = await Promise.all([
+          this.pulse.getHistory(userId, row.pulse_pair_id, 7),
+          this.labour.week(userId, row.pulse_pair_id),
+        ]);
+        return {
+          pulse: { pairId: row.pulse_pair_id, week: history.week },
+          labour: labour.week,
+          linkablePairId: null,
+        };
+      }
+      const pairs = await this.pairs.findMine(userId);
+      const linkable = pairs.find(
+        (p) => p.status === 'active' && p.testId === row.test_id,
+      );
+      return {
+        pulse: null,
+        labour: null,
+        linkablePairId: linkable?.id ?? null,
+      };
+    } catch {
+      return { pulse: null, labour: null, linkablePairId: null };
+    }
   }
 
   private async resultsOf(

@@ -5,6 +5,7 @@ import com.struva.map.network.dto.AssignResultRequest
 import com.struva.map.network.dto.AssignResultResponse
 import com.struva.map.network.dto.CreateRelationshipRequest
 import com.struva.map.network.dto.LabourEntryDto
+import com.struva.map.network.dto.LinkPulseRequest
 import com.struva.map.network.dto.LabourWeekDto
 import com.struva.map.network.dto.LogLabourRequest
 import com.struva.map.network.dto.RelationshipDetailDto
@@ -157,6 +158,10 @@ interface ApiService {
 
     @PATCH("relationships/{id}")
     suspend fun renameRelationship(@Path("id") id: String, @Body body: RenameRelationshipRequest): RelationshipDto
+
+    // pairId null → nabız bağı kaldırılır.
+    @PATCH("relationships/{id}/pulse-pair")
+    suspend fun linkRelationshipPulse(@Path("id") id: String, @Body body: LinkPulseRequest): RelationshipDto
 
     @DELETE("relationships/{id}")
     suspend fun deleteRelationship(@Path("id") id: String)

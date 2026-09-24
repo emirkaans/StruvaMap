@@ -63,6 +63,8 @@ fun RelationshipDetailScreen(
     onBack: () -> Unit,
     onOpenResult: (String) -> Unit,
     onRetake: (testId: String, relationshipId: String) -> Unit,
+    onOpenPulseHistory: () -> Unit,
+    onOpenLabour: () -> Unit,
     viewModel: RelationshipDetailViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsState()
@@ -90,6 +92,15 @@ fun RelationshipDetailScreen(
                                         renaming = true
                                     },
                                 )
+                                if (loaded.detail.pulse != null) {
+                                    DropdownMenuItem(
+                                        text = { Text("Nabız bağını kaldır") },
+                                        onClick = {
+                                            menuOpen = false
+                                            viewModel.linkPulse(null)
+                                        },
+                                    )
+                                }
                                 DropdownMenuItem(
                                     text = { Text("Sil", color = StruvaColors.Bad) },
                                     onClick = {
@@ -119,6 +130,9 @@ fun RelationshipDetailScreen(
                     actionError = s.actionError,
                     onOpenResult = onOpenResult,
                     onRetake = { onRetake(s.detail.testId, s.detail.id) },
+                    onLinkPulse = viewModel::linkPulse,
+                    onOpenPulseHistory = onOpenPulseHistory,
+                    onOpenLabour = onOpenLabour,
                 )
             }
         }
@@ -172,6 +186,9 @@ private fun DetailContent(
     actionError: String?,
     onOpenResult: (String) -> Unit,
     onRetake: () -> Unit,
+    onLinkPulse: (String) -> Unit,
+    onOpenPulseHistory: () -> Unit,
+    onOpenLabour: () -> Unit,
 ) {
     val summary = detail.summary
     val latest = detail.results.lastOrNull()
@@ -226,6 +243,14 @@ private fun DetailContent(
                 }
                 Spacer(Modifier.height(12.dp))
                 IndexChanges(detail.results.first(), detail.results.last(), detail.indexNames)
+                Spacer(Modifier.height(24.dp))
+            }
+        }
+
+        if (detail.pulse != null || detail.linkablePairId != null) {
+            item {
+                Section("Günlük Nabız ve Emek")
+                PulseSection(detail, onLinkPulse, onOpenPulseHistory, onOpenLabour)
                 Spacer(Modifier.height(24.dp))
             }
         }
@@ -295,6 +320,84 @@ private fun DetailContent(
             )
             Spacer(Modifier.height(16.dp))
         }
+    }
+}
+
+// Testteki algının yanına gündelik kayıt: bağlı nabız eşleşmesinin son 7
+// günü ve emek defteri payı, testteki Emek endeksiyle yan yana.
+@Composable
+private fun PulseSection(
+    detail: RelationshipDetailDto,
+    onLinkPulse: (String) -> Unit,
+    onOpenPulseHistory: () -> Unit,
+    onOpenLabour: () -> Unit,
+) {
+    val pulse = detail.pulse
+    StruvaCard(modifier = Modifier.fillMaxWidth()) {
+        if (pulse == null) {
+            Text(
+                "Bu ilişki için partnerinle bir nabız eşleşmen var. Bağlarsan günlük nabız ve emek defteri " +
+                    "özetleri test sonuçlarının yanında burada görünür.",
+                style = MaterialTheme.typography.bodyMedium,
+            )
+            Spacer(Modifier.height(10.dp))
+            detail.linkablePairId?.let { pairId ->
+                StruvaButton(onClick = { onLinkPulse(pairId) }, modifier = Modifier.fillMaxWidth()) {
+                    Text("Nabzı bu ilişkiye bağla")
+                }
+            }
+        } else {
+            val week = pulse.week
+            Text("SON 7 GÜN", style = EyebrowStyle)
+            Spacer(Modifier.height(8.dp))
+            if (week.answeredDays == 0 && week.bothAnsweredDays == 0) {
+                Text("Bu hafta nabız cevabı yok.", style = MaterialTheme.typography.bodyMedium, color = StruvaColors.Muted)
+            } else {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    MiniStat("Senin ort.", week.myAverage?.let { String.format(TR, "%.1f", it) } ?: "–")
+                    MiniStat("Partnerin ort.", week.partnerAverage?.let { String.format(TR, "%.1f", it) } ?: "–")
+                    MiniStat("Birlikte", "${week.bothAnsweredDays}/7")
+                }
+                if (week.gapDays > 0) {
+                    Spacer(Modifier.height(6.dp))
+                    Text(
+                        "${week.gapDays} gün cevaplarınız arasında belirgin fark vardı.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = StruvaColors.Muted,
+                    )
+                }
+            }
+            val labourShare = detail.labour?.myShare
+            val labourIndex = detail.results.lastOrNull()?.indices?.get("labour")
+            if (labourShare != null || labourIndex != null) {
+                Spacer(Modifier.height(12.dp))
+                Text("EMEK: ALGI VE KAYIT", style = EyebrowStyle)
+                Spacer(Modifier.height(4.dp))
+                labourIndex?.let {
+                    Text(
+                        "Testteki ${detail.indexNames["labour"] ?: "Emek"} endeksi: $it",
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                }
+                Text(
+                    labourShare?.let { "Emek defterinde son 7 gün senin payın: %$it" }
+                        ?: "Emek defterinde bu hafta kayıt yok.",
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            }
+            Row {
+                TextButton(onClick = onOpenPulseHistory) { Text("Nabız geçmişi →") }
+                TextButton(onClick = onOpenLabour) { Text("Emek defteri →") }
+            }
+        }
+    }
+}
+
+@Composable
+private fun MiniStat(label: String, value: String) {
+    Column {
+        Text(value, style = MaterialTheme.typography.titleMedium.copy(fontFamily = IBMPlexMono))
+        Text(label, style = MaterialTheme.typography.labelSmall, color = StruvaColors.Muted)
     }
 }
 

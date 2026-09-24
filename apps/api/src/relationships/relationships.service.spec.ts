@@ -61,10 +61,22 @@ function makeService(
       { id: 'work', name: 'İş', indices: { labour: { name: 'Emek' } } },
     ]),
   };
+  const pairs = {
+    findMine: jest
+      .fn()
+      .mockResolvedValue([
+        { id: 'pair1', testId: 'romantic', status: 'active' },
+      ]),
+    findById: jest.fn(),
+    assertMember: jest.fn(),
+  };
   const service = new RelationshipsService(
     supabase as never,
     results as never,
     tests as never,
+    pairs as never,
+    {} as never,
+    {} as never,
   );
   return { service, supabase };
 }
@@ -179,6 +191,7 @@ describe('RelationshipsService.map', () => {
         indexName: 'Emek',
         kind: 'tension',
         labels: ['Ayşe', 'Patron'],
+        persistentLabels: [],
         total: 2,
       },
     ]);
@@ -227,6 +240,9 @@ describe('RelationshipsService.detail', () => {
     expect(detail.results.map((r) => r.resultId)).toEqual(['r1', 'r2']);
     expect(detail.summary.rsiDelta).toBe(19);
     expect(detail.summary.recovered).toEqual(['domestic']);
+    // Bağlı nabız yok; aynı test türündeki aktif eşleşme bağlanmaya aday.
+    expect(detail.pulse).toBeNull();
+    expect(detail.linkablePairId).toBe('pair1');
   });
 
   it('başkasının ilişkisini göstermez', async () => {

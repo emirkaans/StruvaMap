@@ -170,6 +170,11 @@ create index if not exists relationships_user_idx on relationships (user_id);
 
 alter table results add column if not exists relationship_id uuid references relationships (id) on delete set null;
 
+-- İlişkiye bağlı nabız eşleşmesi: ilişki detayında nabız ve emek defteri
+-- özetleri test sonuçlarının yanında gösterilir. Her kullanıcı kendi
+-- ilişkisini bağlar (eşleşme iki kişi arasında ortak, ilişki kişiye özel).
+alter table relationships add column if not exists pulse_pair_id uuid references pulse_pairs (id) on delete set null;
+
 -- Emek defteri: nabız eşleşmesindeki iki kişinin günlük iş kayıtları
 -- (bkz. packages/shared/src/labour.ts LABOUR_CATEGORIES).
 create table if not exists labour_entries (

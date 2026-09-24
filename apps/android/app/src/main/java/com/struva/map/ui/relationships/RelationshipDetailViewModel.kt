@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.struva.map.network.ApiService
 import com.struva.map.network.apiErrorMessage
+import com.struva.map.network.dto.LinkPulseRequest
 import com.struva.map.network.dto.RelationshipDetailDto
 import com.struva.map.network.dto.RenameRelationshipRequest
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -74,6 +75,21 @@ class RelationshipDetailViewModel @Inject constructor(
                 throw e
             } catch (e: Exception) {
                 current.copy(actionError = errorText(e, "Ad değiştirilemedi."))
+            }
+        }
+    }
+
+    // pairId null → bağı kaldır. Sonrasında nabız/emek özetleri için yeniden yüklenir.
+    fun linkPulse(pairId: String?) {
+        val current = _state.value as? RelationshipDetailUiState.Loaded ?: return
+        viewModelScope.launch {
+            try {
+                api.linkRelationshipPulse(relationshipId, LinkPulseRequest(pairId))
+                load()
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                _state.value = current.copy(actionError = errorText(e, "Nabız bağlanamadı."))
             }
         }
     }

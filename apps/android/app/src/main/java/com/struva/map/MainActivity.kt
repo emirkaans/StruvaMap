@@ -376,6 +376,8 @@ private fun AppNavHost(
                     onRetake = { testId, relationshipId ->
                         navController.navigate("solve/$testId?relationshipId=$relationshipId")
                     },
+                    onOpenPulseHistory = { navController.navigate("pulseHistory") },
+                    onOpenLabour = { navController.navigate("labour") },
                 )
             }
             // relationshipId isteğe bağlı: verilirse sonuç o ilişkiye otomatik bağlanır.

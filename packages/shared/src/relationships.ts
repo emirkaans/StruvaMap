@@ -10,6 +10,8 @@ export interface RelationshipSnapshot {
   label: string;
   // İlişkinin en son sonucundaki üst-endeks skorları (ör. power/labour/autonomy).
   indices: Record<string, number>;
+  // Bir önceki sonucun endeksleri (varsa) — örüntünün "kalıcı" olup olmadığı için.
+  previousIndices?: Record<string, number>;
   // Endeks id → görünen ad (testin kendi tanımından, ör. "Emek").
   indexNames: Record<string, string>;
 }
@@ -21,6 +23,9 @@ export interface RelationshipPattern {
   indexName: string;
   kind: RelationshipPatternKind;
   labels: string[]; // örüntüye giren ilişkilerin adları
+  // labels içinden bir önceki ölçümde de aynı bantta olanlar: tek ölçümlük
+  // bir dalgalanma değil, o ilişkide süregelen bir durum.
+  persistentLabels: string[];
   total: number; // bu endeksi taşıyan ilişki sayısı
 }
 
@@ -35,13 +40,23 @@ export function findRelationshipPatterns(snapshots: RelationshipSnapshot[]): Rel
   for (const indexId of indexIds) {
     const carrying = snapshots.filter((s) => s.indices[indexId] != null);
     const indexName = carrying.map((s) => s.indexNames[indexId]).find((n) => n) ?? indexId;
-    const groups: Array<[RelationshipPatternKind, RelationshipSnapshot[]]> = [
-      ["tension", carrying.filter((s) => s.indices[indexId] < DEFAULT_THRESHOLDS.tensionThreshold)],
-      ["strength", carrying.filter((s) => s.indices[indexId] >= DEFAULT_THRESHOLDS.strengthThreshold)],
-    ];
-    for (const [kind, matching] of groups) {
+    const inBand: Record<RelationshipPatternKind, (score: number) => boolean> = {
+      tension: (score) => score < DEFAULT_THRESHOLDS.tensionThreshold,
+      strength: (score) => score >= DEFAULT_THRESHOLDS.strengthThreshold,
+    };
+    for (const kind of ["tension", "strength"] as const) {
+      const matching = carrying.filter((s) => inBand[kind](s.indices[indexId]));
       if (matching.length >= PATTERN_MIN_RELATIONSHIPS && matching.length * 2 >= carrying.length) {
-        patterns.push({ indexId, indexName, kind, labels: matching.map((s) => s.label), total: carrying.length });
+        patterns.push({
+          indexId,
+          indexName,
+          kind,
+          labels: matching.map((s) => s.label),
+          persistentLabels: matching
+            .filter((s) => s.previousIndices?.[indexId] != null && inBand[kind](s.previousIndices[indexId]))
+            .map((s) => s.label),
+          total: carrying.length,
+        });
       }
     }
   }
