@@ -14,23 +14,31 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.struva.map.network.dto.RelationshipDto
 import com.struva.map.ui.common.ScoreResultView
 import com.struva.map.ui.common.StruvaButton
 import com.struva.map.ui.common.StruvaOutlinedButton
@@ -78,6 +86,11 @@ fun SolveScreen(
                     Spacer(Modifier.height(16.dp))
                     StruvaButton(onClick = viewModel::retrySubmit) { Text("Tekrar gönder") }
                 }
+
+                is SolveUiState.ChooseRelationship -> ChooseRelationshipStep(
+                    options = s.options,
+                    onChoose = viewModel::chooseRelationship,
+                )
 
                 is SolveUiState.ContextQuestion -> Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
                     Text("Ek soru ${s.position + 1} / ${s.total}", style = EyebrowStyle)
@@ -166,5 +179,59 @@ private fun ProgressBar(fraction: Float, modifier: Modifier = Modifier) {
                 .clip(RoundedCornerShape(99.dp))
                 .background(StruvaColors.Accent),
         )
+    }
+}
+
+// Sorulardan önce: sonuç hangi ilişki için? Seçilen ilişkiye gönderimde
+// otomatik bağlanır (Harita / ilişki detayı); "Şimdilik geç" bağsız bırakır.
+@Composable
+private fun ChooseRelationshipStep(
+    options: List<RelationshipDto>,
+    onChoose: (existingId: String?, newLabel: String?) -> Unit,
+) {
+    var newLabel by remember { mutableStateOf("") }
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(16.dp),
+    ) {
+        Text("BAŞLAMADAN ÖNCE", style = EyebrowStyle)
+        Spacer(Modifier.height(16.dp))
+        Text("Kimin için çözüyorsun?", style = MaterialTheme.typography.headlineSmall)
+        Spacer(Modifier.height(8.dp))
+        Text(
+            "Sonuç bu ilişkiye bağlanır; aynı ilişki için tekrar çözdükçe Harita'da nasıl değiştiğini görürsün.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = StruvaColors.Muted,
+        )
+        Spacer(Modifier.height(24.dp))
+        options.forEach { option ->
+            OutlinedButton(
+                onClick = { onChoose(option.id, null) },
+                modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                shape = RoundedCornerShape(10.dp),
+                border = BorderStroke(1.dp, StruvaColors.Border),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = StruvaColors.Text),
+            ) { Text(option.label) }
+        }
+        if (options.isNotEmpty()) Spacer(Modifier.height(16.dp))
+        OutlinedTextField(
+            value = newLabel,
+            onValueChange = { newLabel = it.take(40) },
+            label = { Text(if (options.isEmpty()) "İlişkiye bir ad ver (ör. Ayşe, Yöneticim)" else "Yeni ilişki") },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth(),
+        )
+        Spacer(Modifier.height(8.dp))
+        StruvaButton(
+            onClick = { onChoose(null, newLabel) },
+            enabled = newLabel.isNotBlank(),
+            modifier = Modifier.fillMaxWidth(),
+        ) { Text("Bu ilişkiyle başla") }
+        Spacer(Modifier.height(8.dp))
+        TextButton(onClick = { onChoose(null, null) }, modifier = Modifier.align(Alignment.CenterHorizontally)) {
+            Text("Şimdilik geç", color = StruvaColors.Muted)
+        }
     }
 }

@@ -13,12 +13,14 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.annotation.DrawableRes
 import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
@@ -30,9 +32,11 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
@@ -53,6 +57,7 @@ import com.struva.map.ui.myresults.MyResultsScreen
 import com.struva.map.ui.prediction.PredictionScreen
 import com.struva.map.ui.privacy.PrivacyScreen
 import com.struva.map.ui.relationships.MapScreen
+import com.struva.map.ui.relationships.RelationshipDetailScreen
 import com.struva.map.ui.profile.ProfileScreen
 import com.struva.map.ui.pulse.PulseHistoryScreen
 import com.struva.map.ui.pulse.PulsePairingScreen
@@ -195,20 +200,22 @@ private suspend fun checkClipboardForClaim(context: Context, authViewModel: Auth
     authViewModel.redeemClaim(text.removePrefix(CLAIM_CLIPBOARD_PREFIX))
 }
 
-private data class TabItem(val route: String, val label: String)
+private data class TabItem(val route: String, val label: String, @DrawableRes val icon: Int)
 
 private val TAB_ITEMS = listOf(
-    TabItem("home", "Anasayfa"),
-    TabItem("map", "Harita"),
-    TabItem("history", "Geçmiş"),
-    TabItem("profile", "Profil"),
+    TabItem("home", "Anasayfa", R.drawable.ic_tab_home),
+    TabItem("map", "Harita", R.drawable.ic_tab_map),
+    TabItem("history", "Geçmiş", R.drawable.ic_tab_history),
+    TabItem("profile", "Profil", R.drawable.ic_tab_profile),
 )
 
-// Sekme çubuğu yalnız 4 üst-seviye ekranda görünür — testDetail/solve/
-// myResults/resultDetail/comparison gibi akış (task) ekranları tam ekran
-// kalır, web'de olmayan mobile özel bir gezinme kavramı olduğu için burada
-// kasıtlı sade tutuldu (ikon yok, yalnız etiket — app genelindeki "←" gibi
-// metin tabanlı gezinme diliyle tutarlı).
+// Sekme çubuğu bu odak akışları dışında her ekranda görünür: test çözerken
+// ya da tahmin yaparken yanlışlıkla bir sekmeye dokunmak ilerlemeyi kaybettirir.
+private val FOCUS_ROUTE_PREFIXES = listOf("solve/", "predict/")
+
+// Sekme çubuğu: ince çizgili ikon + küçük etiket. Her sekme kendi gezinme
+// geçmişini saveState/restoreState ile korur (ör. Harita → ilişki → sonuç
+// ekranındayken Geçmiş'e geçip dönünce kalınan ekrana dönülür).
 @Composable
 private fun AppNavHost(
     pendingDeepLink: String? = null,
@@ -217,7 +224,14 @@ private fun AppNavHost(
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
-    val showTabBar = TAB_ITEMS.any { it.route == currentRoute }
+    val showTabBar = currentRoute != null && FOCUS_ROUTE_PREFIXES.none { currentRoute.startsWith(it) }
+
+    // Graf düz (tek seviye) olduğu için iç ekranlarda hangi sekmede
+    // olunduğunu rotadan çıkaramıyoruz; son girilen sekme kökünü tutuyoruz.
+    var selectedTab by rememberSaveable { mutableStateOf(TAB_ITEMS.first().route) }
+    LaunchedEffect(currentRoute) {
+        TAB_ITEMS.firstOrNull { it.route == currentRoute }?.let { selectedTab = it.route }
+    }
 
     // Graph "home" ile kurulduktan sonra bekleyen deep link'e (varsa) tek
     // seferlik navigate eder — hem soğuk başlangıç hem app açıkken gelen
@@ -234,24 +248,28 @@ private fun AppNavHost(
             if (showTabBar) {
                 NavigationBar(containerColor = StruvaColors.Surface) {
                     TAB_ITEMS.forEach { tab ->
+                        val selected = selectedTab == tab.route
                         NavigationBarItem(
-                            selected = currentRoute == tab.route,
+                            selected = selected,
                             onClick = {
+                                selectedTab = tab.route
                                 navController.navigate(tab.route) {
                                     popUpTo(navController.graph.findStartDestination().id) { saveState = true }
                                     launchSingleTop = true
                                     restoreState = true
                                 }
                             },
-                            icon = {},
+                            icon = { Icon(painterResource(tab.icon), contentDescription = null) },
                             label = {
                                 Text(
                                     tab.label,
-                                    fontWeight = if (currentRoute == tab.route) FontWeight.SemiBold else FontWeight.Normal,
+                                    fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
                                 )
                             },
                             alwaysShowLabel = true,
                             colors = NavigationBarItemDefaults.colors(
+                                selectedIconColor = StruvaColors.Accent,
+                                unselectedIconColor = StruvaColors.Muted,
                                 selectedTextColor = StruvaColors.Accent,
                                 unselectedTextColor = StruvaColors.Muted,
                                 indicatorColor = StruvaColors.AccentSoft,
@@ -279,7 +297,7 @@ private fun AppNavHost(
             }
             composable("map") {
                 MapScreen(
-                    onOpenResult = { resultId -> navController.navigate("resultDetail/$resultId") },
+                    onOpenRelationship = { id -> navController.navigate("relationship/$id") },
                     onOpenHistory = {
                         navController.navigate("history") {
                             popUpTo(navController.graph.findStartDestination().id) { saveState = true }
@@ -349,11 +367,39 @@ private fun AppNavHost(
                 )
             }
             composable(
-                "solve/{testId}",
-                arguments = listOf(navArgument("testId") { type = NavType.StringType }),
+                "relationship/{relationshipId}",
+                arguments = listOf(navArgument("relationshipId") { type = NavType.StringType }),
+            ) {
+                RelationshipDetailScreen(
+                    onBack = { navController.popBackStack() },
+                    onOpenResult = { resultId -> navController.navigate("resultDetail/$resultId") },
+                    onRetake = { testId, relationshipId ->
+                        navController.navigate("solve/$testId?relationshipId=$relationshipId")
+                    },
+                    onOpenPulseHistory = { navController.navigate("pulseHistory") },
+                    onOpenLabour = { navController.navigate("labour") },
+                )
+            }
+            // relationshipId isteğe bağlı: verilirse sonuç o ilişkiye otomatik bağlanır.
+            composable(
+                "solve/{testId}?relationshipId={relationshipId}",
+                arguments = listOf(
+                    navArgument("testId") { type = NavType.StringType },
+                    navArgument("relationshipId") {
+                        type = NavType.StringType
+                        nullable = true
+                        defaultValue = null
+                    },
+                ),
             ) {
                 SolveScreen(
-                    onFinished = { navController.popBackStack("home", inclusive = false) },
+                    // İlişki detayından "Yeniden çöz" ile gelindiyse oraya (yeni sonuç
+                    // grafikte görünsün), yoksa eskisi gibi anasayfaya dön.
+                    onFinished = {
+                        if (!navController.popBackStack("relationship/{relationshipId}", inclusive = false)) {
+                            navController.popBackStack("home", inclusive = false)
+                        }
+                    },
                     onOpenComparison = { comparisonId -> navController.navigate("comparison/$comparisonId") },
                     onOpenPrediction = { resultId -> navController.navigate("predict/$resultId") },
                 )

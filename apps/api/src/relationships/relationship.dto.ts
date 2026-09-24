@@ -20,6 +20,13 @@ export class RenameRelationshipDto {
   label!: string;
 }
 
+export class LinkPulseDto {
+  // null → bağı kaldır.
+  @IsOptional()
+  @IsString()
+  pairId?: string | null;
+}
+
 export class AssignResultDto {
   @IsString()
   @IsNotEmpty()

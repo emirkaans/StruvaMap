@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { findRelationshipPatterns, type RelationshipSnapshot } from "./relationships.js";
+import {
+  findRelationshipPatterns,
+  summarizeRelationshipHistory,
+  type RelationshipResultPoint,
+  type RelationshipSnapshot,
+} from "./relationships.js";
 import { summarizeLabourWeek } from "./labour.js";
 
 const names = { power: "Güç", labour: "Emek", support: "Destek" };
@@ -15,7 +20,7 @@ describe("findRelationshipPatterns", () => {
       snap("Annem", { power: 80, labour: 90 }),
     ]);
     expect(patterns).toEqual([
-      { indexId: "labour", indexName: "Emek", kind: "tension", labels: ["Ayşe", "Patron"], total: 3 },
+      { indexId: "labour", indexName: "Emek", kind: "tension", labels: ["Ayşe", "Patron"], persistentLabels: [], total: 3 },
     ]);
   });
 
@@ -50,8 +55,19 @@ describe("findRelationshipPatterns", () => {
       snap("Ece", { support: 45 }),
     ]);
     expect(patterns).toEqual([
-      { indexId: "support", indexName: "Destek", kind: "tension", labels: ["Can", "Ece"], total: 2 },
+      { indexId: "support", indexName: "Destek", kind: "tension", labels: ["Can", "Ece"], persistentLabels: [], total: 2 },
     ]);
+  });
+});
+
+describe("findRelationshipPatterns kalıcılık", () => {
+  it("önceki ölçümde de aynı bantta olan ilişkileri kalıcı sayar", () => {
+    const patterns = findRelationshipPatterns([
+      { ...snap("Ayşe", { labour: 40 }), previousIndices: { labour: 50 } }, // önceden de düşük
+      { ...snap("Patron", { labour: 30 }), previousIndices: { labour: 70 } }, // yeni düştü
+      snap("Can", { labour: 20 }), // tek ölçüm
+    ]);
+    expect(patterns[0].persistentLabels).toEqual(["Ayşe"]);
   });
 });
 
@@ -72,5 +88,49 @@ describe("summarizeLabourWeek", () => {
 
   it("kayıt yoksa pay null", () => {
     expect(summarizeLabourWeek([]).myShare).toBeNull();
+  });
+});
+
+
+function point(createdAt: string, rsi: number, dimensions: Record<string, number>): RelationshipResultPoint {
+  return { resultId: createdAt, createdAt, rsi, dimensions };
+}
+
+describe("summarizeRelationshipHistory", () => {
+  it("tek sonuçta karşılaştırma yapmaz", () => {
+    expect(summarizeRelationshipHistory([point("2026-01-01", 50, { a: 40 })])).toEqual({
+      rsiDelta: null,
+      changes: [],
+      persistentTensions: [],
+      persistentStrengths: [],
+      newTensions: [],
+      recovered: [],
+    });
+  });
+
+  it("son iki sonuç arasındaki büyük değişimleri ve bant geçişlerini bulur (sıradan bağımsız)", () => {
+    const summary = summarizeRelationshipHistory([
+      point("2026-06-01", 60, { domestic: 38, family: 70, decision: 60, mental: 80 }),
+      point("2026-01-01", 45, { domestic: 30, family: 72, decision: 58, mental: 90 }),
+      point("2026-09-01", 64, { domestic: 61, family: 52, decision: 65, mental: 82 }),
+    ]);
+    expect(summary.rsiDelta).toBe(19); // 64 - 45 (ilk)
+    expect(summary.changes).toEqual([
+      { dim: "domestic", from: 38, to: 61, delta: 23 },
+      { dim: "family", from: 70, to: 52, delta: -18 },
+    ]);
+    expect(summary.newTensions).toEqual(["family"]);
+    expect(summary.recovered).toEqual(["domestic"]);
+    expect(summary.persistentStrengths).toEqual(["mental"]);
+  });
+
+  it("kalıcı gerilim için pencerenin tamamında gerilim bandı ister", () => {
+    const summary = summarizeRelationshipHistory([
+      point("2026-01-01", 40, { a: 80, b: 30 }), // pencere dışında (4. en yeni)
+      point("2026-02-01", 40, { a: 50, b: 30 }),
+      point("2026-03-01", 40, { a: 40, b: 54 }),
+      point("2026-04-01", 40, { a: 45, b: 55 }),
+    ]);
+    expect(summary.persistentTensions).toEqual(["a"]);
   });
 });

@@ -8,5 +8,6 @@ import { LabourService } from './labour.service';
   imports: [AuthModule, PairsModule],
   controllers: [LabourController],
   providers: [LabourService],
+  exports: [LabourService],
 })
 export class LabourModule {}

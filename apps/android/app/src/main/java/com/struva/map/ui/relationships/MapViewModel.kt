@@ -5,7 +5,6 @@ import androidx.lifecycle.viewModelScope
 import com.struva.map.network.ApiService
 import com.struva.map.network.apiErrorMessage
 import com.struva.map.network.dto.RelationshipMapDto
-import com.struva.map.network.dto.RenameRelationshipRequest
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,7 +18,7 @@ import javax.inject.Inject
 sealed interface MapUiState {
     data object Loading : MapUiState
     data class Error(val message: String) : MapUiState
-    data class Loaded(val map: RelationshipMapDto, val actionError: String? = null) : MapUiState
+    data class Loaded(val map: RelationshipMapDto) : MapUiState
 }
 
 @HiltViewModel
@@ -41,25 +40,6 @@ class MapViewModel @Inject constructor(
                 throw e
             } catch (e: Exception) {
                 if (_state.value !is MapUiState.Loaded) _state.value = MapUiState.Error(errorText(e, "Harita yüklenemedi."))
-            }
-        }
-    }
-
-    fun rename(id: String, label: String) = mutate("Ad değiştirilemedi.") {
-        api.renameRelationship(id, RenameRelationshipRequest(label.trim()))
-    }
-
-    fun delete(id: String) = mutate("İlişki silinemedi.") { api.deleteRelationship(id) }
-
-    private fun mutate(fallback: String, action: suspend () -> Unit) {
-        viewModelScope.launch {
-            try {
-                action()
-                _state.value = MapUiState.Loaded(api.getRelationshipMap())
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                (_state.value as? MapUiState.Loaded)?.let { _state.value = it.copy(actionError = errorText(e, fallback)) }
             }
         }
     }

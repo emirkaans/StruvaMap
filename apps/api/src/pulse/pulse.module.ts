@@ -10,5 +10,6 @@ import { PulseCronService } from './pulse-cron.service';
   imports: [PairsModule, DevicesModule, PushModule],
   controllers: [PulseController],
   providers: [PulseService, PulseCronService],
+  exports: [PulseService],
 })
 export class PulseModule {}

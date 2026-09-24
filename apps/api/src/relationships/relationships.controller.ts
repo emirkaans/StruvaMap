@@ -15,6 +15,7 @@ import { RelationshipsService } from './relationships.service';
 import {
   AssignResultDto,
   CreateRelationshipDto,
+  LinkPulseDto,
   RenameRelationshipDto,
 } from './relationship.dto';
 
@@ -46,6 +47,11 @@ export class RelationshipsController {
     return this.relationships.create(req.user.id, dto);
   }
 
+  @Get(':id')
+  detail(@Param('id') id: string, @Req() req: AuthedRequest) {
+    return this.relationships.detail(req.user.id, id);
+  }
+
   @Patch(':id')
   rename(
     @Param('id') id: string,
@@ -53,6 +59,15 @@ export class RelationshipsController {
     @Req() req: AuthedRequest,
   ) {
     return this.relationships.rename(req.user.id, id, dto.label);
+  }
+
+  @Patch(':id/pulse-pair')
+  linkPulse(
+    @Param('id') id: string,
+    @Body() dto: LinkPulseDto,
+    @Req() req: AuthedRequest,
+  ) {
+    return this.relationships.linkPulse(req.user.id, id, dto.pairId ?? null);
   }
 
   @Delete(':id')
