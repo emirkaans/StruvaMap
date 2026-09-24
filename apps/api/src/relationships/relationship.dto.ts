@@ -20,6 +20,15 @@ export class RenameRelationshipDto {
   label!: string;
 }
 
+export const NOTE_MAX_LENGTH = 500;
+
+export class AddNoteDto {
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(NOTE_MAX_LENGTH)
+  body!: string;
+}
+
 export class LinkPulseDto {
   // null → bağı kaldır.
   @IsOptional()

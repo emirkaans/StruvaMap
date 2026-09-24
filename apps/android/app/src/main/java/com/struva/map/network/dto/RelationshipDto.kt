@@ -83,7 +83,15 @@ data class RelationshipDetailDto(
     val linkablePairId: String? = null,
     // Bu ilişkinin sonuçlarını içeren kıyaslamalar, eskiden yeniye.
     val comparisons: List<RelationshipComparisonDto> = emptyList(),
+    // Yalnız sahibinin gördüğü notlar, yeniden eskiye.
+    val notes: List<RelationshipNoteDto> = emptyList(),
 )
+
+@Serializable
+data class RelationshipNoteDto(val id: String, val body: String, val createdAt: String)
+
+@Serializable
+data class AddNoteRequest(val body: String)
 
 @Serializable
 data class RelationshipComparisonDto(

@@ -35,6 +35,11 @@ function fakeSupabase(tables: Record<string, unknown[]>) {
       },
       maybeSingle: () =>
         Promise.resolve({ data: rows[0] ?? null, error: null }),
+      insert: (values: Record<string, unknown>) => {
+        rows = [{ id: 'new1', created_at: 'now', ...values }];
+        return chain;
+      },
+      single: () => Promise.resolve({ data: rows[0] ?? null, error: null }),
       update: (values: unknown) => {
         updates.push({ table, values });
         return chain;
@@ -305,5 +310,29 @@ describe('RelationshipsService.detail kıyaslamalar', () => {
         predictionAccuracy: 90,
       },
     ]);
+  });
+});
+
+describe('RelationshipsService notlar', () => {
+  it('kendi ilişkisine kırpılmış notu ekler, boş notu ve başkasının ilişkisini reddeder', async () => {
+    const { service } = makeService({
+      relationships: [
+        rel('rel1', 'romantic', 'Ayşe'),
+        rel('x', 'romantic', 'X', 'u2'),
+      ],
+    });
+    await expect(
+      service.addNote('u1', 'rel1', '  Bugün uzun konuştuk.  '),
+    ).resolves.toEqual({
+      id: 'new1',
+      body: 'Bugün uzun konuştuk.',
+      createdAt: 'now',
+    });
+    await expect(service.addNote('u1', 'rel1', '   ')).rejects.toBeInstanceOf(
+      BadRequestException,
+    );
+    await expect(service.addNote('u1', 'x', 'not')).rejects.toBeInstanceOf(
+      ForbiddenException,
+    );
   });
 });

@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.struva.map.network.dto.RelationshipComparisonDto
 import com.struva.map.network.dto.RelationshipDetailDto
+import com.struva.map.network.dto.RelationshipNoteDto
 import com.struva.map.network.dto.RelationshipResultPointDto
 import com.struva.map.ui.common.BackIconButton
 import com.struva.map.ui.common.ConversationCard
@@ -54,6 +55,9 @@ import java.util.Locale
 
 private val TR = Locale("tr")
 private val DateFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy", TR)
+
+// apps/api relationship.dto.ts NOTE_MAX_LENGTH ile aynı.
+private const val NOTE_MAX_LENGTH = 500
 
 // Kıyaslama ekranı ve packages/shared PERCEPTION_GAP_THRESHOLD ile aynı.
 private const val PERCEPTION_GAP_THRESHOLD = 20
@@ -139,6 +143,8 @@ fun RelationshipDetailScreen(
                     onOpenPulseHistory = onOpenPulseHistory,
                     onOpenLabour = onOpenLabour,
                     onOpenComparison = onOpenComparison,
+                    onAddNote = viewModel::addNote,
+                    onDeleteNote = viewModel::deleteNote,
                 )
             }
         }
@@ -196,6 +202,8 @@ private fun DetailContent(
     onOpenPulseHistory: () -> Unit,
     onOpenLabour: () -> Unit,
     onOpenComparison: (String) -> Unit,
+    onAddNote: (String) -> Unit,
+    onDeleteNote: (String) -> Unit,
 ) {
     val summary = detail.summary
     val latest = detail.results.lastOrNull()
@@ -234,6 +242,16 @@ private fun DetailContent(
                         }
                     }
                 }
+            }
+            // Yeniden çözmeden önce: son ölçümden beri yazılan notlar hatırlatılır.
+            val notesSince = latest?.let { l -> detail.notes.count { isAfter(it.createdAt, l.createdAt) } } ?: 0
+            if (notesSince > 0) {
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    "Son ölçümden beri $notesSince not yazdın; yeniden çözmeden önce aşağıdan göz atabilirsin.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = StruvaColors.Muted,
+                )
             }
             Spacer(Modifier.height(16.dp))
             StruvaButton(onClick = onRetake, modifier = Modifier.fillMaxWidth()) {
@@ -321,6 +339,17 @@ private fun DetailContent(
             item { Section("Konuşmaya Değer") }
             items(talkDims) { dim -> ConversationCard(dimensionName = dimName(dim), prompts = prompts[dim].orEmpty()) }
             item { Spacer(Modifier.height(24.dp)) }
+        }
+
+        item {
+            Section("Notlar")
+            NotesSection(
+                notes = detail.notes,
+                lastMeasuredAt = latest?.createdAt,
+                onAdd = onAddNote,
+                onDelete = onDeleteNote,
+            )
+            Spacer(Modifier.height(24.dp))
         }
 
         if (detail.results.isNotEmpty()) {
@@ -456,6 +485,64 @@ private fun ComparisonRow(comparison: RelationshipComparisonDto, onClick: () -> 
             color = StruvaColors.Muted,
         )
     }
+}
+
+@Composable
+private fun NotesSection(
+    notes: List<RelationshipNoteDto>,
+    lastMeasuredAt: String?,
+    onAdd: (String) -> Unit,
+    onDelete: (String) -> Unit,
+) {
+    var draft by remember { mutableStateOf("") }
+    Text(
+        "Yalnızca sen görürsün. Aklında kalmasını istediğin anları, konuşmaları yaz; yeniden çözerken hatırlatırız.",
+        style = MaterialTheme.typography.bodySmall,
+        color = StruvaColors.Muted,
+    )
+    Spacer(Modifier.height(8.dp))
+    OutlinedTextField(
+        value = draft,
+        onValueChange = { draft = it.take(NOTE_MAX_LENGTH) },
+        placeholder = { Text("Bugün ne oldu?") },
+        modifier = Modifier.fillMaxWidth(),
+        minLines = 2,
+    )
+    Spacer(Modifier.height(8.dp))
+    StruvaButton(
+        onClick = {
+            onAdd(draft)
+            draft = ""
+        },
+        enabled = draft.isNotBlank(),
+        modifier = Modifier.fillMaxWidth(),
+    ) { Text("Notu kaydet") }
+    notes.forEach { note ->
+        Spacer(Modifier.height(10.dp))
+        StruvaCard(modifier = Modifier.fillMaxWidth()) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    formatDate(note.createdAt),
+                    modifier = Modifier.weight(1f),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = StruvaColors.Muted,
+                )
+                if (lastMeasuredAt != null && isAfter(note.createdAt, lastMeasuredAt)) {
+                    Text("SON ÖLÇÜMDEN SONRA", style = EyebrowStyle.copy(fontSize = EyebrowStyle.fontSize * 0.8f))
+                }
+            }
+            Spacer(Modifier.height(4.dp))
+            Text(note.body, style = MaterialTheme.typography.bodyMedium)
+            TextButton(onClick = { onDelete(note.id) }) { Text("Sil", color = StruvaColors.Muted) }
+        }
+    }
+}
+
+// ISO zaman damgalarını karşılaştırır; ayrıştırılamazsa false.
+private fun isAfter(iso: String, otherIso: String): Boolean = try {
+    OffsetDateTime.parse(iso).isAfter(OffsetDateTime.parse(otherIso))
+} catch (e: Exception) {
+    false
 }
 
 @Composable

@@ -76,7 +76,17 @@ export interface RelationshipDetailDto extends RelationshipDto {
   linkablePairId: string | null;
   // Bu ilişkinin sonuçlarını içeren kıyaslamalar, eskiden yeniye.
   comparisons: RelationshipComparisonDto[];
+  // Yalnız sahibinin gördüğü notlar, yeniden eskiye (en fazla NOTES_LIMIT).
+  notes: RelationshipNoteDto[];
 }
+
+export interface RelationshipNoteDto {
+  id: string;
+  body: string;
+  createdAt: string;
+}
+
+const NOTES_LIMIT = 50;
 
 export interface RelationshipComparisonDto {
   comparisonId: string;
@@ -282,7 +292,49 @@ export class RelationshipsService {
       summary: summarizeRelationshipHistory(points),
       ...linked,
       comparisons: await this.comparisonsOf(results),
+      notes: await this.notesOf(id),
     };
+  }
+
+  async addNote(
+    userId: string,
+    id: string,
+    body: string,
+  ): Promise<RelationshipNoteDto> {
+    await this.owned(userId, id);
+    const trimmed = body.trim();
+    if (!trimmed) throw new BadRequestException('Not boş olamaz.');
+    const { data, error } = await this.supabase.client
+      .from('relationship_notes')
+      .insert({ relationship_id: id, user_id: userId, body: trimmed })
+      .select()
+      .single();
+    if (error) throw new InternalServerErrorException(error.message);
+    return toNoteDto(data as NoteRow);
+  }
+
+  async deleteNote(userId: string, id: string, noteId: string): Promise<void> {
+    await this.owned(userId, id);
+    const { error } = await this.supabase.client
+      .from('relationship_notes')
+      .delete()
+      .eq('id', noteId)
+      .eq('relationship_id', id);
+    if (error) throw new InternalServerErrorException(error.message);
+  }
+
+  // En iyi çaba: tablo henüz yoksa (migrate edilmediyse) detay notsuz döner.
+  private async notesOf(
+    relationshipId: string,
+  ): Promise<RelationshipNoteDto[]> {
+    const { data, error } = await this.supabase.client
+      .from('relationship_notes')
+      .select()
+      .eq('relationship_id', relationshipId)
+      .order('created_at', { ascending: false })
+      .limit(NOTES_LIMIT);
+    if (error || !data) return [];
+    return (data as NoteRow[]).map(toNoteDto);
   }
 
   // En iyi çaba: kıyaslamalar alınamazsa bölüm boş kalır, detay yine döner.
@@ -470,6 +522,18 @@ function cleanLabel(label: string): string {
   const trimmed = label.trim();
   if (!trimmed) throw new BadRequestException('İlişki adı boş olamaz.');
   return trimmed;
+}
+
+interface NoteRow {
+  id: string;
+  relationship_id: string;
+  user_id: string;
+  body: string;
+  created_at: string;
+}
+
+function toNoteDto(row: NoteRow): RelationshipNoteDto {
+  return { id: row.id, body: row.body, createdAt: row.created_at };
 }
 
 function toDto(row: RelationshipRow): RelationshipDto {
