@@ -8,6 +8,7 @@ import com.struva.map.network.dto.ChangeUsernameResponse
 import com.struva.map.network.dto.ComparisonDto
 import com.struva.map.network.dto.CreateInviteRequest
 import com.struva.map.network.dto.PairDto
+import com.struva.map.network.dto.PulseHistoryDto
 import com.struva.map.network.dto.PulseTodayDto
 import com.struva.map.network.dto.RegisterDeviceRequest
 import com.struva.map.network.dto.RegisterRequest
@@ -105,6 +106,10 @@ interface ApiService {
 
     @GET("pulse/today")
     suspend fun getPulseToday(@Query("pairId") pairId: String): PulseTodayDto
+
+    // Takvim + haftalık özet (son 7 gün) — bkz. PulseHistoryScreen.
+    @GET("pulse/history")
+    suspend fun getPulseHistory(@Query("pairId") pairId: String, @Query("days") days: Int): PulseHistoryDto
 
     @POST("pulse/answer")
     suspend fun submitPulseAnswer(@Body body: SubmitPulseAnswerRequest): PulseTodayDto

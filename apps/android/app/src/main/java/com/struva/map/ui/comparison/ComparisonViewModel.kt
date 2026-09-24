@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.struva.map.network.Analytics
 import com.struva.map.network.ApiService
+import com.struva.map.network.InvitedResultStore
 import com.struva.map.network.dto.ComparisonDto
 import com.struva.map.network.dto.TestDetailDto
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -25,6 +26,7 @@ sealed interface ComparisonUiState {
 class ComparisonViewModel @Inject constructor(
     private val api: ApiService,
     private val analytics: Analytics,
+    private val invitedStore: InvitedResultStore,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
     private val comparisonId: String = checkNotNull(savedStateHandle["comparisonId"])
@@ -43,6 +45,7 @@ class ComparisonViewModel @Inject constructor(
                 val comparison = api.getComparison(comparisonId)
                 val test = api.getTest(comparison.testId)
                 analytics.track("comparison_view", testId = comparison.testId)
+                invitedStore.markComparisonSeen(comparison.id)
                 ComparisonUiState.Loaded(comparison, test)
             } catch (e: CancellationException) {
                 throw e

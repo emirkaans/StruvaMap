@@ -18,5 +18,15 @@ class InvitedResultStore @Inject constructor(@ApplicationContext context: Contex
         prefs.edit { putBoolean(key(resultId), true) }
     }
 
+    // "Bugün" ekranındaki "Kıyaslaman hazır" kartı, kıyaslama bir kez
+    // açılınca kaybolsun diye (bkz. ComparisonViewModel, HomeViewModel).
+    fun isComparisonSeen(comparisonId: String): Boolean = prefs.getBoolean(seenKey(comparisonId), false)
+
+    fun markComparisonSeen(comparisonId: String) {
+        prefs.edit { putBoolean(seenKey(comparisonId), true) }
+    }
+
     private fun key(resultId: String) = "invited_$resultId"
+
+    private fun seenKey(comparisonId: String) = "comparison_seen_$comparisonId"
 }

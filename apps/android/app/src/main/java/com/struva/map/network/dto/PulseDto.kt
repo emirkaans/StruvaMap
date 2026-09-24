@@ -34,3 +34,37 @@ data class SubmitPulseAnswerRequest(val checkinId: String, val answer: Int)
 
 @Serializable
 data class RegisterUserDeviceRequest(val fcmToken: String)
+
+// GET /pulse/history — pulse.service.ts getHistory() ile birebir.
+@Serializable
+data class PulseHistoryDto(
+    val pairId: String,
+    val days: List<PulseHistoryDayDto>,
+    val week: PulseWeekSummaryDto,
+)
+
+@Serializable
+data class PulseHistoryDayDto(
+    val date: String, // "YYYY-MM-DD"
+    val questionText: String,
+    val myAnswer: Int?,
+    val partnerAnswer: Int?,
+)
+
+// packages/shared/src/pulse.ts PulseWeekSummary ile birebir.
+@Serializable
+data class PulseWeekSummaryDto(
+    val answeredDays: Int,
+    val bothAnsweredDays: Int,
+    val myAverage: Double?,
+    val partnerAverage: Double?,
+    val gapDays: Int,
+    val lowest: PulseLowestDayDto?,
+)
+
+@Serializable
+data class PulseLowestDayDto(
+    val date: String,
+    val questionText: String,
+    val average: Double,
+)

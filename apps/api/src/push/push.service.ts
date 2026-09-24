@@ -3,6 +3,8 @@ import { ConfigService } from '@nestjs/config';
 import { App, cert, getApps, initializeApp } from 'firebase-admin/app';
 import { getMessaging } from 'firebase-admin/messaging';
 
+export type PulsePushKind = 'morning' | 'partner_answered' | 'weekly_summary';
+
 // SENTRY_DSN'deki gibi: kimlik bilgisi tanımlı değilse sessizce devre dışı
 // kalır, göndermeyi deneyen çağıran taraf hata almaz — sadece push gitmez.
 @Injectable()
@@ -46,16 +48,19 @@ export class PushService {
   async sendPulseReady(
     fcmToken: string,
     pairId: string,
-    kind: 'morning' | 'partner_answered',
+    kind: PulsePushKind,
     title: string,
     body: string,
+    // checkinId: istemci bildirimde 1-5 hızlı cevap düğmelerini yalnızca bu
+    // alan varsa gösterir (bkz. Android FcmService) — cevaplanmamış bir güne
+    // ait push'larda gönderilmeli.
+    extra: { checkinId?: string } = {},
   ): Promise<void> {
     if (!this.app) return;
     try {
-      await getMessaging(this.app).send({
-        token: fcmToken,
-        data: { title, body, pairId, kind },
-      });
+      const data: Record<string, string> = { title, body, pairId, kind };
+      if (extra.checkinId) data.checkinId = extra.checkinId;
+      await getMessaging(this.app).send({ token: fcmToken, data });
     } catch (error) {
       // Cron her pair'i tek tek işliyor (bkz. pulse-cron.service.ts) — bir
       // token'ın push'u başarısız olması diğer pair'leri etkilemesin diye

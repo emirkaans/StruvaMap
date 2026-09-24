@@ -51,6 +51,7 @@ import com.struva.map.ui.home.HomeScreen
 import com.struva.map.ui.myresults.MyResultsScreen
 import com.struva.map.ui.privacy.PrivacyScreen
 import com.struva.map.ui.profile.ProfileScreen
+import com.struva.map.ui.pulse.PulseHistoryScreen
 import com.struva.map.ui.pulse.PulsePairingScreen
 import com.struva.map.ui.resultdetail.ResultDetailScreen
 import com.struva.map.ui.solve.SolveScreen
@@ -266,6 +267,9 @@ private fun AppNavHost(
                 HomeScreen(
                     onTestClick = { testId -> navController.navigate("testDetail/$testId") },
                     onOpenPulsePairing = { navController.navigate("pulsePairing") },
+                    onOpenPulseHistory = { navController.navigate("pulseHistory") },
+                    onOpenComparison = { comparisonId -> navController.navigate("comparison/$comparisonId") },
+                    onOpenResult = { resultId -> navController.navigate("resultDetail/$resultId") },
                 )
             }
             composable("history") {
@@ -287,6 +291,13 @@ private fun AppNavHost(
                     onBack = { navController.popBackStack() },
                     onOpenLogin = { navController.navigate("completeProfile/login") },
                     onOpenRegister = { navController.navigate("completeProfile/register") },
+                )
+            }
+            // Haftalık özet push'u da buraya düşer (bkz. FcmService, EXTRA_ROUTE).
+            composable("pulseHistory") {
+                PulseHistoryScreen(
+                    onBack = { navController.popBackStack() },
+                    onOpenPairing = { navController.navigate("pulsePairing") },
                 )
             }
             composable(

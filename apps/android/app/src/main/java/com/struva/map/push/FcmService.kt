@@ -11,6 +11,8 @@ import com.struva.map.EXTRA_ROUTE
 import com.struva.map.MainActivity
 import com.struva.map.network.ApiService
 import com.struva.map.network.dto.RegisterUserDeviceRequest
+import com.struva.map.pulse.PulseNotifications
+import com.struva.map.pulse.widget.PulseWidget
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -24,8 +26,9 @@ private const val NOTIFICATION_ID = 1001
 // burada kendimiz kuruyoruz, ön plan/arka plan farkı olmadan aynı davranış.
 // Kıyaslama push'unda comparisonId geliyorsa MainActivity'yi doğrudan o
 // ekrana (comparison/{id}) yönlendiriyoruz (bkz. EXTRA_ROUTE). Nabız
-// push'larında ayrı bir ekrana gerek yok — kart zaten Home'da (start
-// destination), oraya düşmek yeterli.
+// push'ları (pairId taşır) ayrı kanaldan PulseNotifications ile kuruluyor:
+// checkinId varsa 1-5 hızlı cevap düğmeleri, haftalık özet ise geçmiş
+// ekranına götürür; soru/kart Home'da olduğu için diğerlerinde route yok.
 @AndroidEntryPoint
 class FcmService : FirebaseMessagingService() {
 
@@ -35,6 +38,16 @@ class FcmService : FirebaseMessagingService() {
     override fun onMessageReceived(message: RemoteMessage) {
         val title = message.data["title"] ?: return
         val body = message.data["body"] ?: ""
+
+        if (message.data["pairId"] != null) {
+            val kind = message.data["kind"]
+            val route = if (kind == "weekly_summary") "pulseHistory" else null
+            PulseNotifications.showQuestion(this, title, body, message.data["checkinId"], route)
+            // Sabah push'u yeni günün sorusunu getiriyor — widget eski günde kalmasın.
+            CoroutineScope(Dispatchers.IO).launch { PulseWidget.refreshAll(applicationContext) }
+            return
+        }
+
         val route = message.data["comparisonId"]?.let { "comparison/$it" }
 
         val openAppIntent = Intent(this, MainActivity::class.java).apply {

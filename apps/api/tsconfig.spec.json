@@ -1,0 +1,11 @@
+{
+  "extends": "./tsconfig.json",
+  // Jest yalnızca CommonJS çalıştırıyor; packages/shared "type": "module"
+  // olduğundan nodenext altında ESM'e derlenip yüklenemiyordu (bkz.
+  // package.json jest.moduleNameMapper — shared kaynaktan derleniyor).
+  "compilerOptions": {
+    "module": "commonjs",
+    "moduleResolution": "node10",
+    "resolvePackageJsonExports": false
+  }
+}

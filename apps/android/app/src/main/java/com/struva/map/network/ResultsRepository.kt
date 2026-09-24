@@ -4,6 +4,7 @@ import com.struva.map.local.CachedResultEntity
 import com.struva.map.local.ResultDao
 import com.struva.map.network.dto.ResultRowDto
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
@@ -26,6 +27,9 @@ class ResultsRepository @Inject constructor(
     fun observeAll(): Flow<List<ResultRowDto>> = dao.observeAll().map { rows ->
         rows.map { ResultRowDto(id = it.id, createdAt = it.createdAt, score = json.decodeFromString(it.scoreJson)) }
     }
+
+    // Tek seferlik okuma (Flow'u dinlemeden) — bkz. HomeViewModel davet kontrolü.
+    suspend fun cachedAll(): List<ResultRowDto> = observeAll().first()
 
     suspend fun refresh(testId: String) {
         val results = api.getMyResults(testId)
