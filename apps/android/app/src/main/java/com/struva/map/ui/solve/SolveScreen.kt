@@ -43,6 +43,7 @@ import com.struva.map.ui.theme.struvaTopAppBarColors
 fun SolveScreen(
     onFinished: () -> Unit,
     onOpenComparison: (String) -> Unit,
+    onOpenPrediction: (String) -> Unit = {},
     viewModel: SolveViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsState()
@@ -135,6 +136,7 @@ fun SolveScreen(
                     resultId = s.resultId,
                     onOpenComparison = onOpenComparison,
                     onDone = onFinished,
+                    onOpenPrediction = onOpenPrediction,
                 )
             }
         }

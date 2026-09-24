@@ -49,6 +49,7 @@ import com.struva.map.ui.comparison.ComparisonScreen
 import com.struva.map.ui.history.HistoryScreen
 import com.struva.map.ui.home.HomeScreen
 import com.struva.map.ui.myresults.MyResultsScreen
+import com.struva.map.ui.prediction.PredictionScreen
 import com.struva.map.ui.privacy.PrivacyScreen
 import com.struva.map.ui.profile.ProfileScreen
 import com.struva.map.ui.pulse.PulseHistoryScreen
@@ -269,7 +270,7 @@ private fun AppNavHost(
                     onOpenPulsePairing = { navController.navigate("pulsePairing") },
                     onOpenPulseHistory = { navController.navigate("pulseHistory") },
                     onOpenComparison = { comparisonId -> navController.navigate("comparison/$comparisonId") },
-                    onOpenResult = { resultId -> navController.navigate("resultDetail/$resultId") },
+                    onOpenPrediction = { resultId -> navController.navigate("predict/$resultId") },
                 )
             }
             composable("history") {
@@ -332,6 +333,7 @@ private fun AppNavHost(
                 SolveScreen(
                     onFinished = { navController.popBackStack("home", inclusive = false) },
                     onOpenComparison = { comparisonId -> navController.navigate("comparison/$comparisonId") },
+                    onOpenPrediction = { resultId -> navController.navigate("predict/$resultId") },
                 )
             }
             composable(
@@ -350,6 +352,20 @@ private fun AppNavHost(
                 ResultDetailScreen(
                     onBack = { navController.popBackStack() },
                     onOpenComparison = { comparisonId -> navController.navigate("comparison/$comparisonId") },
+                    onOpenPrediction = { resultId -> navController.navigate("predict/$resultId") },
+                )
+            }
+            composable(
+                "predict/{resultId}",
+                arguments = listOf(navArgument("resultId") { type = NavType.StringType }),
+            ) {
+                PredictionScreen(
+                    onBack = { navController.popBackStack() },
+                    onOpenComparison = { comparisonId ->
+                        navController.navigate("comparison/$comparisonId") {
+                            popUpTo("predict/{resultId}") { inclusive = true }
+                        }
+                    },
                 )
             }
             composable(

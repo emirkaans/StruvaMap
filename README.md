@@ -119,3 +119,8 @@ pnpm dev:api    # http://localhost:3000
   push'u), bildirimden 1-5 hızlı cevap, ana ekran widget'ı (Glance), duruma
   göre değişen ana ekran kartları (hazır kıyaslama, bekleyen davet, 90 günde
   yeniden çözme hatırlatması).
+- ✅ Tahmin modu ve konuşma kartları: davet eden, karşı taraf bitirmeden önce
+  onun boyut skorlarını tahmin eder; kıyaslamada isabet ve "farkı
+  öngörmedin" gibi içgörüler çıkar (`evaluatePrediction`, `predictions`
+  tablosu). Algı farkı ve gerilim alanları için açık uçlu konuşma soruları
+  (`CONVERSATION_PROMPTS`).

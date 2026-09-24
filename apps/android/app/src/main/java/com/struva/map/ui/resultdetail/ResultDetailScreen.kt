@@ -28,6 +28,7 @@ import com.struva.map.ui.theme.struvaTopAppBarColors
 fun ResultDetailScreen(
     onBack: () -> Unit,
     onOpenComparison: (String) -> Unit,
+    onOpenPrediction: (String) -> Unit = {},
     viewModel: ResultDetailViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsState()
@@ -56,6 +57,7 @@ fun ResultDetailScreen(
                     s.score,
                     resultId = viewModel.resultId,
                     onOpenComparison = onOpenComparison,
+                    onOpenPrediction = onOpenPrediction,
                 )
             }
         }

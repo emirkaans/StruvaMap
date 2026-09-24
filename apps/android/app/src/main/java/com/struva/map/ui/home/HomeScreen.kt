@@ -49,7 +49,7 @@ fun HomeScreen(
     onOpenPulsePairing: () -> Unit = {},
     onOpenPulseHistory: () -> Unit = {},
     onOpenComparison: (String) -> Unit = {},
-    onOpenResult: (String) -> Unit = {},
+    onOpenPrediction: (String) -> Unit = {},
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsState()
@@ -83,7 +83,7 @@ fun HomeScreen(
                             item = item,
                             onTestClick = onTestClick,
                             onOpenComparison = onOpenComparison,
-                            onOpenResult = onOpenResult,
+                            onOpenPrediction = onOpenPrediction,
                         )
                     }
                     item {
@@ -114,7 +114,7 @@ private fun TodayCard(
     item: TodayItem,
     onTestClick: (String) -> Unit,
     onOpenComparison: (String) -> Unit,
-    onOpenResult: (String) -> Unit,
+    onOpenPrediction: (String) -> Unit,
 ) {
     val (eyebrow, title, body, onClick) = when (item) {
         is TodayItem.ComparisonReady -> TodayCardContent(
@@ -125,8 +125,8 @@ private fun TodayCard(
         is TodayItem.WaitingForInvitee -> TodayCardContent(
             "DAVET BEKLENİYOR",
             item.testName,
-            "Davet ettiğin kişi henüz testi bitirmedi. Bitirdiğinde bildirim alacaksın.",
-        ) { onOpenResult(item.resultId) }
+            "Davet ettiğin kişi henüz testi bitirmedi. Beklerken onun cevaplarını tahmin et; kıyaslamada ne kadar isabetli olduğunu göreceksin.",
+        ) { onOpenPrediction(item.resultId) }
         is TodayItem.Retest -> TodayCardContent(
             "YENİDEN ÇÖZ",
             item.testName,

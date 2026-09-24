@@ -24,13 +24,16 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.struva.map.network.dto.ComparisonDto
+import com.struva.map.network.dto.PredictionSummaryDto
 import com.struva.map.network.dto.TestDetailDto
 import com.struva.map.ui.common.BackIconButton
+import com.struva.map.ui.common.ConversationCard
 import com.struva.map.ui.common.DimensionBar
 import com.struva.map.ui.common.ScoreDonut
 import com.struva.map.ui.common.StruvaButton
@@ -78,18 +81,37 @@ fun ComparisonScreen(
                     Spacer(Modifier.height(12.dp))
                     StruvaButton(onClick = viewModel::load) { Text("Tekrar dene") }
                 }
-                is ComparisonUiState.Loaded -> ComparisonView(s.comparison, s.test, onHome)
+                is ComparisonUiState.Loaded -> ComparisonView(s.comparison, s.test, s.prompts, s.viewerIsA, onHome)
             }
         }
     }
 }
 
 @Composable
-private fun ComparisonView(comparison: ComparisonDto, test: TestDetailDto, onHome: () -> Unit) {
+private fun ComparisonView(
+    comparison: ComparisonDto,
+    test: TestDetailDto,
+    prompts: Map<String, List<String>>,
+    viewerIsA: Boolean?,
+    onHome: () -> Unit,
+) {
     val context = LocalContext.current
     val a = comparison.a.score
     val b = comparison.b.score
     val rsiGap = abs(a.rsi - b.rsi)
+    // Ekrana bakanın kendi tahmini; kim olduğu bilinmiyorsa davet edenin
+    // (tahmin yalnızca davet edene açık, bkz. PredictionScreen).
+    val viewerPrediction = when (viewerIsA) {
+        false -> comparison.predictions?.b
+        else -> comparison.predictions?.a
+    }
+    val otherPrediction = when (viewerIsA) {
+        true -> comparison.predictions?.b
+        false -> comparison.predictions?.a
+        null -> null
+    }
+    val conversationDims = pickConversationDims(a.dimensions, b.dimensions, viewerPrediction?.insights)
+        .filter { !prompts[it].isNullOrEmpty() }
     val gapColor = when {
         rsiGap >= PERCEPTION_GAP_THRESHOLD -> StruvaColors.Bad
         rsiGap >= PERCEPTION_GAP_THRESHOLD / 2 -> StruvaColors.Warn
@@ -149,6 +171,18 @@ private fun ComparisonView(comparison: ComparisonDto, test: TestDetailDto, onHom
             }
             Spacer(Modifier.height(28.dp))
 
+            if (viewerPrediction != null) {
+                PredictionSection(viewerPrediction, test, isViewer = viewerIsA != null)
+                Spacer(Modifier.height(28.dp))
+            } else if (otherPrediction != null) {
+                Text(
+                    "Karşı taraf, testi bitirmeden önce senin cevaplarını tahmin etmişti: %${otherPrediction.accuracy} isabet.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = StruvaColors.Muted,
+                )
+                Spacer(Modifier.height(28.dp))
+            }
+
             Text("Boyut Bazında Kıyaslama", style = MaterialTheme.typography.titleLarge)
             Spacer(Modifier.height(16.dp))
         }
@@ -190,6 +224,27 @@ private fun ComparisonView(comparison: ComparisonDto, test: TestDetailDto, onHom
             }
         }
 
+        if (conversationDims.isNotEmpty()) {
+            item {
+                Spacer(Modifier.height(24.dp))
+                Text("Konuşmaya Başlayın", style = MaterialTheme.typography.titleLarge)
+                Spacer(Modifier.height(6.dp))
+                Text(
+                    "Algı farkının en büyük olduğu alanlar için birkaç soru. Doğru cevap yok; " +
+                        "amaç, aynı ilişkiyi neden farklı gördüğünüzü birlikte anlamak.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = StruvaColors.Muted,
+                )
+                Spacer(Modifier.height(8.dp))
+            }
+            items(conversationDims) { dim ->
+                ConversationCard(
+                    dimensionName = test.dimensions[dim]?.name ?: dim,
+                    prompts = prompts[dim].orEmpty(),
+                )
+            }
+        }
+
         item {
             Spacer(Modifier.height(24.dp))
             Text("TEŞHİS DEĞİL", style = EyebrowStyle)
@@ -203,6 +258,51 @@ private fun ComparisonView(comparison: ComparisonDto, test: TestDetailDto, onHom
             Spacer(Modifier.height(16.dp))
         }
     }
+}
+
+@Composable
+private fun PredictionSection(summary: PredictionSummaryDto, test: TestDetailDto, isViewer: Boolean) {
+    StruvaCard(modifier = Modifier.fillMaxWidth()) {
+        Text("TAHMİN", style = EyebrowStyle)
+        Spacer(Modifier.height(8.dp))
+        Text("%${summary.accuracy} isabet", style = MaterialTheme.typography.headlineSmall)
+        Spacer(Modifier.height(4.dp))
+        Text(
+            if (isViewer) {
+                "Karşı tarafın her alanda nerede duracağını ne kadar doğru tahmin ettin."
+            } else {
+                "Davet edenin, katılanın cevaplarını ne kadar doğru tahmin ettiği."
+            },
+            style = MaterialTheme.typography.bodySmall,
+            color = StruvaColors.Muted,
+        )
+        sortInsights(summary.insights).forEach { insight ->
+            val (label, color) = insightLabel(insight.kind)
+            Spacer(Modifier.height(14.dp))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    test.dimensions[insight.dim]?.name ?: insight.dim,
+                    modifier = Modifier.weight(1f),
+                    style = MaterialTheme.typography.titleSmall,
+                )
+                Text(label, style = MaterialTheme.typography.labelSmall, color = color)
+            }
+            Spacer(Modifier.height(2.dp))
+            Text(
+                "Tahmin ${insight.predicted} · Gerçek ${insight.actual} · Tahmin eden ${insight.own}",
+                style = MaterialTheme.typography.bodySmall,
+                color = StruvaColors.Muted,
+            )
+        }
+    }
+}
+
+// packages/shared/src/prediction.ts PredictionInsightKind etiketleri.
+private fun insightLabel(kind: String): Pair<String, Color> = when (kind) {
+    "different_missed" -> "Farkı öngörmedin" to StruvaColors.Bad
+    "aligned_missed" -> "Sandığından yakınsınız" to StruvaColors.Warn
+    "different_known" -> "Farklısınız, biliyordun" to StruvaColors.Accent
+    else -> "Benzersiniz, biliyordun" to StruvaColors.Good
 }
 
 @Composable

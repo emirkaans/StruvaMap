@@ -3,6 +3,7 @@ package com.struva.map.di
 import com.struva.map.BuildConfig
 import com.struva.map.network.ApiService
 import com.struva.map.network.AuthInterceptor
+import com.struva.map.network.NullOnEmptyConverterFactory
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -62,6 +63,7 @@ object NetworkModule {
         Retrofit.Builder()
             .baseUrl(BuildConfig.API_BASE_URL)
             .client(okHttpClient)
+            .addConverterFactory(NullOnEmptyConverterFactory())
             .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
             .build()
 

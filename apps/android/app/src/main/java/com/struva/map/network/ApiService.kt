@@ -8,6 +8,8 @@ import com.struva.map.network.dto.ChangeUsernameResponse
 import com.struva.map.network.dto.ComparisonDto
 import com.struva.map.network.dto.CreateInviteRequest
 import com.struva.map.network.dto.PairDto
+import com.struva.map.network.dto.PredictionDto
+import com.struva.map.network.dto.SavePredictionRequest
 import com.struva.map.network.dto.PulseHistoryDto
 import com.struva.map.network.dto.PulseTodayDto
 import com.struva.map.network.dto.RegisterDeviceRequest
@@ -23,6 +25,7 @@ import com.struva.map.network.dto.SubmitResultResponseDto
 import com.struva.map.network.dto.TestDetailDto
 import com.struva.map.network.dto.TestSummaryDto
 import com.struva.map.network.dto.TrackEventRequest
+import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
@@ -38,6 +41,10 @@ interface ApiService {
     @GET("tests/{testId}")
     suspend fun getTest(@Path("testId") testId: String): TestDetailDto
 
+    // Konuşma kartları: boyut id → sorular (bkz. packages/shared/src/conversation-prompts.ts).
+    @GET("tests/{testId}/conversation-prompts")
+    suspend fun getConversationPrompts(@Path("testId") testId: String): Map<String, List<String>>
+
     @POST("results")
     suspend fun submitResult(@Body body: SubmitResultRequest): SubmitResultResponseDto
 
@@ -49,9 +56,12 @@ interface ApiService {
     @GET("results/{id}")
     suspend fun getResult(@Path("id") id: String): ResultRowDto
 
-    // Karşı taraf henüz testi bitirmediyse sunucu 404 değil null döner.
+    // Karşı taraf henüz testi bitirmediyse sunucu 404 değil null (boş gövde)
+    // döner. Retrofit suspend dönüş tipindeki `?`'i göremediği için ham
+    // Response alınıyor — çağıranlar ApiServiceNullable.kt'deki
+    // getComparisonByResult() uzantısını kullanır.
     @GET("comparisons/by-result/{resultId}")
-    suspend fun getComparisonByResult(@Path("resultId") resultId: String): ComparisonDto?
+    suspend fun getComparisonByResultResponse(@Path("resultId") resultId: String): Response<ComparisonDto>
 
     @GET("comparisons/{id}")
     suspend fun getComparison(@Path("id") id: String): ComparisonDto
@@ -113,6 +123,14 @@ interface ApiService {
 
     @POST("pulse/answer")
     suspend fun submitPulseAnswer(@Body body: SubmitPulseAnswerRequest): PulseTodayDto
+
+    // Tahmin modu: kıyaslama oluşana kadar kaydedilebilir/güncellenebilir.
+    @POST("predictions")
+    suspend fun savePrediction(@Body body: SavePredictionRequest): PredictionDto
+
+    // Henüz tahmin yoksa sunucu 404 değil null döner (bkz. getComparisonByResultResponse).
+    @GET("predictions/by-result/{resultId}")
+    suspend fun getMyPredictionResponse(@Path("resultId") resultId: String): Response<PredictionDto>
 
     // Web'de çözülen bir sonucu formsuz bu cihaza bağlar (bkz. MainActivity
     // pano kontrolü, apps/web/src/components/AppCta.tsx claim akışı).

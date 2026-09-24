@@ -4,6 +4,7 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
+import { evaluatePrediction, type PredictionSummary } from '@struva/shared';
 import { SupabaseService } from '../supabase/supabase.service';
 import { bucketByDay, DailyCount } from '../common/bucket-by-day';
 import { ResultsService } from '../results/results.service';
@@ -109,11 +110,50 @@ export class ComparisonsService {
   }
 
   private async hydrate(row: ComparisonRow) {
-    const [a, b] = await Promise.all([
+    const [a, b, predicted] = await Promise.all([
       this.results.findById(row.result_id_a),
       this.results.findById(row.result_id_b),
+      this.findPredictions([row.result_id_a, row.result_id_b]),
     ]);
-    return { id: row.id, testId: row.test_id, a, b };
+
+    // Her taraf için: o kişinin karşı taraf hakkındaki tahmini ne kadar
+    // isabetliydi (bkz. packages/shared/src/prediction.ts). Tahmin yoksa null.
+    const evaluate = (
+      ownId: string,
+      own: Record<string, number>,
+      actual: Record<string, number>,
+    ): PredictionSummary | null => {
+      const prediction = predicted.get(ownId);
+      return prediction ? evaluatePrediction(own, prediction, actual) : null;
+    };
+
+    return {
+      id: row.id,
+      testId: row.test_id,
+      a,
+      b,
+      predictions: {
+        a: evaluate(a.id, a.score.dimensions, b.score.dimensions),
+        b: evaluate(b.id, b.score.dimensions, a.score.dimensions),
+      },
+    };
+  }
+
+  // En iyi çaba: predictions tablosu henüz migrate edilmemişse ya da sorgu
+  // başarısızsa kıyaslama tahminsiz döner, kıyaslamanın kendisi bozulmaz.
+  private async findPredictions(
+    resultIds: string[],
+  ): Promise<Map<string, Record<string, number>>> {
+    const { data, error } = await this.supabase.client
+      .from('predictions')
+      .select('result_id, dimensions')
+      .in('result_id', resultIds);
+    if (error || !data) return new Map();
+    return new Map(
+      (data as { result_id: string; dimensions: Record<string, number> }[]).map(
+        (p) => [p.result_id, p.dimensions],
+      ),
+    );
   }
 
   async findAllPaginated(

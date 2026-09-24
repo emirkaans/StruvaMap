@@ -6,6 +6,7 @@ import com.struva.map.network.ApiService
 import com.struva.map.network.InvitedResultStore
 import com.struva.map.network.ResultsRepository
 import com.struva.map.network.TestsRepository
+import com.struva.map.network.getComparisonByResult
 import com.struva.map.network.dto.ResultRowDto
 import com.struva.map.network.dto.TestSummaryDto
 import dagger.hilt.android.lifecycle.HiltViewModel

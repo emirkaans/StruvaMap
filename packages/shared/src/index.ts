@@ -3,3 +3,5 @@ export * from "./scoring.js";
 export * from "./option-sets.js";
 export * from "./tests/index.js";
 export * from "./pulse.js";
+export * from "./prediction.js";
+export * from "./conversation-prompts.js";
