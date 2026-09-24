@@ -48,6 +48,7 @@ import com.struva.map.ui.auth.CompleteProfileScreen
 import com.struva.map.ui.comparison.ComparisonScreen
 import com.struva.map.ui.history.HistoryScreen
 import com.struva.map.ui.home.HomeScreen
+import com.struva.map.ui.labour.LabourScreen
 import com.struva.map.ui.myresults.MyResultsScreen
 import com.struva.map.ui.prediction.PredictionScreen
 import com.struva.map.ui.privacy.PrivacyScreen
@@ -271,6 +272,7 @@ private fun AppNavHost(
                     onTestClick = { testId -> navController.navigate("testDetail/$testId") },
                     onOpenPulsePairing = { navController.navigate("pulsePairing") },
                     onOpenPulseHistory = { navController.navigate("pulseHistory") },
+                    onOpenLabour = { navController.navigate("labour") },
                     onOpenComparison = { comparisonId -> navController.navigate("comparison/$comparisonId") },
                     onOpenPrediction = { resultId -> navController.navigate("predict/$resultId") },
                 )
@@ -311,6 +313,12 @@ private fun AppNavHost(
             // Haftalık özet push'u da buraya düşer (bkz. FcmService, EXTRA_ROUTE).
             composable("pulseHistory") {
                 PulseHistoryScreen(
+                    onBack = { navController.popBackStack() },
+                    onOpenPairing = { navController.navigate("pulsePairing") },
+                )
+            }
+            composable("labour") {
+                LabourScreen(
                     onBack = { navController.popBackStack() },
                     onOpenPairing = { navController.navigate("pulsePairing") },
                 )

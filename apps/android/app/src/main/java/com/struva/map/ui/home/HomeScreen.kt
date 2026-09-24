@@ -48,6 +48,7 @@ fun HomeScreen(
     onTestClick: (String) -> Unit = {},
     onOpenPulsePairing: () -> Unit = {},
     onOpenPulseHistory: () -> Unit = {},
+    onOpenLabour: () -> Unit = {},
     onOpenComparison: (String) -> Unit = {},
     onOpenPrediction: (String) -> Unit = {},
     viewModel: HomeViewModel = hiltViewModel(),
@@ -77,7 +78,11 @@ fun HomeScreen(
                 }
                 is HomeUiState.Loaded -> LazyColumn(modifier = Modifier.fillMaxSize().padding(16.dp)) {
                     item { TodayHeader() }
-                    item { PulseCard(onOpenPairing = onOpenPulsePairing, onOpenHistory = onOpenPulseHistory) }
+                    item { PulseCard(
+                            onOpenPairing = onOpenPulsePairing,
+                            onOpenHistory = onOpenPulseHistory,
+                            onOpenLabour = onOpenLabour,
+                        ) }
                     items(s.today) { item ->
                         TodayCard(
                             item = item,
