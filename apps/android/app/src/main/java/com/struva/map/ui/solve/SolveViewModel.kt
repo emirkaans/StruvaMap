@@ -111,7 +111,7 @@ class SolveViewModel @Inject constructor(
 
     private suspend fun loadRelationshipOptions() {
         try {
-            relationshipOptions = api.getRelationships().filter { it.testId == testId }
+            relationshipOptions = api.getRelationships().filter { it.testId == testId && it.archivedAt == null }
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {

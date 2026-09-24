@@ -52,8 +52,10 @@ class RelationshipAssignViewModel @Inject constructor(
         val testId = testId ?: return
         viewModelScope.launch {
             _state.value = try {
-                val options = api.getRelationships().filter { it.testId == testId }
                 val currentId = api.getResult(resultId).relationshipId
+                // Arşivli ilişkiler seçenek olarak çıkmaz; bu sonuç zaten ona bağlıysa görünür kalır.
+                val options = api.getRelationships()
+                    .filter { it.testId == testId && (it.archivedAt == null || it.id == currentId) }
                 RelationshipAssignState(
                     loaded = true,
                     options = options,

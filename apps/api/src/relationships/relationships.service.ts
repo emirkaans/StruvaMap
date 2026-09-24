@@ -30,6 +30,7 @@ export interface RelationshipRow {
   label: string;
   created_at: string;
   pulse_pair_id?: string | null;
+  archived_at?: string | null;
 }
 
 export interface RelationshipDto {
@@ -37,6 +38,7 @@ export interface RelationshipDto {
   testId: string;
   label: string;
   createdAt: string;
+  archivedAt: string | null;
 }
 
 export interface RelationshipMapNode extends RelationshipDto {
@@ -99,7 +101,9 @@ export interface RelationshipComparisonDto {
 }
 
 export interface RelationshipMapDto {
+  // Aktif (arşivlenmemiş) ilişkiler — harita ve örüntüler yalnız bunlardan.
   relationships: RelationshipMapNode[];
+  archived: RelationshipMapNode[];
   // Henüz hiçbir ilişkiye bağlanmamış sonuç sayısı — "bağla" çağrısı için.
   unassignedCount: number;
   patterns: RelationshipPattern[];
@@ -236,8 +240,9 @@ export class RelationshipsService {
       };
     });
 
+    const active = nodes.filter((n) => !n.archivedAt);
     const patterns = findRelationshipPatterns(
-      nodes.flatMap((n) =>
+      active.flatMap((n) =>
         n.latest
           ? [
               {
@@ -257,7 +262,8 @@ export class RelationshipsService {
     );
 
     return {
-      relationships: nodes,
+      relationships: active,
+      archived: nodes.filter((n) => n.archivedAt),
       unassignedCount: results.filter((row) => !row.relationship_id).length,
       patterns,
     };
@@ -417,6 +423,22 @@ export class RelationshipsService {
     }
   }
 
+  async setArchived(
+    userId: string,
+    id: string,
+    archived: boolean,
+  ): Promise<RelationshipDto> {
+    await this.owned(userId, id);
+    const { data, error } = await this.supabase.client
+      .from('relationships')
+      .update({ archived_at: archived ? new Date().toISOString() : null })
+      .eq('id', id)
+      .select()
+      .single();
+    if (error) throw new InternalServerErrorException(error.message);
+    return toDto(data as RelationshipRow);
+  }
+
   async linkPulse(
     userId: string,
     id: string,
@@ -542,5 +564,6 @@ function toDto(row: RelationshipRow): RelationshipDto {
     testId: row.test_id,
     label: row.label,
     createdAt: row.created_at,
+    archivedAt: row.archived_at ?? null,
   };
 }

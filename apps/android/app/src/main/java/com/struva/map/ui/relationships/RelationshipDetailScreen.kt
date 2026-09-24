@@ -101,6 +101,13 @@ fun RelationshipDetailScreen(
                                         renaming = true
                                     },
                                 )
+                                DropdownMenuItem(
+                                    text = { Text(if (loaded.detail.archivedAt != null) "Arşivden çıkar" else "Arşivle") },
+                                    onClick = {
+                                        menuOpen = false
+                                        viewModel.setArchived(loaded.detail.archivedAt == null)
+                                    },
+                                )
                                 if (loaded.detail.pulse != null) {
                                     DropdownMenuItem(
                                         text = { Text("Nabız bağını kaldır") },
@@ -213,6 +220,19 @@ private fun DetailContent(
         item {
             Text(detail.testName.uppercase(TR), style = EyebrowStyle)
             Spacer(Modifier.height(12.dp))
+            if (detail.archivedAt != null) {
+                StruvaCard(modifier = Modifier.fillMaxWidth()) {
+                    Text("ARŞİVDE", style = EyebrowStyle.copy(color = StruvaColors.Muted))
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        "Bu ilişki Harita'da ve örüntülerde gösterilmiyor. Geçmişi ve notların burada duruyor; " +
+                            "istersen \"Düzenle\" menüsünden arşivden çıkarabilirsin.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = StruvaColors.Muted,
+                    )
+                }
+                Spacer(Modifier.height(12.dp))
+            }
             actionError?.let {
                 Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
                 Spacer(Modifier.height(8.dp))

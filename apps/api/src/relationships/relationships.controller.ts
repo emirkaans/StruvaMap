@@ -14,6 +14,7 @@ import type { AuthedRequest } from '../auth/user.guard';
 import { RelationshipsService } from './relationships.service';
 import {
   AddNoteDto,
+  ArchiveDto,
   AssignResultDto,
   CreateRelationshipDto,
   LinkPulseDto,
@@ -69,6 +70,15 @@ export class RelationshipsController {
     @Req() req: AuthedRequest,
   ) {
     return this.relationships.linkPulse(req.user.id, id, dto.pairId ?? null);
+  }
+
+  @Patch(':id/archive')
+  archive(
+    @Param('id') id: string,
+    @Body() dto: ArchiveDto,
+    @Req() req: AuthedRequest,
+  ) {
+    return this.relationships.setArchived(req.user.id, id, dto.archived);
   }
 
   @Post(':id/notes')

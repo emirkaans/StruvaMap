@@ -1,4 +1,10 @@
-import { IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
+import {
+  IsBoolean,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  MaxLength,
+} from 'class-validator';
 
 export const LABEL_MAX_LENGTH = 40;
 
@@ -27,6 +33,11 @@ export class AddNoteDto {
   @IsNotEmpty()
   @MaxLength(NOTE_MAX_LENGTH)
   body!: string;
+}
+
+export class ArchiveDto {
+  @IsBoolean()
+  archived!: boolean;
 }
 
 export class LinkPulseDto {

@@ -175,6 +175,10 @@ alter table results add column if not exists relationship_id uuid references rel
 -- ilişkisini bağlar (eşleşme iki kişi arasında ortak, ilişki kişiye özel).
 alter table relationships add column if not exists pulse_pair_id uuid references pulse_pairs (id) on delete set null;
 
+-- Arşivlenen (artık aktif olmayan) ilişkiler Harita'da ve örüntülerde
+-- gösterilmez; geçmişleri ve notları korunur.
+alter table relationships add column if not exists archived_at timestamptz;
+
 -- İlişkiye dair, yalnızca sahibinin gördüğü kısa notlar (ilişki detayı).
 create table if not exists relationship_notes (
   id uuid primary key default gen_random_uuid(),

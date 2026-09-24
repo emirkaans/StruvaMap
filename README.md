@@ -136,3 +136,7 @@ pnpm dev:api    # http://localhost:3000
   otomatik bağlama; test başında "Kimin için çözüyorsun?"; ilişkiye
   bağlanan nabız eşleşmesiyle nabız ve emek defteri özetleri
   (`relationships.pulse_pair_id`).
+- ✅ İlişki detayında kıyaslama geçmişi (algı farkı ve tahmin isabetinin
+  seyri), yalnızca sahibinin gördüğü notlar (`relationship_notes`) ve
+  arşivleme (`relationships.archived_at`; arşivli ilişkiler Harita'da ve
+  örüntülerde yer almaz).

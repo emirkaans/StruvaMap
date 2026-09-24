@@ -313,6 +313,47 @@ describe('RelationshipsService.detail kıyaslamalar', () => {
   });
 });
 
+describe('RelationshipsService arşiv', () => {
+  it('arşivlenen ilişkiyi haritadan ve örüntülerden ayırır', async () => {
+    const score = (labour: number) => ({ rsi: 50, indices: { labour } });
+    const { service } = makeService({
+      relationships: [
+        rel('a', 'romantic', 'Ayşe'),
+        { ...rel('b', 'work', 'Eski iş'), archived_at: '2026-08-01' },
+        rel('c', 'work', 'Patron'),
+      ],
+      results: [
+        {
+          id: 'r1',
+          user_id: 'u1',
+          score: score(40),
+          created_at: '3',
+          relationship_id: 'a',
+        },
+        {
+          id: 'r2',
+          user_id: 'u1',
+          score: score(30),
+          created_at: '2',
+          relationship_id: 'b',
+        },
+        {
+          id: 'r3',
+          user_id: 'u1',
+          score: score(90),
+          created_at: '1',
+          relationship_id: 'c',
+        },
+      ],
+    });
+    const map = await service.map('u1');
+    expect(map.relationships.map((n) => n.label)).toEqual(['Ayşe', 'Patron']);
+    expect(map.archived.map((n) => n.label)).toEqual(['Eski iş']);
+    // Arşivli "Eski iş" sayılsaydı Emek düşük 2/3 ilişkide örüntü olurdu.
+    expect(map.patterns).toEqual([]);
+  });
+});
+
 describe('RelationshipsService notlar', () => {
   it('kendi ilişkisine kırpılmış notu ekler, boş notu ve başkasının ilişkisini reddeder', async () => {
     const { service } = makeService({
