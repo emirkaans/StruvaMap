@@ -110,19 +110,42 @@ private fun MapContent(
     onOpenHistory: () -> Unit,
 ) {
     LazyColumn(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-        if (map.relationships.isEmpty()) {
+        if (map.relationships.isEmpty() && map.archived.isEmpty()) {
             item { EmptyMap(hasUnassigned = map.unassignedCount > 0, onOpenHistory = onOpenHistory) }
         } else {
-            item {
-                EgoMap(map.relationships.take(MAX_MAP_NODES), onNodeClick = { onOpenRelationship(it.id) })
-                Spacer(Modifier.height(20.dp))
+            if (map.relationships.isNotEmpty()) {
+                item {
+                    EgoMap(map.relationships.take(MAX_MAP_NODES), onNodeClick = { onOpenRelationship(it.id) })
+                    Spacer(Modifier.height(20.dp))
+                }
+                item { PatternsSection(map) }
+                item {
+                    Text("İlişkilerin", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(top = 20.dp, bottom = 6.dp))
+                }
+                items(map.relationships, key = { it.id }) { node ->
+                    RelationshipRow(node = node, onOpen = { onOpenRelationship(node.id) })
+                }
+            } else {
+                item {
+                    Text(
+                        "Aktif ilişkin yok; tüm ilişkilerin arşivde.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = StruvaColors.Muted,
+                    )
+                }
             }
-            item { PatternsSection(map) }
-            item {
-                Text("İlişkilerin", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(top = 20.dp, bottom = 6.dp))
-            }
-            items(map.relationships, key = { it.id }) { node ->
-                RelationshipRow(node = node, onOpen = { onOpenRelationship(node.id) })
+            if (map.archived.isNotEmpty()) {
+                item {
+                    Text(
+                        "Arşiv",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = StruvaColors.Muted,
+                        modifier = Modifier.padding(top = 16.dp, bottom = 6.dp),
+                    )
+                }
+                items(map.archived, key = { it.id }) { node ->
+                    RelationshipRow(node = node, onOpen = { onOpenRelationship(node.id) })
+                }
             }
             if (map.unassignedCount > 0) {
                 item {

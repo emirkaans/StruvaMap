@@ -6,6 +6,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import {
+  evaluatePrediction,
   findRelationshipPatterns,
   summarizeRelationshipHistory,
   type RelationshipHistorySummary,
@@ -29,6 +30,7 @@ export interface RelationshipRow {
   label: string;
   created_at: string;
   pulse_pair_id?: string | null;
+  archived_at?: string | null;
 }
 
 export interface RelationshipDto {
@@ -36,6 +38,7 @@ export interface RelationshipDto {
   testId: string;
   label: string;
   createdAt: string;
+  archivedAt: string | null;
 }
 
 export interface RelationshipMapNode extends RelationshipDto {
@@ -73,10 +76,34 @@ export interface RelationshipDetailDto extends RelationshipDto {
   labour: LabourWeekSummary | null;
   // Bağ yoksa ve kullanıcının aynı test türünde aktif eşleşmesi varsa, bağlanabilecek eşleşme.
   linkablePairId: string | null;
+  // Bu ilişkinin sonuçlarını içeren kıyaslamalar, eskiden yeniye.
+  comparisons: RelationshipComparisonDto[];
+  // Yalnız sahibinin gördüğü notlar, yeniden eskiye (en fazla NOTES_LIMIT).
+  notes: RelationshipNoteDto[];
+}
+
+export interface RelationshipNoteDto {
+  id: string;
+  body: string;
+  createdAt: string;
+}
+
+const NOTES_LIMIT = 50;
+
+export interface RelationshipComparisonDto {
+  comparisonId: string;
+  createdAt: string;
+  myRsi: number;
+  otherRsi: number;
+  gap: number; // |myRsi - otherRsi|
+  // Kullanıcının karşı taraf için yaptığı tahminin isabeti (bkz. predictions); yoksa null.
+  predictionAccuracy: number | null;
 }
 
 export interface RelationshipMapDto {
+  // Aktif (arşivlenmemiş) ilişkiler — harita ve örüntüler yalnız bunlardan.
   relationships: RelationshipMapNode[];
+  archived: RelationshipMapNode[];
   // Henüz hiçbir ilişkiye bağlanmamış sonuç sayısı — "bağla" çağrısı için.
   unassignedCount: number;
   patterns: RelationshipPattern[];
@@ -213,8 +240,9 @@ export class RelationshipsService {
       };
     });
 
+    const active = nodes.filter((n) => !n.archivedAt);
     const patterns = findRelationshipPatterns(
-      nodes.flatMap((n) =>
+      active.flatMap((n) =>
         n.latest
           ? [
               {
@@ -234,7 +262,8 @@ export class RelationshipsService {
     );
 
     return {
-      relationships: nodes,
+      relationships: active,
+      archived: nodes.filter((n) => n.archivedAt),
       unassignedCount: results.filter((row) => !row.relationship_id).length,
       patterns,
     };
@@ -268,7 +297,146 @@ export class RelationshipsService {
       results: points,
       summary: summarizeRelationshipHistory(points),
       ...linked,
+      comparisons: await this.comparisonsOf(results),
+      notes: await this.notesOf(id),
     };
+  }
+
+  async addNote(
+    userId: string,
+    id: string,
+    body: string,
+  ): Promise<RelationshipNoteDto> {
+    await this.owned(userId, id);
+    const trimmed = body.trim();
+    if (!trimmed) throw new BadRequestException('Not boş olamaz.');
+    const { data, error } = await this.supabase.client
+      .from('relationship_notes')
+      .insert({ relationship_id: id, user_id: userId, body: trimmed })
+      .select()
+      .single();
+    if (error) throw new InternalServerErrorException(error.message);
+    return toNoteDto(data as NoteRow);
+  }
+
+  async deleteNote(userId: string, id: string, noteId: string): Promise<void> {
+    await this.owned(userId, id);
+    const { error } = await this.supabase.client
+      .from('relationship_notes')
+      .delete()
+      .eq('id', noteId)
+      .eq('relationship_id', id);
+    if (error) throw new InternalServerErrorException(error.message);
+  }
+
+  // En iyi çaba: tablo henüz yoksa (migrate edilmediyse) detay notsuz döner.
+  private async notesOf(
+    relationshipId: string,
+  ): Promise<RelationshipNoteDto[]> {
+    const { data, error } = await this.supabase.client
+      .from('relationship_notes')
+      .select()
+      .eq('relationship_id', relationshipId)
+      .order('created_at', { ascending: false })
+      .limit(NOTES_LIMIT);
+    if (error || !data) return [];
+    return (data as NoteRow[]).map(toNoteDto);
+  }
+
+  // En iyi çaba: kıyaslamalar alınamazsa bölüm boş kalır, detay yine döner.
+  private async comparisonsOf(
+    results: MapResultRow[],
+  ): Promise<RelationshipComparisonDto[]> {
+    if (results.length === 0) return [];
+    const mine = new Map(results.map((r) => [r.id, r]));
+    const idList = [...mine.keys()].join(',');
+    try {
+      const { data, error } = await this.supabase.client
+        .from('comparisons')
+        .select('id, result_id_a, result_id_b, created_at')
+        .or(`result_id_a.in.(${idList}),result_id_b.in.(${idList})`)
+        .order('created_at', { ascending: true });
+      if (error || !data || data.length === 0) return [];
+      const rows = data as {
+        id: string;
+        result_id_a: string;
+        result_id_b: string;
+        created_at: string;
+      }[];
+
+      const pairsOf = rows.map((c) => {
+        const myId = mine.has(c.result_id_a) ? c.result_id_a : c.result_id_b;
+        return {
+          c,
+          myId,
+          otherId: myId === c.result_id_a ? c.result_id_b : c.result_id_a,
+        };
+      });
+      const [others, predictions] = await Promise.all([
+        this.supabase.client
+          .from('results')
+          .select('id, score')
+          .in(
+            'id',
+            pairsOf.map((p) => p.otherId),
+          ),
+        this.supabase.client
+          .from('predictions')
+          .select('result_id, dimensions')
+          .in('result_id', [...mine.keys()]),
+      ]);
+      const otherScores = new Map(
+        ((others.data ?? []) as { id: string; score: ScoreResult }[]).map(
+          (r) => [r.id, r.score],
+        ),
+      );
+      const predicted = new Map(
+        (
+          (predictions.data ?? []) as {
+            result_id: string;
+            dimensions: Record<string, number>;
+          }[]
+        ).map((p) => [p.result_id, p.dimensions]),
+      );
+
+      return pairsOf.flatMap(({ c, myId, otherId }) => {
+        const my = mine.get(myId)?.score;
+        const other = otherScores.get(otherId);
+        if (!my || !other) return [];
+        const prediction = predicted.get(myId);
+        return [
+          {
+            comparisonId: c.id,
+            createdAt: c.created_at,
+            myRsi: my.rsi,
+            otherRsi: other.rsi,
+            gap: Math.abs(my.rsi - other.rsi),
+            predictionAccuracy: prediction
+              ? (evaluatePrediction(my.dimensions, prediction, other.dimensions)
+                  ?.accuracy ?? null)
+              : null,
+          },
+        ];
+      });
+    } catch {
+      return [];
+    }
+  }
+
+  async setArchived(
+    userId: string,
+    id: string,
+    archived: boolean,
+  ): Promise<RelationshipDto> {
+    await this.owned(userId, id);
+    const { data, error } = await this.supabase.client
+      .from('relationships')
+      .update({ archived_at: archived ? new Date().toISOString() : null })
+      .eq('id', id)
+      .select()
+      .single();
+    if (error) throw new InternalServerErrorException(error.message);
+    return toDto(data as RelationshipRow);
   }
 
   async linkPulse(
@@ -378,11 +546,24 @@ function cleanLabel(label: string): string {
   return trimmed;
 }
 
+interface NoteRow {
+  id: string;
+  relationship_id: string;
+  user_id: string;
+  body: string;
+  created_at: string;
+}
+
+function toNoteDto(row: NoteRow): RelationshipNoteDto {
+  return { id: row.id, body: row.body, createdAt: row.created_at };
+}
+
 function toDto(row: RelationshipRow): RelationshipDto {
   return {
     id: row.id,
     testId: row.test_id,
     label: row.label,
     createdAt: row.created_at,
+    archivedAt: row.archived_at ?? null,
   };
 }

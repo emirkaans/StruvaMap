@@ -35,7 +35,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.struva.map.network.dto.RelationshipComparisonDto
 import com.struva.map.network.dto.RelationshipDetailDto
+import com.struva.map.network.dto.RelationshipNoteDto
 import com.struva.map.network.dto.RelationshipResultPointDto
 import com.struva.map.ui.common.BackIconButton
 import com.struva.map.ui.common.ConversationCard
@@ -54,6 +56,12 @@ import java.util.Locale
 private val TR = Locale("tr")
 private val DateFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy", TR)
 
+// apps/api relationship.dto.ts NOTE_MAX_LENGTH ile aynı.
+private const val NOTE_MAX_LENGTH = 500
+
+// Kıyaslama ekranı ve packages/shared PERCEPTION_GAP_THRESHOLD ile aynı.
+private const val PERCEPTION_GAP_THRESHOLD = 20
+
 // Bir ilişkinin zaman içindeki seyri: skor grafiği, endeks değişimleri,
 // "ne değişti", kalıcı/yeni/toparlanan alanlar ve tüm sonuçlar. Hesaplar
 // sunucuda (packages/shared summarizeRelationshipHistory), burada yalnız gösterim.
@@ -65,6 +73,7 @@ fun RelationshipDetailScreen(
     onRetake: (testId: String, relationshipId: String) -> Unit,
     onOpenPulseHistory: () -> Unit,
     onOpenLabour: () -> Unit,
+    onOpenComparison: (String) -> Unit,
     viewModel: RelationshipDetailViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsState()
@@ -90,6 +99,13 @@ fun RelationshipDetailScreen(
                                     onClick = {
                                         menuOpen = false
                                         renaming = true
+                                    },
+                                )
+                                DropdownMenuItem(
+                                    text = { Text(if (loaded.detail.archivedAt != null) "Arşivden çıkar" else "Arşivle") },
+                                    onClick = {
+                                        menuOpen = false
+                                        viewModel.setArchived(loaded.detail.archivedAt == null)
                                     },
                                 )
                                 if (loaded.detail.pulse != null) {
@@ -133,6 +149,9 @@ fun RelationshipDetailScreen(
                     onLinkPulse = viewModel::linkPulse,
                     onOpenPulseHistory = onOpenPulseHistory,
                     onOpenLabour = onOpenLabour,
+                    onOpenComparison = onOpenComparison,
+                    onAddNote = viewModel::addNote,
+                    onDeleteNote = viewModel::deleteNote,
                 )
             }
         }
@@ -189,6 +208,9 @@ private fun DetailContent(
     onLinkPulse: (String) -> Unit,
     onOpenPulseHistory: () -> Unit,
     onOpenLabour: () -> Unit,
+    onOpenComparison: (String) -> Unit,
+    onAddNote: (String) -> Unit,
+    onDeleteNote: (String) -> Unit,
 ) {
     val summary = detail.summary
     val latest = detail.results.lastOrNull()
@@ -198,6 +220,19 @@ private fun DetailContent(
         item {
             Text(detail.testName.uppercase(TR), style = EyebrowStyle)
             Spacer(Modifier.height(12.dp))
+            if (detail.archivedAt != null) {
+                StruvaCard(modifier = Modifier.fillMaxWidth()) {
+                    Text("ARŞİVDE", style = EyebrowStyle.copy(color = StruvaColors.Muted))
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        "Bu ilişki Harita'da ve örüntülerde gösterilmiyor. Geçmişi ve notların burada duruyor; " +
+                            "istersen \"Düzenle\" menüsünden arşivden çıkarabilirsin.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = StruvaColors.Muted,
+                    )
+                }
+                Spacer(Modifier.height(12.dp))
+            }
             actionError?.let {
                 Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
                 Spacer(Modifier.height(8.dp))
@@ -228,6 +263,16 @@ private fun DetailContent(
                     }
                 }
             }
+            // Yeniden çözmeden önce: son ölçümden beri yazılan notlar hatırlatılır.
+            val notesSince = latest?.let { l -> detail.notes.count { isAfter(it.createdAt, l.createdAt) } } ?: 0
+            if (notesSince > 0) {
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    "Son ölçümden beri $notesSince not yazdın; yeniden çözmeden önce aşağıdan göz atabilirsin.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = StruvaColors.Muted,
+                )
+            }
             Spacer(Modifier.height(16.dp))
             StruvaButton(onClick = onRetake, modifier = Modifier.fillMaxWidth()) {
                 Text(if (latest == null) "Bu ilişki için testi çöz" else "Yeniden çöz")
@@ -253,6 +298,17 @@ private fun DetailContent(
                 PulseSection(detail, onLinkPulse, onOpenPulseHistory, onOpenLabour)
                 Spacer(Modifier.height(24.dp))
             }
+        }
+
+        if (detail.comparisons.isNotEmpty()) {
+            item {
+                Section("Karşı Tarafın Gözünden")
+                ComparisonTrend(detail.comparisons)
+            }
+            items(detail.comparisons.reversed(), key = { it.comparisonId }) { comparison ->
+                ComparisonRow(comparison, onClick = { onOpenComparison(comparison.comparisonId) })
+            }
+            item { Spacer(Modifier.height(24.dp)) }
         }
 
         if (summary.changes.isNotEmpty()) {
@@ -303,6 +359,17 @@ private fun DetailContent(
             item { Section("Konuşmaya Değer") }
             items(talkDims) { dim -> ConversationCard(dimensionName = dimName(dim), prompts = prompts[dim].orEmpty()) }
             item { Spacer(Modifier.height(24.dp)) }
+        }
+
+        item {
+            Section("Notlar")
+            NotesSection(
+                notes = detail.notes,
+                lastMeasuredAt = latest?.createdAt,
+                onAdd = onAddNote,
+                onDelete = onDeleteNote,
+            )
+            Spacer(Modifier.height(24.dp))
         }
 
         if (detail.results.isNotEmpty()) {
@@ -391,6 +458,111 @@ private fun PulseSection(
             }
         }
     }
+}
+
+// İlk ve son kıyaslama arasında algı farkı ve tahmin isabetinin yönü.
+@Composable
+private fun ComparisonTrend(comparisons: List<RelationshipComparisonDto>) {
+    val first = comparisons.first()
+    val last = comparisons.last()
+    val lines = buildList {
+        if (comparisons.size >= 2) {
+            val direction = when {
+                last.gap < first.gap -> "aranızdaki algı farkı kapanıyor"
+                last.gap > first.gap -> "aranızdaki algı farkı açılıyor"
+                else -> "algı farkı aynı kalmış"
+            }
+            add("Algı farkı ${first.gap} → ${last.gap}: $direction.")
+        } else {
+            add("Tek kıyaslama var: aranızda ${last.gap} puan algı farkı.")
+        }
+        val accuracies = comparisons.mapNotNull { it.predictionAccuracy }
+        if (accuracies.size >= 2) {
+            add("Tahmin isabetin %${accuracies.first()} → %${accuracies.last()}.")
+        }
+    }
+    lines.forEach {
+        Text(it, style = MaterialTheme.typography.bodyMedium)
+    }
+    Spacer(Modifier.height(8.dp))
+}
+
+@Composable
+private fun ComparisonRow(comparison: RelationshipComparisonDto, onClick: () -> Unit) {
+    StruvaCard(modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp), onClick = onClick) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(formatDate(comparison.createdAt), modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
+            Text(
+                "fark ${comparison.gap}",
+                style = MaterialTheme.typography.labelMedium.copy(fontFamily = IBMPlexMono),
+                color = if (comparison.gap >= PERCEPTION_GAP_THRESHOLD) StruvaColors.Bad else StruvaColors.Muted,
+            )
+        }
+        Text(
+            "Sen ${comparison.myRsi} · Karşı taraf ${comparison.otherRsi}" +
+                (comparison.predictionAccuracy?.let { " · tahmin isabeti %$it" } ?: ""),
+            style = MaterialTheme.typography.bodySmall,
+            color = StruvaColors.Muted,
+        )
+    }
+}
+
+@Composable
+private fun NotesSection(
+    notes: List<RelationshipNoteDto>,
+    lastMeasuredAt: String?,
+    onAdd: (String) -> Unit,
+    onDelete: (String) -> Unit,
+) {
+    var draft by remember { mutableStateOf("") }
+    Text(
+        "Yalnızca sen görürsün. Aklında kalmasını istediğin anları, konuşmaları yaz; yeniden çözerken hatırlatırız.",
+        style = MaterialTheme.typography.bodySmall,
+        color = StruvaColors.Muted,
+    )
+    Spacer(Modifier.height(8.dp))
+    OutlinedTextField(
+        value = draft,
+        onValueChange = { draft = it.take(NOTE_MAX_LENGTH) },
+        placeholder = { Text("Bugün ne oldu?") },
+        modifier = Modifier.fillMaxWidth(),
+        minLines = 2,
+    )
+    Spacer(Modifier.height(8.dp))
+    StruvaButton(
+        onClick = {
+            onAdd(draft)
+            draft = ""
+        },
+        enabled = draft.isNotBlank(),
+        modifier = Modifier.fillMaxWidth(),
+    ) { Text("Notu kaydet") }
+    notes.forEach { note ->
+        Spacer(Modifier.height(10.dp))
+        StruvaCard(modifier = Modifier.fillMaxWidth()) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    formatDate(note.createdAt),
+                    modifier = Modifier.weight(1f),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = StruvaColors.Muted,
+                )
+                if (lastMeasuredAt != null && isAfter(note.createdAt, lastMeasuredAt)) {
+                    Text("SON ÖLÇÜMDEN SONRA", style = EyebrowStyle.copy(fontSize = EyebrowStyle.fontSize * 0.8f))
+                }
+            }
+            Spacer(Modifier.height(4.dp))
+            Text(note.body, style = MaterialTheme.typography.bodyMedium)
+            TextButton(onClick = { onDelete(note.id) }) { Text("Sil", color = StruvaColors.Muted) }
+        }
+    }
+}
+
+// ISO zaman damgalarını karşılaştırır; ayrıştırılamazsa false.
+private fun isAfter(iso: String, otherIso: String): Boolean = try {
+    OffsetDateTime.parse(iso).isAfter(OffsetDateTime.parse(otherIso))
+} catch (e: Exception) {
+    false
 }
 
 @Composable

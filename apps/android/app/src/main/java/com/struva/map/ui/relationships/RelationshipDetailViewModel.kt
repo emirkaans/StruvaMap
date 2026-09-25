@@ -5,6 +5,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.struva.map.network.ApiService
 import com.struva.map.network.apiErrorMessage
+import com.struva.map.network.dto.AddNoteRequest
+import com.struva.map.network.dto.ArchiveRequest
 import com.struva.map.network.dto.LinkPulseRequest
 import com.struva.map.network.dto.RelationshipDetailDto
 import com.struva.map.network.dto.RenameRelationshipRequest
@@ -90,6 +92,49 @@ class RelationshipDetailViewModel @Inject constructor(
                 throw e
             } catch (e: Exception) {
                 _state.value = current.copy(actionError = errorText(e, "Nabız bağlanamadı."))
+            }
+        }
+    }
+
+    // Not eklenince/silinince yalnız not listesi güncellenir, tüm sayfa yeniden yüklenmez.
+    fun addNote(body: String) {
+        val current = _state.value as? RelationshipDetailUiState.Loaded ?: return
+        viewModelScope.launch {
+            _state.value = try {
+                val note = api.addRelationshipNote(relationshipId, AddNoteRequest(body.trim()))
+                current.copy(detail = current.detail.copy(notes = listOf(note) + current.detail.notes), actionError = null)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                current.copy(actionError = errorText(e, "Not eklenemedi."))
+            }
+        }
+    }
+
+    fun deleteNote(noteId: String) {
+        val current = _state.value as? RelationshipDetailUiState.Loaded ?: return
+        viewModelScope.launch {
+            _state.value = try {
+                api.deleteRelationshipNote(relationshipId, noteId)
+                current.copy(detail = current.detail.copy(notes = current.detail.notes.filter { it.id != noteId }))
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                current.copy(actionError = errorText(e, "Not silinemedi."))
+            }
+        }
+    }
+
+    fun setArchived(archived: Boolean) {
+        val current = _state.value as? RelationshipDetailUiState.Loaded ?: return
+        viewModelScope.launch {
+            _state.value = try {
+                val updated = api.setRelationshipArchived(relationshipId, ArchiveRequest(archived))
+                current.copy(detail = current.detail.copy(archivedAt = updated.archivedAt), actionError = null)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                current.copy(actionError = errorText(e, "Arşiv durumu değiştirilemedi."))
             }
         }
     }

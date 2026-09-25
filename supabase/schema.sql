@@ -175,6 +175,21 @@ alter table results add column if not exists relationship_id uuid references rel
 -- ilişkisini bağlar (eşleşme iki kişi arasında ortak, ilişki kişiye özel).
 alter table relationships add column if not exists pulse_pair_id uuid references pulse_pairs (id) on delete set null;
 
+-- Arşivlenen (artık aktif olmayan) ilişkiler Harita'da ve örüntülerde
+-- gösterilmez; geçmişleri ve notları korunur.
+alter table relationships add column if not exists archived_at timestamptz;
+
+-- İlişkiye dair, yalnızca sahibinin gördüğü kısa notlar (ilişki detayı).
+create table if not exists relationship_notes (
+  id uuid primary key default gen_random_uuid(),
+  relationship_id uuid not null references relationships (id) on delete cascade,
+  user_id uuid not null references auth.users (id) on delete cascade,
+  body text not null,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists relationship_notes_rel_idx on relationship_notes (relationship_id, created_at);
+
 -- Emek defteri: nabız eşleşmesindeki iki kişinin günlük iş kayıtları
 -- (bkz. packages/shared/src/labour.ts LABOUR_CATEGORIES).
 create table if not exists labour_entries (
@@ -201,4 +216,5 @@ alter table claim_tokens enable row level security;
 alter table predictions enable row level security;
 alter table relationships enable row level security;
 alter table labour_entries enable row level security;
+alter table relationship_notes enable row level security;
 -- Politika yok: yalnızca service-role key (backend) erişebilir.

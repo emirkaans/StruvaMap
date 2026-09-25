@@ -1,6 +1,8 @@
 package com.struva.map.network
 
 import com.struva.map.network.dto.AcceptInviteRequest
+import com.struva.map.network.dto.AddNoteRequest
+import com.struva.map.network.dto.ArchiveRequest
 import com.struva.map.network.dto.AssignResultRequest
 import com.struva.map.network.dto.AssignResultResponse
 import com.struva.map.network.dto.CreateRelationshipRequest
@@ -11,6 +13,7 @@ import com.struva.map.network.dto.LogLabourRequest
 import com.struva.map.network.dto.RelationshipDetailDto
 import com.struva.map.network.dto.RelationshipDto
 import com.struva.map.network.dto.RelationshipMapDto
+import com.struva.map.network.dto.RelationshipNoteDto
 import com.struva.map.network.dto.RenameRelationshipRequest
 import com.struva.map.network.dto.ChangeUsernameRequest
 import com.struva.map.network.dto.RedeemClaimRequest
@@ -162,6 +165,15 @@ interface ApiService {
     // pairId null → nabız bağı kaldırılır.
     @PATCH("relationships/{id}/pulse-pair")
     suspend fun linkRelationshipPulse(@Path("id") id: String, @Body body: LinkPulseRequest): RelationshipDto
+
+    @PATCH("relationships/{id}/archive")
+    suspend fun setRelationshipArchived(@Path("id") id: String, @Body body: ArchiveRequest): RelationshipDto
+
+    @POST("relationships/{id}/notes")
+    suspend fun addRelationshipNote(@Path("id") id: String, @Body body: AddNoteRequest): RelationshipNoteDto
+
+    @DELETE("relationships/{id}/notes/{noteId}")
+    suspend fun deleteRelationshipNote(@Path("id") id: String, @Path("noteId") noteId: String)
 
     @DELETE("relationships/{id}")
     suspend fun deleteRelationship(@Path("id") id: String)

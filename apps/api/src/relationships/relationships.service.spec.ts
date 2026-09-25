@@ -25,8 +25,21 @@ function fakeSupabase(tables: Record<string, unknown[]>) {
         );
         return chain;
       },
+      // .or(...) testte filtre uygulamaz; comparisons tablosu yalnız ilgili satırları içerir.
+      or: () => chain,
+      in: (col: string, values: unknown[]) => {
+        rows = rows.filter((r) =>
+          values.includes((r as Record<string, unknown>)[col]),
+        );
+        return chain;
+      },
       maybeSingle: () =>
         Promise.resolve({ data: rows[0] ?? null, error: null }),
+      insert: (values: Record<string, unknown>) => {
+        rows = [{ id: 'new1', created_at: 'now', ...values }];
+        return chain;
+      },
+      single: () => Promise.resolve({ data: rows[0] ?? null, error: null }),
       update: (values: unknown) => {
         updates.push({ table, values });
         return chain;
@@ -250,6 +263,116 @@ describe('RelationshipsService.detail', () => {
       relationships: [rel('rel1', 'romantic', 'Ayşe', 'u2')],
     });
     await expect(service.detail('u1', 'rel1')).rejects.toBeInstanceOf(
+      ForbiddenException,
+    );
+  });
+});
+
+describe('RelationshipsService.detail kıyaslamalar', () => {
+  it('ilişkinin kıyaslamalarını, taraf farkını ve tahmin isabetini döner', async () => {
+    const mine = { rsi: 70, dimensions: { domestic: 70 }, indices: {} };
+    const { service } = makeService({
+      relationships: [rel('rel1', 'romantic', 'Ayşe')],
+      results: [
+        {
+          id: 'r1',
+          user_id: 'u1',
+          score: mine,
+          created_at: '2026-09-01',
+          relationship_id: 'rel1',
+        },
+        {
+          id: 'o1',
+          user_id: 'u2',
+          score: { rsi: 50, dimensions: { domestic: 40 }, indices: {} },
+        },
+      ],
+      comparisons: [
+        {
+          id: 'c1',
+          result_id_a: 'r1',
+          result_id_b: 'o1',
+          created_at: '2026-09-02',
+        },
+      ],
+      predictions: [{ result_id: 'r1', dimensions: { domestic: 50 } }],
+    });
+
+    const detail = await service.detail('u1', 'rel1');
+
+    expect(detail.comparisons).toEqual([
+      {
+        comparisonId: 'c1',
+        createdAt: '2026-09-02',
+        myRsi: 70,
+        otherRsi: 50,
+        gap: 20,
+        predictionAccuracy: 90,
+      },
+    ]);
+  });
+});
+
+describe('RelationshipsService arşiv', () => {
+  it('arşivlenen ilişkiyi haritadan ve örüntülerden ayırır', async () => {
+    const score = (labour: number) => ({ rsi: 50, indices: { labour } });
+    const { service } = makeService({
+      relationships: [
+        rel('a', 'romantic', 'Ayşe'),
+        { ...rel('b', 'work', 'Eski iş'), archived_at: '2026-08-01' },
+        rel('c', 'work', 'Patron'),
+      ],
+      results: [
+        {
+          id: 'r1',
+          user_id: 'u1',
+          score: score(40),
+          created_at: '3',
+          relationship_id: 'a',
+        },
+        {
+          id: 'r2',
+          user_id: 'u1',
+          score: score(30),
+          created_at: '2',
+          relationship_id: 'b',
+        },
+        {
+          id: 'r3',
+          user_id: 'u1',
+          score: score(90),
+          created_at: '1',
+          relationship_id: 'c',
+        },
+      ],
+    });
+    const map = await service.map('u1');
+    expect(map.relationships.map((n) => n.label)).toEqual(['Ayşe', 'Patron']);
+    expect(map.archived.map((n) => n.label)).toEqual(['Eski iş']);
+    // Arşivli "Eski iş" sayılsaydı Emek düşük 2/3 ilişkide örüntü olurdu.
+    expect(map.patterns).toEqual([]);
+  });
+});
+
+describe('RelationshipsService notlar', () => {
+  it('kendi ilişkisine kırpılmış notu ekler, boş notu ve başkasının ilişkisini reddeder', async () => {
+    const { service } = makeService({
+      relationships: [
+        rel('rel1', 'romantic', 'Ayşe'),
+        rel('x', 'romantic', 'X', 'u2'),
+      ],
+    });
+    await expect(
+      service.addNote('u1', 'rel1', '  Bugün uzun konuştuk.  '),
+    ).resolves.toEqual({
+      id: 'new1',
+      body: 'Bugün uzun konuştuk.',
+      createdAt: 'now',
+    });
+    await expect(service.addNote('u1', 'rel1', '   ')).rejects.toBeInstanceOf(
+      BadRequestException,
+    );
+    await expect(service.addNote('u1', 'x', 'not')).rejects.toBeInstanceOf(
       ForbiddenException,
     );
   });

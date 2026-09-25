@@ -378,6 +378,7 @@ private fun AppNavHost(
                     },
                     onOpenPulseHistory = { navController.navigate("pulseHistory") },
                     onOpenLabour = { navController.navigate("labour") },
+                    onOpenComparison = { comparisonId -> navController.navigate("comparison/$comparisonId") },
                 )
             }
             // relationshipId isteğe bağlı: verilirse sonuç o ilişkiye otomatik bağlanır.

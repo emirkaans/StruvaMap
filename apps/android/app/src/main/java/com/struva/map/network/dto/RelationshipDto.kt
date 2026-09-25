@@ -9,7 +9,12 @@ data class RelationshipDto(
     val testId: String,
     val label: String,
     val createdAt: String,
+    // Arşivlenmişse zaman damgası; seçim listelerinde gösterilmez.
+    val archivedAt: String? = null,
 )
+
+@Serializable
+data class ArchiveRequest(val archived: Boolean)
 
 @Serializable
 data class CreateRelationshipRequest(val testId: String, val label: String)
@@ -27,6 +32,7 @@ data class AssignResultResponse(val resultId: String, val relationshipId: String
 @Serializable
 data class RelationshipMapDto(
     val relationships: List<RelationshipMapNodeDto>,
+    val archived: List<RelationshipMapNodeDto> = emptyList(),
     val unassignedCount: Int,
     val patterns: List<RelationshipPatternDto>,
 )
@@ -38,6 +44,7 @@ data class RelationshipMapNodeDto(
     val label: String,
     val createdAt: String,
     val testName: String,
+    val archivedAt: String? = null,
     val resultCount: Int,
     val latest: RelationshipLatestDto? = null,
     // Bir önceki sonucun RSI'si; düğümde ↑/↓ değişim için.
@@ -71,6 +78,7 @@ data class RelationshipDetailDto(
     val testId: String,
     val label: String,
     val createdAt: String,
+    val archivedAt: String? = null,
     val testName: String,
     val dimensionNames: Map<String, String>,
     val indexNames: Map<String, String>,
@@ -81,6 +89,26 @@ data class RelationshipDetailDto(
     val labour: LabourWeekSummaryDto? = null,
     // Bağ yoksa, aynı test türündeki aktif eşleşme (bağlanmaya aday).
     val linkablePairId: String? = null,
+    // Bu ilişkinin sonuçlarını içeren kıyaslamalar, eskiden yeniye.
+    val comparisons: List<RelationshipComparisonDto> = emptyList(),
+    // Yalnız sahibinin gördüğü notlar, yeniden eskiye.
+    val notes: List<RelationshipNoteDto> = emptyList(),
+)
+
+@Serializable
+data class RelationshipNoteDto(val id: String, val body: String, val createdAt: String)
+
+@Serializable
+data class AddNoteRequest(val body: String)
+
+@Serializable
+data class RelationshipComparisonDto(
+    val comparisonId: String,
+    val createdAt: String,
+    val myRsi: Int,
+    val otherRsi: Int,
+    val gap: Int,
+    val predictionAccuracy: Int? = null,
 )
 
 @Serializable

@@ -13,6 +13,8 @@ import { UserGuard } from '../auth/user.guard';
 import type { AuthedRequest } from '../auth/user.guard';
 import { RelationshipsService } from './relationships.service';
 import {
+  AddNoteDto,
+  ArchiveDto,
   AssignResultDto,
   CreateRelationshipDto,
   LinkPulseDto,
@@ -68,6 +70,33 @@ export class RelationshipsController {
     @Req() req: AuthedRequest,
   ) {
     return this.relationships.linkPulse(req.user.id, id, dto.pairId ?? null);
+  }
+
+  @Patch(':id/archive')
+  archive(
+    @Param('id') id: string,
+    @Body() dto: ArchiveDto,
+    @Req() req: AuthedRequest,
+  ) {
+    return this.relationships.setArchived(req.user.id, id, dto.archived);
+  }
+
+  @Post(':id/notes')
+  addNote(
+    @Param('id') id: string,
+    @Body() dto: AddNoteDto,
+    @Req() req: AuthedRequest,
+  ) {
+    return this.relationships.addNote(req.user.id, id, dto.body);
+  }
+
+  @Delete(':id/notes/:noteId')
+  deleteNote(
+    @Param('id') id: string,
+    @Param('noteId') noteId: string,
+    @Req() req: AuthedRequest,
+  ) {
+    return this.relationships.deleteNote(req.user.id, id, noteId);
   }
 
   @Delete(':id')
