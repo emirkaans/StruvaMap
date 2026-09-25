@@ -5,6 +5,8 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,6 +19,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -55,9 +58,20 @@ fun SolveScreen(
     viewModel: SolveViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsState()
+    var showExitConfirm by remember { mutableStateOf(false) }
 
     Scaffold(
-        topBar = { TopAppBar(title = { Text("Test") }, colors = struvaTopAppBarColors()) },
+        topBar = {
+            TopAppBar(
+                title = {},
+                navigationIcon = {
+                    if (state !is SolveUiState.Result) {
+                        ExitButton(onClick = { showExitConfirm = true })
+                    }
+                },
+                colors = struvaTopAppBarColors(),
+            )
+        },
     ) { padding ->
         Box(
             modifier = Modifier.fillMaxSize().padding(padding),
@@ -153,6 +167,42 @@ fun SolveScreen(
                 )
             }
         }
+    }
+
+    if (showExitConfirm) {
+        AlertDialog(
+            onDismissRequest = { showExitConfirm = false },
+            title = { Text("Testten çıkmak istediğine emin misin?") },
+            text = { Text("Cevapların kaydedilmedi, çıkarsan kaybolur.") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showExitConfirm = false
+                        onFinished()
+                    },
+                    colors = ButtonDefaults.textButtonColors(contentColor = StruvaColors.Bad),
+                ) { Text("Çık") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showExitConfirm = false }) { Text("Devam et") }
+            },
+        )
+    }
+}
+
+// Çıkış butonu: TopAppBar'ın navigationIcon'ında ikon yerine çerçeveli
+// "Çıkış" pili — tasarım karşılaştırmasında seçilen seçenek (B).
+@Composable
+private fun ExitButton(onClick: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .padding(start = 8.dp)
+            .clip(RoundedCornerShape(999.dp))
+            .border(1.dp, StruvaColors.Border, RoundedCornerShape(999.dp))
+            .clickable(onClick = onClick)
+            .padding(horizontal = 14.dp, vertical = 8.dp),
+    ) {
+        Text("Çıkış", style = MaterialTheme.typography.labelLarge, color = StruvaColors.Text)
     }
 }
 
