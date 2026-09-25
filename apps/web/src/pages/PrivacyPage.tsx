@@ -36,12 +36,12 @@ export function PrivacyPage() {
         <h1>Ne biliyoruz, ne bilmiyoruz.</h1>
         <p className="lead">
           İlişki, aile ve iş dinamiklerine dair yanıtların hassas bir alana
-          değiyor. Ne topladığımızı, ne yapmadığımızı ve haklarını burada
-          açık açık yazıyoruz. Hukuk dili değil, gerçek davranış.
+          değiyor. Ne topladığımızı, ne yapmadığımızı ve haklarını burada açık
+          açık yazıyoruz. Hukuk dili değil, gerçek davranış.
         </p>
         <span className="page-meta">
           Son güncelleme · 30 Ağustos 2026 · Veri sorumlusu ·{" "}
-          <a href="mailto:emirkaansaricam@gmail.com">emirkaansaricam@gmail.com</a>
+          <a href="mailto:struvamap@gmail.com">struvamap@gmail.com</a>
         </span>
       </Reveal>
 
@@ -68,14 +68,14 @@ export function PrivacyPage() {
             bağlamak için tutulur.
           </li>
           <li>
-            <strong>Kullanım olayları.</strong> Hangi test başladı, hangi
-            soruda bırakıldı, davet bağlantısı kullanıldı mı. Kendi
-            sunucumuza yazılır, üçüncü tarafa gitmez.
+            <strong>Kullanım olayları.</strong> Hangi test başladı, hangi soruda
+            bırakıldı, davet bağlantısı kullanıldı mı. Kendi sunucumuza yazılır,
+            üçüncü tarafa gitmez.
           </li>
           <li>
-            <strong>Hata raporları.</strong> Uygulama hata verirse teknik
-            detay Sentry'ye gider. Kişisel veri gönderimi kapalı, oturum
-            kaydı tutulmaz.
+            <strong>Hata raporları.</strong> Uygulama hata verirse teknik detay
+            Sentry'ye gider. Kişisel veri gönderimi kapalı, oturum kaydı
+            tutulmaz.
           </li>
         </ul>
       </Reveal>
@@ -84,8 +84,8 @@ export function PrivacyPage() {
         <h2>Nerede saklanır</h2>
         <p>
           Veriler barındırma sağlayıcımız Supabase'de tutulur. Şu an otomatik
-          bir silme süresi yok. Sen ya da biz talep edip sildirene kadar
-          kayıt kalır. Kıyaslama özelliğini kullanırsan, davet bağlantısını
+          bir silme süresi yok. Sen ya da biz talep edip sildirene kadar kayıt
+          kalır. Kıyaslama özelliğini kullanırsan, davet bağlantısını
           paylaştığın kişi yanıtlarını boyut boyut karşılaştırmalı görür.
         </p>
       </Reveal>
@@ -94,8 +94,8 @@ export function PrivacyPage() {
         <span className="eyebrow">{toTurkishUpper("Hassas veri uyarısı")}</span>
         <p>
           İlişki ve aile dinamiklerine dair yanıtların dolaylı olarak hassas
-          konulara değinebilir. <em>Vermek tamamen gönüllü.</em> Hiçbir
-          soruyu yanıtlamak zorunda değilsin, testi yarıda bırakabilirsin.
+          konulara değinebilir. <em>Vermek tamamen gönüllü.</em> Hiçbir soruyu
+          yanıtlamak zorunda değilsin, testi yarıda bırakabilirsin.
         </p>
       </Reveal>
 
@@ -115,16 +115,16 @@ export function PrivacyPage() {
             düzeltilmesini isteyebilirsin.
           </li>
           <li>
-            <strong>Silme.</strong> İşlenme sebebi ortadan kalktıysa
-            silinmesini isteyebilirsin.
+            <strong>Silme.</strong> İşlenme sebebi ortadan kalktıysa silinmesini
+            isteyebilirsin.
           </li>
         </ul>
         <p>
           Bu haklar, 6698 sayılı Kişisel Verilerin Korunması Kanunu'nun 11.
-          maddesinden geliyor. Oturum kimliğin hesapsız yapı gereği bize
-          kayıtlı değil. Tarayıcı verini temizlemen sunucudaki bağı zaten
-          koparır. Sunucu tarafındaki kaydın da silinmesini istiyorsan,
-          elindeki sonuç ya da davet bağlantısıyla aşağıdan bize ulaş.
+          maddesinden geliyor. Oturum kimliğin hesapsız yapı gereği bize kayıtlı
+          değil. Tarayıcı verini temizlemen sunucudaki bağı zaten koparır.
+          Sunucu tarafındaki kaydın da silinmesini istiyorsan, elindeki sonuç ya
+          da davet bağlantısıyla aşağıdan bize ulaş.
         </p>
       </Reveal>
 
@@ -139,7 +139,7 @@ export function PrivacyPage() {
 
       <Reveal className="privacy-contact">
         <p>Verinle ilgili bir talebin mi var, yoksa bir şey mi anlamadın?</p>
-        <a href="mailto:emirkaansaricam@gmail.com" className="btn secondary">
+        <a href="mailto:struvamap@gmail.com" className="btn secondary">
           Bize yaz
         </a>
       </Reveal>

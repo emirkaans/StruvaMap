@@ -99,6 +99,14 @@ create unique index if not exists pulse_pairs_invite_code_idx on pulse_pairs (in
 create index if not exists pulse_pairs_user_a_idx on pulse_pairs (user_id_a);
 create index if not exists pulse_pairs_user_b_idx on pulse_pairs (user_id_b);
 
+-- Unpair: satırı silmek yerine status='ended' yapılır (bkz. PairsService.end).
+-- pulse_checkins/labour_entries olduğu gibi kalır — getActivePair() zaten
+-- yalnızca status='active' aradığı için ended eşleşme her iki tarafın
+-- ekranından da otomatik kaybolur. Kalıcı silme (30 gün sonra) ayrı bir
+-- temizlik job'ı işi, MVP kapsamı dışında.
+alter table pulse_pairs add column if not exists ended_at timestamptz;
+alter table pulse_pairs add column if not exists ended_by uuid references auth.users (id) on delete set null;
+
 -- Bir çift için günde tek satır: o günün sorusu + iki tarafın cevabı.
 -- Ayrı bir "answers" tablosu yerine tek satırda a/b kolonları — çift zaten
 -- yalnızca iki kişi, join gerekmiyor.

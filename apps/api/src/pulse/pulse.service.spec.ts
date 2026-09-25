@@ -12,6 +12,8 @@ const pair: PulsePairRow = {
   status: 'active',
   created_at: '2026-09-01T00:00:00Z',
   accepted_at: '2026-09-01T00:00:00Z',
+  ended_at: null,
+  ended_by: null,
 };
 
 function row(

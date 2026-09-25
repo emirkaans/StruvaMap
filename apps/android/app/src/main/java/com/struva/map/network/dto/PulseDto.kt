@@ -7,9 +7,11 @@ import kotlinx.serialization.Serializable
 data class PairDto(
     val id: String,
     val testId: String,
-    val status: String, // "pending" | "active"
+    val status: String, // "pending" | "active" | "ended"
     val inviteCode: String,
     val partnerUsername: String?,
+    val createdAt: String,
+    val endedByMe: Boolean?,
 )
 
 @Serializable

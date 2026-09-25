@@ -14,17 +14,22 @@ export interface PulsePairRow {
   user_id_a: string;
   user_id_b: string | null;
   invite_code: string;
-  status: 'pending' | 'active';
+  status: 'pending' | 'active' | 'ended';
   created_at: string;
   accepted_at: string | null;
+  ended_at: string | null;
+  ended_by: string | null;
 }
 
 export interface PairDto {
   id: string;
   testId: string;
-  status: 'pending' | 'active';
+  status: 'pending' | 'active' | 'ended';
   inviteCode: string;
   partnerUsername: string | null;
+  createdAt: string;
+  // status === 'ended' değilse anlamsız — karşı taraf mı sonlandırdı yoksa ben mi, ekranda buna göre metin seçilir.
+  endedByMe: boolean | null;
 }
 
 const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // 0/O, 1/I gibi karışabilecek karakterler çıkarıldı
@@ -90,6 +95,24 @@ export class PairsService {
     return this.toDto(updated as PulsePairRow, userId);
   }
 
+  // Satırı silmez, status='ended' yapar — bkz. schema.sql'deki yorum.
+  // Sadece aktif bir eşleşme sonlandırılabilir: pending bir davetin
+  // "sonlandırılması" değil doğrudan silinmesi gerekir (ayrı bir iş).
+  async end(userId: string, pairId: string): Promise<void> {
+    const pair = await this.findById(pairId);
+    this.assertMember(pair, userId);
+    if (pair.status !== 'active') {
+      throw new BadRequestException('Bu eşleşme zaten aktif değil.');
+    }
+
+    const { error } = await this.supabase.client
+      .from('pulse_pairs')
+      .update({ status: 'ended', ended_at: new Date().toISOString(), ended_by: userId })
+      .eq('id', pairId)
+      .eq('status', 'active'); // yarış durumu: aynı anda iki taraf da sonlandırmaya çalışırsa ikincisi 0 satır günceller
+    if (error) throw new InternalServerErrorException(error.message);
+  }
+
   async findMine(userId: string): Promise<PairDto[]> {
     const { data, error } = await this.supabase.client
       .from('pulse_pairs')
@@ -137,6 +160,8 @@ export class PairsService {
       status: row.status,
       inviteCode: row.invite_code,
       partnerUsername,
+      createdAt: row.created_at,
+      endedByMe: row.status === 'ended' ? row.ended_by === callerId : null,
     };
   }
 

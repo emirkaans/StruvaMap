@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Req, UseGuards } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
 import { UserGuard } from '../auth/user.guard';
 import type { AuthedRequest } from '../auth/user.guard';
@@ -28,5 +28,10 @@ export class PairsController {
   @Get('mine')
   findMine(@Req() req: AuthedRequest) {
     return this.pairsService.findMine(req.user.id);
+  }
+
+  @Delete(':id')
+  end(@Param('id') id: string, @Req() req: AuthedRequest) {
+    return this.pairsService.end(req.user.id, id);
   }
 }

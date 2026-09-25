@@ -128,6 +128,9 @@ interface ApiService {
     @GET("pairs/mine")
     suspend fun getMyPairs(): List<PairDto>
 
+    @DELETE("pairs/{id}")
+    suspend fun endPair(@Path("id") id: String)
+
     @GET("pulse/today")
     suspend fun getPulseToday(@Query("pairId") pairId: String): PulseTodayDto
 

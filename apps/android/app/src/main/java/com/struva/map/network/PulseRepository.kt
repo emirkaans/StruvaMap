@@ -29,6 +29,9 @@ class PulseRepository @Inject constructor(
     // widget/geçmiş ekranı da aynı "ilk aktif" seçimini kullanıyor.
     suspend fun getActivePair(): PairDto? = api.getMyPairs().firstOrNull { it.status == "active" }
 
+    // Satırı silmez, sunucuda status='ended' yapar (bkz. pairs.service.ts end()).
+    suspend fun endPair(pairId: String) = api.endPair(pairId)
+
     suspend fun getToday(pairId: String): PulseTodayDto = api.getPulseToday(pairId)
 
     suspend fun getHistory(pairId: String, days: Int = HISTORY_DAYS): PulseHistoryDto = api.getPulseHistory(pairId, days)

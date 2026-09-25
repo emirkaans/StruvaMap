@@ -23,7 +23,7 @@ import com.struva.map.ui.common.StruvaOutlinedButton
 import com.struva.map.ui.theme.StruvaColors
 import com.struva.map.ui.theme.struvaTopAppBarColors
 
-private const val CONTACT_EMAIL = "emirkaansaricam@gmail.com"
+private const val CONTACT_EMAIL = "struvamap@gmail.com"
 
 // Web'deki PrivacyPage.tsx'in mobil karşılığı — aynı KVKK metni, mobilde tek
 // sütun akış olarak. Statik içerik olduğu için ViewModel gerekmiyor.

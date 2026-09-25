@@ -10,6 +10,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -17,6 +19,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -29,6 +32,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.struva.map.network.dto.PairDto
 import com.struva.map.ui.auth.AuthViewModel
 import com.struva.map.ui.auth.isGuestSession
 import com.struva.map.ui.common.BackIconButton
@@ -37,8 +41,14 @@ import com.struva.map.ui.common.StruvaOutlinedButton
 import com.struva.map.ui.theme.IBMPlexMono
 import com.struva.map.ui.theme.StruvaColors
 import com.struva.map.ui.theme.struvaTopAppBarColors
+import java.time.OffsetDateTime
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 private enum class PairingMode { Choose, Create, Join }
+
+private val TR = Locale("tr")
+private val PairedSinceFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy", TR)
 
 private val FieldShape = RoundedCornerShape(8.dp)
 
@@ -53,8 +63,10 @@ fun PulsePairingScreen(
     onOpenRegister: () -> Unit,
     viewModel: PulseViewModel = hiltViewModel(),
     authViewModel: AuthViewModel = hiltViewModel(),
+    pairViewModel: PairManagementViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsState()
+    val pairState by pairViewModel.state.collectAsState()
     val sessionStatus by authViewModel.sessionStatus.collectAsState()
     val isGuest = sessionStatus.isGuestSession()
     var mode by remember { mutableStateOf(PairingMode.Choose) }
@@ -83,19 +95,94 @@ fun PulsePairingScreen(
                 GuestGateSection(onOpenLogin = onOpenLogin, onOpenRegister = onOpenRegister)
                 return@Column
             }
-            when (mode) {
-                PairingMode.Choose -> ChooseSection(
-                    onCreate = { mode = PairingMode.Create; viewModel.startPairing() },
-                    onJoin = { mode = PairingMode.Join },
+            when (val ps = pairState) {
+                is PairManagementUiState.Loading -> CircularProgressIndicator()
+                is PairManagementUiState.Error -> Column {
+                    Text(ps.message, color = MaterialTheme.colorScheme.error)
+                    Spacer(Modifier.height(12.dp))
+                    StruvaOutlinedButton(onClick = pairViewModel::load) { Text("Tekrar dene") }
+                }
+                is PairManagementUiState.Paired -> PairedSection(
+                    pair = ps.pair,
+                    busy = ps.busy,
+                    actionError = ps.actionError,
+                    onEnd = pairViewModel::endPairing,
                 )
-                PairingMode.Create -> CreateSection(state = state, onBack = onBack)
-                PairingMode.Join -> JoinSection(
-                    state = state,
-                    onSubmit = viewModel::acceptInvite,
-                    onBack = onBack,
-                )
+                is PairManagementUiState.NotPaired -> when (mode) {
+                    PairingMode.Choose -> ChooseSection(
+                        onCreate = { mode = PairingMode.Create; viewModel.startPairing() },
+                        onJoin = { mode = PairingMode.Join },
+                    )
+                    PairingMode.Create -> CreateSection(state = state, onBack = onBack)
+                    PairingMode.Join -> JoinSection(
+                        state = state,
+                        onSubmit = viewModel::acceptInvite,
+                        onBack = onBack,
+                    )
+                }
             }
         }
+    }
+}
+
+@Composable
+private fun PairedSection(pair: PairDto, busy: Boolean, actionError: String?, onEnd: () -> Unit) {
+    // 0 = kapalı, 1 = ilk uyarı, 2 = geri alınamaz onayı — art arda iki farklı
+    // metinli dialog, kazara tek dokunuşla sonlandırmayı engellemek için
+    // (bkz. planlama: tek AlertDialog'un "Hesabı sil" gibi tek adımlık akışı
+    // burada yeterli değil, iki kişiyi ve paylaşılan geçmişi etkiliyor).
+    var confirmStep by remember { mutableStateOf(0) }
+    val partnerName = pair.partnerUsername ?: "Partnerin"
+    val since = remember(pair.createdAt) { OffsetDateTime.parse(pair.createdAt).toLocalDate().format(PairedSinceFormatter) }
+
+    Text("Eşleşiksin", style = MaterialTheme.typography.titleSmall)
+    Spacer(Modifier.height(8.dp))
+    Text(
+        "$partnerName ile $since tarihinden beri günlük nabız ve emek defterini paylaşıyorsunuz.",
+        style = MaterialTheme.typography.bodyMedium,
+        color = StruvaColors.Muted,
+    )
+    if (actionError != null) {
+        Spacer(Modifier.height(12.dp))
+        Text(actionError, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+    }
+    Spacer(Modifier.height(24.dp))
+    TextButton(
+        onClick = { confirmStep = 1 },
+        enabled = !busy,
+        colors = ButtonDefaults.textButtonColors(contentColor = StruvaColors.Bad),
+    ) { Text("Eşleşmeyi sonlandır") }
+
+    if (confirmStep == 1) {
+        AlertDialog(
+            onDismissRequest = { confirmStep = 0 },
+            title = { Text("Eşleşmeyi sonlandırmak istediğine emin misin?") },
+            text = {
+                Text("$partnerName ile eşleşmeni sonlandırırsan nabız geçmişiniz ve emek defteriniz birlikte kaybolur.")
+            },
+            confirmButton = {
+                TextButton(onClick = { confirmStep = 2 }) { Text("Devam et") }
+            },
+            dismissButton = {
+                TextButton(onClick = { confirmStep = 0 }) { Text("Vazgeç") }
+            },
+        )
+    }
+    if (confirmStep == 2) {
+        AlertDialog(
+            onDismissRequest = { confirmStep = 0 },
+            title = { Text("Bu işlem geri alınamaz") },
+            text = { Text("Kayıtlar 30 gün sonra kalıcı silinir. Eşleşme şimdi sonlandırılsın mı?") },
+            confirmButton = {
+                TextButton(
+                    onClick = { confirmStep = 0; onEnd() },
+                    colors = ButtonDefaults.textButtonColors(contentColor = StruvaColors.Bad),
+                ) { Text("Evet, sonlandır") }
+            },
+            dismissButton = {
+                TextButton(onClick = { confirmStep = 0 }) { Text("Vazgeç") }
+            },
+        )
     }
 }
 
