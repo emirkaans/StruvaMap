@@ -3,12 +3,12 @@ package com.struva.map.ui.pulse
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -41,10 +41,11 @@ import com.struva.map.network.HISTORY_DAYS
 import com.struva.map.network.dto.PulseHistoryDayDto
 import com.struva.map.network.dto.PulseWeekSummaryDto
 import com.struva.map.ui.common.BackIconButton
+import com.struva.map.ui.common.MirrorHeader
+import com.struva.map.ui.common.MirrorRow
 import com.struva.map.ui.common.StruvaButton
 import com.struva.map.ui.common.StruvaCard
 import com.struva.map.ui.theme.EyebrowStyle
-import com.struva.map.ui.theme.IBMPlexMono
 import com.struva.map.ui.theme.StruvaColors
 import com.struva.map.ui.theme.struvaTopAppBarColors
 import java.time.LocalDate
@@ -159,11 +160,18 @@ private fun WeekSummaryCard(week: PulseWeekSummaryDto, partnerName: String) {
 
 @Composable
 private fun WeekSummaryBody(week: PulseWeekSummaryDto, partnerName: String) {
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-        Stat(label = "Senin ort.", value = week.myAverage?.let(::formatAverage) ?: "–")
-        Stat(label = "$partnerName ort.", value = week.partnerAverage?.let(::formatAverage) ?: "–")
-        Stat(label = "Birlikte", value = "${week.bothAnsweredDays}/7 gün")
-    }
+    MirrorHeader(
+        meValue = week.myAverage?.let(::formatAverage) ?: "–",
+        meLabel = "Senin ort.",
+        themValue = week.partnerAverage?.let(::formatAverage) ?: "–",
+        themLabel = "$partnerName ort.",
+    )
+    Spacer(Modifier.height(8.dp))
+    Text(
+        "Birlikte ${week.bothAnsweredDays}/7 gün cevaplandı",
+        style = MaterialTheme.typography.labelSmall,
+        color = StruvaColors.Muted,
+    )
     if (week.gapDays > 0) {
         Spacer(Modifier.height(12.dp))
         Text(
@@ -180,14 +188,6 @@ private fun WeekSummaryBody(week: PulseWeekSummaryDto, partnerName: String) {
             "${LocalDate.parse(lowest.date).format(ShortDayFormatter)} · ortalama ${formatAverage(lowest.average)}",
             style = MaterialTheme.typography.bodySmall,
         )
-    }
-}
-
-@Composable
-private fun Stat(label: String, value: String) {
-    Column {
-        Text(value, style = MaterialTheme.typography.titleMedium.copy(fontFamily = IBMPlexMono))
-        Text(label, style = MaterialTheme.typography.labelSmall, color = StruvaColors.Muted)
     }
 }
 
@@ -232,13 +232,6 @@ private fun PulseCalendar(
 
 @Composable
 private fun DayCell(date: LocalDate, day: PulseHistoryDayDto?, isSelected: Boolean, onClick: () -> Unit) {
-    val answers = listOfNotNull(day?.myAnswer, day?.partnerAnswer)
-    val fill = if (answers.isEmpty()) {
-        StruvaColors.Border
-    } else {
-        // 1 → soluk, 5 → tam accent.
-        StruvaColors.Accent.copy(alpha = 0.2f + (answers.average().toFloat() - 1f) / 4f * 0.8f)
-    }
     val mine = day?.myAnswer
     val partner = day?.partnerAnswer
     val hasGap = mine != null && partner != null && abs(mine - partner) >= GAP_THRESHOLD
@@ -252,19 +245,26 @@ private fun DayCell(date: LocalDate, day: PulseHistoryDayDto?, isSelected: Boole
         modifier = Modifier
             .fillMaxSize()
             .clip(shape)
-            .background(fill)
             .border(if (isSelected || hasGap) 2.dp else 0.dp, borderColor, shape)
             .clickable(onClick = onClick)
             .semantics { contentDescription = date.format(DayFormatter) },
         contentAlignment = Alignment.Center,
     ) {
+        // İkili şerit: hücre sol yarı sen (Accent), sağ yarı partner (Muted) — tek karışık ton yerine iki taraf ayrı okunur.
+        Row(Modifier.fillMaxSize()) {
+            Box(Modifier.weight(1f).fillMaxHeight().background(answerFill(mine, StruvaColors.Accent)))
+            Box(Modifier.weight(1f).fillMaxHeight().background(answerFill(partner, StruvaColors.Muted)))
+        }
         Text(
             "${date.dayOfMonth}",
             style = MaterialTheme.typography.labelSmall,
-            color = if (answers.isEmpty()) StruvaColors.Muted else StruvaColors.Text,
+            color = if (mine == null && partner == null) StruvaColors.Muted else StruvaColors.Text,
         )
     }
 }
+
+private fun answerFill(value: Int?, base: Color): Color =
+    if (value == null) StruvaColors.Border else base.copy(alpha = 0.2f + (value - 1).coerceIn(0, 4) / 4f * 0.8f)
 
 @Composable
 private fun SelectedDayCard(date: LocalDate, day: PulseHistoryDayDto?, partnerName: String) {
@@ -276,44 +276,12 @@ private fun SelectedDayCard(date: LocalDate, day: PulseHistoryDayDto?, partnerNa
         } else {
             Text(day.questionText, style = MaterialTheme.typography.titleSmall)
             Spacer(Modifier.height(10.dp))
-            AnswerRow("Sen", day.myAnswer)
-            Spacer(Modifier.height(6.dp))
-            AnswerRow(partnerName, day.partnerAnswer)
+            MirrorRow(
+                meValue = day.myAnswer?.toString() ?: "–",
+                center = "Sen · $partnerName",
+                themValue = day.partnerAnswer?.toString() ?: "–",
+            )
         }
-    }
-}
-
-@Composable
-private fun AnswerRow(label: String, value: Int?) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
-    ) {
-        Text(label, modifier = Modifier.weight(0.35f), style = MaterialTheme.typography.labelMedium)
-        Box(
-            modifier = Modifier
-                .weight(0.55f)
-                .height(6.dp)
-                .clip(RoundedCornerShape(99.dp))
-                .background(StruvaColors.Border),
-        ) {
-            if (value != null) {
-                Box(
-                    Modifier
-                        .fillMaxWidth(value / 5f)
-                        .height(6.dp)
-                        .clip(RoundedCornerShape(99.dp))
-                        .background(StruvaColors.Accent),
-                )
-            }
-        }
-        Text(
-            value?.toString() ?: "–",
-            modifier = Modifier.weight(0.1f),
-            style = MaterialTheme.typography.labelMedium.copy(fontFamily = IBMPlexMono),
-            textAlign = TextAlign.End,
-        )
     }
 }
 

@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -28,19 +27,20 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.struva.map.network.dto.LabourCategoryCountDto
 import com.struva.map.ui.common.BackIconButton
+import com.struva.map.ui.common.MirrorHeader
+import com.struva.map.ui.common.MirrorRow
 import com.struva.map.ui.common.StruvaButton
 import com.struva.map.ui.common.StruvaCard
 import com.struva.map.ui.theme.EyebrowStyle
-import com.struva.map.ui.theme.IBMPlexMono
 import com.struva.map.ui.theme.StruvaColors
 import com.struva.map.ui.theme.struvaTopAppBarColors
 
@@ -102,6 +102,10 @@ fun LabourScreen(
 private fun LabourContent(state: LabourUiState.Loaded, onLog: (String) -> Unit, onUndo: () -> Unit) {
     val partnerName = state.partnerName ?: "Partnerin"
     val labels = state.data.categories.associate { it.id to it.label }
+    // Bugün zaten kaydettiğin bir iş tekrar seçilemez — fatura ödemek ya da
+    // duygusal destek vermek gibi işlerin günde ikinci kez "kaydı"nın anlamı yok.
+    val loggedTodayIds = remember(state.data.todayMine) { state.data.todayMine.map { it.category }.toSet() }
+    val availableCategories = state.data.categories.filterNot { it.id in loggedTodayIds }
 
     Column(
         modifier = Modifier
@@ -118,22 +122,30 @@ private fun LabourContent(state: LabourUiState.Loaded, onLog: (String) -> Unit, 
                 color = StruvaColors.Muted,
             )
             Spacer(Modifier.height(12.dp))
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                state.data.categories.forEach { category ->
-                    Text(
-                        category.label,
-                        modifier = Modifier
-                            .clip(ChipShape)
-                            .background(StruvaColors.AccentSoft)
-                            .border(1.dp, StruvaColors.Accent, ChipShape)
-                            .clickable(enabled = !state.busy) { onLog(category.id) }
-                            .padding(horizontal = 14.dp, vertical = 8.dp),
-                        style = MaterialTheme.typography.labelMedium,
-                        color = StruvaColors.Accent,
-                    )
+            if (availableCategories.isEmpty()) {
+                Text(
+                    "Bugün için hepsini kaydettin.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = StruvaColors.Muted,
+                )
+            } else {
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    availableCategories.forEach { category ->
+                        Text(
+                            category.label,
+                            modifier = Modifier
+                                .clip(ChipShape)
+                                .background(StruvaColors.AccentSoft)
+                                .border(1.dp, StruvaColors.Accent, ChipShape)
+                                .clickable(enabled = !state.busy) { onLog(category.id) }
+                                .padding(horizontal = 14.dp, vertical = 8.dp),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = StruvaColors.Accent,
+                        )
+                    }
                 }
             }
             state.actionError?.let {
@@ -196,59 +208,25 @@ private fun WeekBreakdown(
     partnerName: String,
 ) {
     Column {
-        Text("Kayıtlarda senin payın: %$myShare", style = MaterialTheme.typography.titleMedium)
+        MirrorHeader(
+            meValue = mine.toString(),
+            meLabel = "Sen",
+            themValue = partner.toString(),
+            themLabel = partnerName,
+        )
+        Spacer(Modifier.height(8.dp))
         Text(
-            "Sen $mine · $partnerName $partner kayıt",
-            style = MaterialTheme.typography.bodySmall,
+            "Senin payın: %$myShare",
+            style = MaterialTheme.typography.labelSmall,
             color = StruvaColors.Muted,
         )
-        Spacer(Modifier.height(12.dp))
-        ShareLegend(partnerName)
         categories.filter { it.mine + it.partner > 0 }.forEach { category ->
-            Spacer(Modifier.height(10.dp))
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(category.label, modifier = Modifier.weight(1f), style = MaterialTheme.typography.labelMedium)
-                Text(
-                    "${category.mine} · ${category.partner}",
-                    style = MaterialTheme.typography.labelMedium.copy(fontFamily = IBMPlexMono),
-                    color = StruvaColors.Muted,
-                )
-            }
-            Spacer(Modifier.height(4.dp))
-            SplitBar(category.mine, category.partner)
+            MirrorRow(
+                meValue = category.mine.toString(),
+                center = category.label,
+                themValue = category.partner.toString(),
+            )
         }
-    }
-}
-
-// Tek çubukta iki taraf: sol sen (accent), sağ partner (soluk).
-@Composable
-private fun SplitBar(mine: Int, partner: Int) {
-    val total = (mine + partner).coerceAtLeast(1)
-    Row(
-        Modifier
-            .fillMaxWidth()
-            .height(8.dp)
-            .clip(RoundedCornerShape(99.dp))
-            .background(StruvaColors.Border),
-    ) {
-        if (mine > 0) Box(Modifier.weight(mine.toFloat() / total).fillMaxHeight().background(StruvaColors.Accent))
-        if (partner > 0) Box(Modifier.weight(partner.toFloat() / total).fillMaxHeight().background(StruvaColors.Muted))
-    }
-}
-
-@Composable
-private fun ShareLegend(partnerName: String) {
-    Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-        LegendDot(StruvaColors.Accent, "Sen")
-        LegendDot(StruvaColors.Muted, partnerName)
-    }
-}
-
-@Composable
-private fun LegendDot(color: Color, label: String) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Box(Modifier.padding(end = 6.dp).clip(RoundedCornerShape(99.dp)).background(color).padding(4.dp))
-        Text(label, style = MaterialTheme.typography.labelSmall, color = StruvaColors.Muted)
     }
 }
 
