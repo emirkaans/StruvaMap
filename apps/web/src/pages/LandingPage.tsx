@@ -260,7 +260,7 @@ export function LandingPage() {
                           </a>
                         </div>
                         <p className="hero-invite-note">
-                          {t.inviteCta} — testi bitirince sonuçlarınız yan yana
+                          {t.inviteCta} . Testi bitirince sonuçlarınız yan yana
                           kıyaslanır.
                         </p>
                       </div>
