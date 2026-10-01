@@ -19,6 +19,7 @@ export function AdminNav() {
         Özet
       </NavLink>
       <NavLink to="/admin/events">Olaylar</NavLink>
+      <NavLink to="/admin/mobile">Mobil</NavLink>
       <NavLink to="/admin/results">Sonuçlar</NavLink>
       <NavLink to="/admin/comparisons">Kıyaslamalar</NavLink>
       <NavLink to="/admin/tests">Testler</NavLink>

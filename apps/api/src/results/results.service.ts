@@ -1,6 +1,7 @@
 import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { computeScores, ScoreResult } from '@struva/shared';
 import { SupabaseService } from '../supabase/supabase.service';
+import { fetchAll } from '../common/fetch-all';
 import { bucketByDay, DailyCount } from '../common/bucket-by-day';
 import { getOptionalUser } from '../auth/optional-user';
 import { TestsService } from '../tests/tests.service';
@@ -127,7 +128,7 @@ export class ResultsService {
   /* Testler DB'de az sayıda (5) olduğundan tek tek count sorgusu — events
      servisindeki countByName ile aynı pragmatik yaklaşım. */
   async countByTest(): Promise<TestResultCount[]> {
-    const tests = await this.tests.listAll();
+    const tests = await this.tests.listAll(true); // gizli testlerin sonuçları da sayılsın
     const counts = await Promise.all(
       tests.map(async (test) => {
         const { count, error } = await this.supabase.client
@@ -142,13 +143,12 @@ export class ResultsService {
   }
 
   async dailyTotalTrend(from?: string, to?: string): Promise<DailyCount[]> {
-    let query = this.supabase.client.from('results').select('created_at');
-    if (from) query = query.gte('created_at', from);
-    if (to) query = query.lte('created_at', to);
-
-    const { data, error } = await query;
-    if (error) throw new InternalServerErrorException(error.message);
-
-    return bucketByDay(data ?? []);
+    const rows = await fetchAll((start, end) => {
+      let query = this.supabase.client.from('results').select('created_at');
+      if (from) query = query.gte('created_at', from);
+      if (to) query = query.lte('created_at', to);
+      return query.order('id').range(start, end);
+    });
+    return bucketByDay(rows);
   }
 }

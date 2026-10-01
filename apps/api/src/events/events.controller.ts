@@ -1,6 +1,13 @@
-import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Headers,
+  HttpCode,
+  HttpStatus,
+  Post,
+} from '@nestjs/common';
 import { EventsService } from './events.service';
-import { TrackEventDto } from './track-event.dto';
+import { platformFromUserAgent, TrackEventDto } from './track-event.dto';
 
 @Controller('events')
 export class EventsController {
@@ -9,7 +16,10 @@ export class EventsController {
   /* sendBeacon gövdeyi bekleme yapmadan yollar; 204 dönüp kapatıyoruz. */
   @Post()
   @HttpCode(HttpStatus.NO_CONTENT)
-  async track(@Body() dto: TrackEventDto): Promise<void> {
-    await this.eventsService.track(dto);
+  async track(
+    @Body() dto: TrackEventDto,
+    @Headers('user-agent') userAgent?: string,
+  ): Promise<void> {
+    await this.eventsService.track(dto, platformFromUserAgent(userAgent));
   }
 }

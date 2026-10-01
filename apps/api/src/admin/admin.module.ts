@@ -6,9 +6,11 @@ import { ComparisonsModule } from '../comparisons/comparisons.module';
 import { TestsModule } from '../tests/tests.module';
 import { AdminController } from './admin.controller';
 import { AdminTestsController } from './admin-tests.controller';
+import { AdminMobileService } from './admin-mobile.service';
 
 @Module({
   imports: [AuthModule, EventsModule, ResultsModule, ComparisonsModule, TestsModule],
   controllers: [AdminController, AdminTestsController],
+  providers: [AdminMobileService],
 })
 export class AdminModule {}

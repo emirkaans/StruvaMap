@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { evaluatePrediction, type PredictionSummary } from '@struva/shared';
 import { SupabaseService } from '../supabase/supabase.service';
+import { fetchAll } from '../common/fetch-all';
 import { bucketByDay, DailyCount } from '../common/bucket-by-day';
 import { ResultsService } from '../results/results.service';
 import { DevicesService } from '../devices/devices.service';
@@ -179,13 +180,12 @@ export class ComparisonsService {
   }
 
   async dailyTotalTrend(from?: string, to?: string): Promise<DailyCount[]> {
-    let query = this.supabase.client.from('comparisons').select('created_at');
-    if (from) query = query.gte('created_at', from);
-    if (to) query = query.lte('created_at', to);
-
-    const { data, error } = await query;
-    if (error) throw new InternalServerErrorException(error.message);
-
-    return bucketByDay(data ?? []);
+    const rows = await fetchAll((start, end) => {
+      let query = this.supabase.client.from('comparisons').select('created_at');
+      if (from) query = query.gte('created_at', from);
+      if (to) query = query.lte('created_at', to);
+      return query.order('id').range(start, end);
+    });
+    return bucketByDay(rows);
   }
 }

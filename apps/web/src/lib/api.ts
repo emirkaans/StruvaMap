@@ -127,6 +127,14 @@ export interface AdminPaginated<T> {
   total: number;
 }
 
+// Olayın geldiği istemci; boş bırakılırsa hepsi (platform bilgisi olmayan
+// eski olaylar dahil).
+export type AdminPlatform = "" | "web" | "android";
+
+export interface AdminFunnelStep extends AdminEventCount {
+  sessions: number;
+}
+
 export function fetchAdminEventsSummary(from?: string, to?: string): Promise<AdminEventCount[]> {
   return adminRequest(`/admin/events/summary${toQuery({ from, to })}`);
 }
@@ -135,16 +143,54 @@ export function fetchAdminEventsTrend(
   name: string,
   from?: string,
   to?: string,
+  platform: AdminPlatform = "",
 ): Promise<AdminEventDailyCount[]> {
-  return adminRequest(`/admin/events/trend${toQuery({ name, from, to })}`);
+  return adminRequest(`/admin/events/trend${toQuery({ name, from, to, platform })}`);
 }
 
-export function fetchAdminEventsFunnel(from?: string, to?: string): Promise<AdminEventCount[]> {
-  return adminRequest(`/admin/events/funnel${toQuery({ from, to })}`);
+export function fetchAdminEventsFunnel(
+  from?: string,
+  to?: string,
+  platform: AdminPlatform = "",
+): Promise<AdminFunnelStep[]> {
+  return adminRequest(`/admin/events/funnel${toQuery({ from, to, platform })}`);
 }
 
-export function fetchAdminEventsDailyTotal(from?: string, to?: string): Promise<AdminEventDailyCount[]> {
-  return adminRequest(`/admin/events/daily-total${toQuery({ from, to })}`);
+export interface AdminMobileSummary {
+  users: {
+    total: number;
+    guests: number;
+    registered: number;
+    newInRange: number;
+    newGuestsInRange: number;
+  };
+  activeSessions: { last7Days: number; last30Days: number };
+  pulse: {
+    activePairs: number;
+    pendingPairs: number;
+    endedPairs: number;
+    endedInRange: number;
+    checkinDays: number;
+    anyAnsweredDays: number;
+    bothAnsweredDays: number;
+    answerSources: Record<string, number>;
+  };
+  push: {
+    usersWithToken: number;
+    days: { date: string; morningPairs: number; eveningPeople: number }[];
+  };
+}
+
+export function fetchAdminMobile(from?: string, to?: string): Promise<AdminMobileSummary> {
+  return adminRequest(`/admin/mobile${toQuery({ from, to })}`);
+}
+
+export function fetchAdminEventsDailyTotal(
+  from?: string,
+  to?: string,
+  platform: AdminPlatform = "",
+): Promise<AdminEventDailyCount[]> {
+  return adminRequest(`/admin/events/daily-total${toQuery({ from, to, platform })}`);
 }
 
 export interface AdminTestResultCount {

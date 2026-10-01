@@ -29,6 +29,17 @@ export const EVENT_NAMES = [
 
 export type EventName = (typeof EVENT_NAMES)[number];
 
+// Olayın geldiği istemci. İstemci göndermez; API isteğin User-Agent'ından
+// çıkarır (bkz. platformFromUserAgent) ve props.platform'a yazar. User-Agent'ın
+// kendisi saklanmaz. Bu alan eklenmeden önceki olaylarda platform yoktur.
+export const PLATFORMS = ['web', 'android'] as const;
+export type Platform = (typeof PLATFORMS)[number];
+
+// Android istemcisi Retrofit/OkHttp ile istek atar ("okhttp/4.x").
+export function platformFromUserAgent(userAgent: string | undefined): Platform {
+  return userAgent && /okhttp/i.test(userAgent) ? 'android' : 'web';
+}
+
 export class TrackEventDto {
   @IsString()
   @IsIn(EVENT_NAMES)

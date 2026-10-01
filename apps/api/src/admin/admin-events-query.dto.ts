@@ -1,5 +1,6 @@
 import { IsDateString, IsIn, IsOptional, IsString } from 'class-validator';
-import { EVENT_NAMES } from '../events/track-event.dto';
+import { EVENT_NAMES, PLATFORMS } from '../events/track-event.dto';
+import type { Platform } from '../events/track-event.dto';
 
 export class AdminEventsQueryDto {
   @IsOptional()
@@ -9,6 +10,11 @@ export class AdminEventsQueryDto {
   @IsOptional()
   @IsDateString()
   to?: string;
+
+  // Verilmezse tüm platformlar (platform bilgisi olmayan eski olaylar dahil).
+  @IsOptional()
+  @IsIn(PLATFORMS)
+  platform?: Platform;
 }
 
 export class AdminEventsTrendDto extends AdminEventsQueryDto {

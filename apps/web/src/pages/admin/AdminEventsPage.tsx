@@ -4,30 +4,34 @@ import { AdminTrendChart } from "../../components/AdminTrendChart";
 import {
   fetchAdminEventsFunnel,
   fetchAdminEventsTrend,
-  type AdminEventCount,
   type AdminEventDailyCount,
+  type AdminFunnelStep,
+  type AdminPlatform,
 } from "../../lib/api";
+import { AdminPlatformSelect } from "../../components/AdminPlatformSelect";
 
 export function AdminEventsPage() {
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
-  const [funnel, setFunnel] = useState<AdminEventCount[] | null>(null);
+  const [platform, setPlatform] = useState<AdminPlatform>("");
+  const [funnel, setFunnel] = useState<AdminFunnelStep[] | null>(null);
   const [selectedName, setSelectedName] = useState<string>("");
   const [trend, setTrend] = useState<AdminEventDailyCount[] | null>(null);
 
   useEffect(() => {
-    fetchAdminEventsFunnel(from || undefined, to || undefined).then((rows) => {
+    fetchAdminEventsFunnel(from || undefined, to || undefined, platform).then((rows) => {
       setFunnel(rows);
       setSelectedName((current) => current || rows[0]?.name || "");
     });
-  }, [from, to]);
+  }, [from, to, platform]);
 
   useEffect(() => {
     if (!selectedName) return;
-    fetchAdminEventsTrend(selectedName, from || undefined, to || undefined).then(setTrend);
-  }, [selectedName, from, to]);
+    fetchAdminEventsTrend(selectedName, from || undefined, to || undefined, platform).then(setTrend);
+  }, [selectedName, from, to, platform]);
 
-  const first = funnel?.[0]?.count ?? 0;
+  // Oranlar tekil oturumla: aynı kişinin tekrar eden olayları oranı şişirmesin.
+  const first = funnel?.[0]?.sessions ?? 0;
 
   return (
     <main className="wrap admin-wrap">
@@ -43,6 +47,7 @@ export function AdminEventsPage() {
           <span>Bitiş</span>
           <input type="date" className="admin-input" value={to} onChange={(e) => setTo(e.target.value)} />
         </label>
+        <AdminPlatformSelect value={platform} onChange={setPlatform} />
       </div>
 
       <h2>Huni</h2>
@@ -52,20 +57,22 @@ export function AdminEventsPage() {
             <thead>
               <tr>
                 <th>Adım</th>
-                <th>Sayı</th>
+                <th>Olay</th>
+                <th>Tekil oturum</th>
                 <th>Önceki adıma göre</th>
                 <th>İlk adıma göre</th>
               </tr>
             </thead>
             <tbody>
               {funnel.map((step, i) => {
-                const prev = funnel[i - 1]?.count ?? step.count;
-                const ofPrev = prev > 0 ? Math.round((step.count / prev) * 100) : 100;
-                const ofFirst = first > 0 ? Math.round((step.count / first) * 100) : 100;
+                const prev = funnel[i - 1]?.sessions ?? step.sessions;
+                const ofPrev = prev > 0 ? Math.round((step.sessions / prev) * 100) : 100;
+                const ofFirst = first > 0 ? Math.round((step.sessions / first) * 100) : 100;
                 return (
                   <tr key={step.name}>
                     <td>{step.name}</td>
                     <td>{step.count}</td>
+                    <td>{step.sessions}</td>
                     <td>{i === 0 ? "—" : `%${ofPrev}`}</td>
                     <td>%{ofFirst}</td>
                   </tr>

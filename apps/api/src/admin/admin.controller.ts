@@ -6,6 +6,7 @@ import { ResultsService } from '../results/results.service';
 import { ComparisonsService } from '../comparisons/comparisons.service';
 import { AdminListDto } from './admin-list.dto';
 import { AdminEventsQueryDto, AdminEventsTrendDto } from './admin-events-query.dto';
+import { AdminMobileService } from './admin-mobile.service';
 
 @Controller('admin')
 @UseGuards(AdminGuard)
@@ -14,26 +15,27 @@ export class AdminController {
     private readonly events: EventsService,
     private readonly results: ResultsService,
     private readonly comparisons: ComparisonsService,
+    private readonly mobile: AdminMobileService,
   ) {}
 
   @Get('events/summary')
   eventsSummary(@Query() query: AdminEventsQueryDto) {
-    return this.events.countByName(query.from, query.to);
+    return this.events.countByName(query);
   }
 
   @Get('events/trend')
   eventsTrend(@Query() query: AdminEventsTrendDto) {
-    return this.events.dailyTrend(query.name, query.from, query.to);
+    return this.events.dailyTrend(query);
   }
 
   @Get('events/funnel')
   eventsFunnel(@Query() query: AdminEventsQueryDto) {
-    return this.events.funnel(EVENT_NAMES, query.from, query.to);
+    return this.events.funnel(EVENT_NAMES, query);
   }
 
   @Get('events/daily-total')
   eventsDailyTotal(@Query() query: AdminEventsQueryDto) {
-    return this.events.dailyTotalTrend(query.from, query.to);
+    return this.events.dailyTrend(query);
   }
 
   @Get('results')
@@ -54,6 +56,11 @@ export class AdminController {
   @Get('comparisons')
   listComparisons(@Query() query: AdminListDto) {
     return this.comparisons.findAllPaginated(query);
+  }
+
+  @Get('mobile')
+  mobileSummary(@Query() query: AdminEventsQueryDto) {
+    return this.mobile.summary(query.from, query.to);
   }
 
   @Get('comparisons/daily-total')

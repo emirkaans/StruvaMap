@@ -11,8 +11,10 @@ import {
   fetchAdminResultsByTest,
   fetchAdminResultsDailyTotal,
   fetchTests,
+  type AdminPlatform,
   type AdminTestResultCount,
 } from "../../lib/api";
+import { AdminPlatformSelect } from "../../components/AdminPlatformSelect";
 
 function isoDate(d: Date): string {
   return d.toISOString().slice(0, 10);
@@ -41,6 +43,7 @@ export function AdminDashboardPage() {
   const [resultsByTest, setResultsByTest] = useState<AdminTestResultCount[] | null>(null);
   const [tests, setTests] = useState<TestDefinition[]>([]);
   const [trendRange, setTrendRange] = useState<TrendRangeKey>("7d");
+  const [eventsPlatform, setEventsPlatform] = useState<AdminPlatform>("");
   const [eventsTrend, setEventsTrend] = useState<CountPoint[] | null>(null);
   const [resultsTrend, setResultsTrend] = useState<CountPoint[] | null>(null);
   const [comparisonsTrend, setComparisonsTrend] = useState<CountPoint[] | null>(null);
@@ -55,13 +58,16 @@ export function AdminDashboardPage() {
 
   useEffect(() => {
     const from = trendRangeFrom(trendRange);
-    setEventsTrend(null);
     setResultsTrend(null);
     setComparisonsTrend(null);
-    fetchAdminEventsDailyTotal(from).then(setEventsTrend);
     fetchAdminResultsDailyTotal(from).then(setResultsTrend);
     fetchAdminComparisonsDailyTotal(from).then(setComparisonsTrend);
   }, [trendRange]);
+
+  useEffect(() => {
+    setEventsTrend(null);
+    fetchAdminEventsDailyTotal(trendRangeFrom(trendRange), undefined, eventsPlatform).then(setEventsTrend);
+  }, [trendRange, eventsPlatform]);
 
   const testName = (testId: string) => tests.find((t) => t.id === testId)?.name ?? testId;
   const maxTestCount = resultsByTest?.length ? Math.max(...resultsByTest.map((r) => r.count), 1) : 1;
@@ -143,7 +149,10 @@ export function AdminDashboardPage() {
         </select>
       </div>
 
-      <h3>Olaylar</h3>
+      <div className="admin-field-inline" style={{ alignItems: "center", justifyContent: "space-between" }}>
+        <h3>Olaylar</h3>
+        <AdminPlatformSelect value={eventsPlatform} onChange={setEventsPlatform} />
+      </div>
       <div className="card">{eventsTrend && <AdminTrendChart data={eventsTrend} label="olay" />}</div>
 
       <h3>Tamamlanan Testler</h3>
