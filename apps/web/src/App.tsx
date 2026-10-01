@@ -18,6 +18,7 @@ const AdminEventsPage = lazy(() => import("./pages/admin/AdminEventsPage").then(
 const AdminResultsPage = lazy(() => import("./pages/admin/AdminResultsPage").then((m) => ({ default: m.AdminResultsPage })));
 const AdminComparisonsPage = lazy(() => import("./pages/admin/AdminComparisonsPage").then((m) => ({ default: m.AdminComparisonsPage })));
 const AdminMobilePage = lazy(() => import("./pages/admin/AdminMobilePage").then((m) => ({ default: m.AdminMobilePage })));
+const AdminDataPage = lazy(() => import("./pages/admin/AdminDataPage").then((m) => ({ default: m.AdminDataPage })));
 const AdminTestsPage = lazy(() => import("./pages/admin/AdminTestsPage").then((m) => ({ default: m.AdminTestsPage })));
 const AdminTestEditPage = lazy(() => import("./pages/admin/AdminTestEditPage").then((m) => ({ default: m.AdminTestEditPage })));
 
@@ -85,6 +86,16 @@ export function App() {
           <Suspense fallback={null}>
             <AdminRoute>
               <AdminMobilePage />
+            </AdminRoute>
+          </Suspense>
+        }
+      />
+      <Route
+        path="/admin/data"
+        element={
+          <Suspense fallback={null}>
+            <AdminRoute>
+              <AdminDataPage />
             </AdminRoute>
           </Suspense>
         }

@@ -179,6 +179,38 @@ export interface AdminMobileSummary {
     usersWithToken: number;
     days: { date: string; morningPairs: number; eveningPeople: number }[];
   };
+  features: {
+    relationships: { total: number; archived: number; users: number; linkedResults: number };
+    predictions: { total: number; evaluated: number; averageAccuracy: number | null };
+    labour: { entriesInRange: number; pairsInRange: number };
+    claims: { createdInRange: number; redeemedInRange: number };
+  };
+}
+
+export interface AdminSessionData {
+  sessionId: string;
+  results: { id: string; testId: string; createdAt: string; linkedToAccount: boolean }[];
+  comparisonCount: number;
+  eventCount: number;
+}
+
+export interface AdminDataLookup {
+  matchedAs: "result" | "comparison";
+  sessions: AdminSessionData[];
+}
+
+export interface AdminDeletionReport {
+  comparisons: number;
+  results: number;
+  events: number;
+}
+
+export function lookupAdminData(q: string): Promise<AdminDataLookup> {
+  return adminRequest(`/admin/data/lookup${toQuery({ q })}`);
+}
+
+export function deleteAdminSessionData(sessionId: string): Promise<AdminDeletionReport> {
+  return adminRequest(`/admin/data/sessions/${encodeURIComponent(sessionId)}`, { method: "DELETE" });
 }
 
 export function fetchAdminMobile(from?: string, to?: string): Promise<AdminMobileSummary> {

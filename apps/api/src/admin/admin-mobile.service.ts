@@ -1,4 +1,5 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { evaluatePrediction } from '@struva/shared';
 import { SupabaseService } from '../supabase/supabase.service';
 import { EventsService } from '../events/events.service';
 import { fetchAll } from '../common/fetch-all';
@@ -31,6 +32,30 @@ export interface AdminMobileSummary {
     // hatırlatması giden kişi sayısı (pulse_checkins üzerindeki damgalardan).
     days: { date: string; morningPairs: number; eveningPeople: number }[];
   };
+  // Mobil özelliklerin kullanımı. "InRange" alanları tarih aralığına,
+  // diğerleri tüm zamana göre.
+  features: {
+    relationships: {
+      total: number;
+      archived: number;
+      users: number;
+      linkedResults: number;
+    };
+    // evaluated: karşı taraf testi bitirip kıyaslama oluşmuş tahminler;
+    // averageAccuracy bunların ortalama isabeti (0-100), yoksa null.
+    predictions: {
+      total: number;
+      evaluated: number;
+      averageAccuracy: number | null;
+    };
+    labour: { entriesInRange: number; pairsInRange: number };
+    claims: { createdInRange: number; redeemedInRange: number };
+  };
+}
+
+interface ScoreDimensions {
+  id: string;
+  score: { dimensions: Record<string, number> };
 }
 
 interface CheckinStats {
@@ -62,6 +87,7 @@ export class AdminMobileService {
       answerSources,
       usersWithToken,
       pushRows,
+      features,
     ] = await Promise.all([
       this.userCounts(from, to),
       this.events.distinctSessions({
@@ -78,6 +104,7 @@ export class AdminMobileService {
       this.events.countByProp('pulse_answer', 'source', { from, to }),
       this.headCount(this.countQuery('user_push_tokens')),
       this.checkins(daysAgoDateString(PUSH_DAYS - 1)),
+      this.features(from, to),
     ]);
 
     return {
@@ -96,6 +123,149 @@ export class AdminMobileService {
         answerSources,
       },
       push: { usersWithToken, days: this.pushDays(pushRows) },
+      features,
+    };
+  }
+
+  private async features(
+    from?: string,
+    to?: string,
+  ): Promise<AdminMobileSummary['features']> {
+    const inRange = <
+      T extends {
+        gte: (c: string, v: string) => T;
+        lte: (c: string, v: string) => T;
+      },
+    >(
+      query: T,
+      column: string,
+    ): T => {
+      let q = query;
+      if (from) q = q.gte(column, from);
+      if (to) q = q.lte(column, to);
+      return q;
+    };
+
+    const [
+      relationships,
+      linkedResults,
+      predictions,
+      labour,
+      claimsCreated,
+      claimsRedeemed,
+    ] = await Promise.all([
+      fetchAll<{ user_id: string; archived_at: string | null }>((start, end) =>
+        this.supabase.client
+          .from('relationships')
+          .select('user_id, archived_at')
+          .order('id')
+          .range(start, end),
+      ),
+      this.headCount(
+        this.countQuery('results').not('relationship_id', 'is', null),
+      ),
+      this.predictionStats(),
+      fetchAll<{ pair_id: string }>((start, end) =>
+        inRange(
+          this.supabase.client.from('labour_entries').select('pair_id'),
+          'entry_date',
+        )
+          .order('id')
+          .range(start, end),
+      ),
+      this.headCount(inRange(this.countQuery('claim_tokens'), 'created_at')),
+      this.headCount(inRange(this.countQuery('claim_tokens'), 'claimed_at')),
+    ]);
+
+    return {
+      relationships: {
+        total: relationships.length,
+        archived: relationships.filter((r) => r.archived_at).length,
+        users: new Set(relationships.map((r) => r.user_id)).size,
+        linkedResults,
+      },
+      predictions,
+      labour: {
+        entriesInRange: labour.length,
+        pairsInRange: new Set(labour.map((l) => l.pair_id)).size,
+      },
+      claims: {
+        createdInRange: claimsCreated,
+        redeemedInRange: claimsRedeemed,
+      },
+    };
+  }
+
+  // Kıyaslama ekranındaki hesabın aynısı (ComparisonsService): tahmin, tahmin
+  // edenin kendi skoru ve karşı tarafın gerçek skoruyla değerlendirilir.
+  private async predictionStats(): Promise<
+    AdminMobileSummary['features']['predictions']
+  > {
+    const predictions = await fetchAll<{
+      result_id: string;
+      dimensions: Record<string, number>;
+    }>((start, end) =>
+      this.supabase.client
+        .from('predictions')
+        .select('result_id, dimensions')
+        .order('result_id')
+        .range(start, end),
+    );
+    if (predictions.length === 0) {
+      return { total: 0, evaluated: 0, averageAccuracy: null };
+    }
+
+    const ids = predictions.map((p) => p.result_id);
+    const comparisons = await fetchAll<{
+      result_id_a: string;
+      result_id_b: string;
+    }>((start, end) =>
+      this.supabase.client
+        .from('comparisons')
+        .select('result_id_a, result_id_b')
+        .or(
+          `result_id_a.in.(${ids.join(',')}),result_id_b.in.(${ids.join(',')})`,
+        )
+        .order('id')
+        .range(start, end),
+    );
+    const partnerOf = new Map<string, string>();
+    for (const c of comparisons) {
+      partnerOf.set(c.result_id_a, c.result_id_b);
+      partnerOf.set(c.result_id_b, c.result_id_a);
+    }
+
+    const scoreIds = [
+      ...new Set(comparisons.flatMap((c) => [c.result_id_a, c.result_id_b])),
+    ];
+    const scores = new Map<string, Record<string, number>>();
+    if (scoreIds.length > 0) {
+      const rows = await fetchAll<ScoreDimensions>((start, end) =>
+        this.supabase.client
+          .from('results')
+          .select('id, score')
+          .in('id', scoreIds)
+          .order('id')
+          .range(start, end),
+      );
+      for (const row of rows) scores.set(row.id, row.score.dimensions);
+    }
+
+    const accuracies = predictions.flatMap((p) => {
+      const partner = partnerOf.get(p.result_id);
+      const own = scores.get(p.result_id);
+      const actual = partner ? scores.get(partner) : undefined;
+      if (!own || !actual) return [];
+      const summary = evaluatePrediction(own, p.dimensions, actual);
+      return summary ? [summary.accuracy] : [];
+    });
+
+    return {
+      total: predictions.length,
+      evaluated: accuracies.length,
+      averageAccuracy: accuracies.length
+        ? Math.round(accuracies.reduce((a, b) => a + b, 0) / accuracies.length)
+        : null,
     };
   }
 

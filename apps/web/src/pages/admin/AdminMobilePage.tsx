@@ -147,6 +147,76 @@ export function AdminMobilePage() {
             )}
           </div>
 
+          <h2>Özellik kullanımı</h2>
+          <div className="card">
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>Özellik</th>
+                  <th>Gösterge</th>
+                  <th>Değer</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td rowSpan={4}>İlişki haritası</td>
+                  <td>Oluşturulan ilişki</td>
+                  <td>{data.features.relationships.total}</td>
+                </tr>
+                <tr>
+                  <td>Arşivlenen ilişki</td>
+                  <td>{data.features.relationships.archived}</td>
+                </tr>
+                <tr>
+                  <td>En az bir ilişkisi olan kullanıcı</td>
+                  <td>{data.features.relationships.users}</td>
+                </tr>
+                <tr>
+                  <td>İlişkiye bağlı sonuç</td>
+                  <td>{data.features.relationships.linkedResults}</td>
+                </tr>
+                <tr>
+                  <td rowSpan={3}>Tahmin modu</td>
+                  <td>Kaydedilen tahmin</td>
+                  <td>{data.features.predictions.total}</td>
+                </tr>
+                <tr>
+                  <td>Kıyaslaması oluşan tahmin</td>
+                  <td>{data.features.predictions.evaluated}</td>
+                </tr>
+                <tr>
+                  <td>Ortalama isabet</td>
+                  <td>
+                    {data.features.predictions.averageAccuracy == null
+                      ? "–"
+                      : `%${data.features.predictions.averageAccuracy}`}
+                  </td>
+                </tr>
+                <tr>
+                  <td rowSpan={2}>Emek defteri</td>
+                  <td>Aralıkta kayıt</td>
+                  <td>{data.features.labour.entriesInRange}</td>
+                </tr>
+                <tr>
+                  <td>Aralıkta kayıt giren eşleşme</td>
+                  <td>{data.features.labour.pairsInRange}</td>
+                </tr>
+                <tr>
+                  <td rowSpan={2}>Webden uygulamaya aktarma</td>
+                  <td>Aralıkta oluşturulan kod</td>
+                  <td>{data.features.claims.createdInRange}</td>
+                </tr>
+                <tr>
+                  <td>Aralıkta uygulamada kullanılan kod</td>
+                  <td>
+                    {data.features.claims.redeemedInRange} (
+                    {percent(data.features.claims.redeemedInRange, data.features.claims.createdInRange)})
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
           <h2>Bildirimler</h2>
           <div className="admin-stat-grid">
             <Stat value={data.push.usersWithToken} label="Bildirim alabilen kullanıcı" />

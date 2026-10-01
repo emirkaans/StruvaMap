@@ -23,6 +23,7 @@ export function AdminNav() {
       <NavLink to="/admin/results">Sonuçlar</NavLink>
       <NavLink to="/admin/comparisons">Kıyaslamalar</NavLink>
       <NavLink to="/admin/tests">Testler</NavLink>
+      <NavLink to="/admin/data">Veri silme</NavLink>
       <button
         type="button"
         className="admin-nav-logout"

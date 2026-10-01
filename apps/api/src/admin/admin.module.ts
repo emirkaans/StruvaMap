@@ -7,10 +7,11 @@ import { TestsModule } from '../tests/tests.module';
 import { AdminController } from './admin.controller';
 import { AdminTestsController } from './admin-tests.controller';
 import { AdminMobileService } from './admin-mobile.service';
+import { AdminDataService } from './admin-data.service';
 
 @Module({
   imports: [AuthModule, EventsModule, ResultsModule, ComparisonsModule, TestsModule],
   controllers: [AdminController, AdminTestsController],
-  providers: [AdminMobileService],
+  providers: [AdminMobileService, AdminDataService],
 })
 export class AdminModule {}

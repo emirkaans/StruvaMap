@@ -1,4 +1,4 @@
-import { Controller, Get, Query, UseGuards } from '@nestjs/common';
+import { Controller, Delete, Get, Param, Query, UseGuards } from '@nestjs/common';
 import { AdminGuard } from '../auth/admin.guard';
 import { EventsService } from '../events/events.service';
 import { EVENT_NAMES } from '../events/track-event.dto';
@@ -7,6 +7,8 @@ import { ComparisonsService } from '../comparisons/comparisons.service';
 import { AdminListDto } from './admin-list.dto';
 import { AdminEventsQueryDto, AdminEventsTrendDto } from './admin-events-query.dto';
 import { AdminMobileService } from './admin-mobile.service';
+import { AdminDataService } from './admin-data.service';
+import { AdminDataLookupDto } from './admin-data.dto';
 
 @Controller('admin')
 @UseGuards(AdminGuard)
@@ -16,6 +18,7 @@ export class AdminController {
     private readonly results: ResultsService,
     private readonly comparisons: ComparisonsService,
     private readonly mobile: AdminMobileService,
+    private readonly data: AdminDataService,
   ) {}
 
   @Get('events/summary')
@@ -61,6 +64,16 @@ export class AdminController {
   @Get('mobile')
   mobileSummary(@Query() query: AdminEventsQueryDto) {
     return this.mobile.summary(query.from, query.to);
+  }
+
+  @Get('data/lookup')
+  lookupData(@Query() query: AdminDataLookupDto) {
+    return this.data.lookup(query.q);
+  }
+
+  @Delete('data/sessions/:sessionId')
+  deleteSessionData(@Param('sessionId') sessionId: string) {
+    return this.data.deleteSession(sessionId);
   }
 
   @Get('comparisons/daily-total')
