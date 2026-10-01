@@ -19,17 +19,27 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -43,8 +53,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.struva.map.network.dto.RelationshipMapDto
 import com.struva.map.network.dto.RelationshipMapNodeDto
 import com.struva.map.network.dto.RelationshipPatternDto
+import com.struva.map.network.dto.TestSummaryDto
 import com.struva.map.ui.common.StruvaButton
 import com.struva.map.ui.common.StruvaCard
+import com.struva.map.ui.common.StruvaOutlinedButton
 import com.struva.map.ui.theme.EyebrowStyle
 import com.struva.map.ui.theme.IBMPlexMono
 import com.struva.map.ui.theme.StruvaColors
@@ -80,10 +92,21 @@ fun MapScreen(
     viewModel: MapViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsState()
+    val types by viewModel.relationshipTypes.collectAsState()
+    val createState by viewModel.createState.collectAsState()
+    var adding by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) { viewModel.load() }
 
     Scaffold(
-        topBar = { TopAppBar(title = { Text("İlişki Haritası") }, colors = struvaTopAppBarColors()) },
+        topBar = {
+            TopAppBar(
+                title = { Text("İlişki Haritası") },
+                actions = {
+                    if (state is MapUiState.Loaded) TextButton(onClick = { adding = true }) { Text("Ekle") }
+                },
+                colors = struvaTopAppBarColors(),
+            )
+        },
     ) { padding ->
         Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
             when (val s = state) {
@@ -97,10 +120,92 @@ fun MapScreen(
                     map = s.map,
                     onOpenRelationship = onOpenRelationship,
                     onOpenHistory = onOpenHistory,
+                    onAddRelationship = { adding = true },
                 )
             }
         }
     }
+
+    if (adding) {
+        NewRelationshipDialog(
+            types = types,
+            state = createState,
+            onDismiss = {
+                adding = false
+                viewModel.clearCreateError()
+            },
+            onConfirm = { testId, label ->
+                viewModel.createRelationship(testId, label) { id ->
+                    adding = false
+                    onOpenRelationship(id)
+                }
+            },
+        )
+    }
+}
+
+// Ad kullanıcıdan, tür yayındaki testlerden seçilir. Oluşunca ilişki
+// detayına gidilir; orada "Bu ilişki için testi çöz" ile ilk ölçüm alınır.
+@Composable
+private fun NewRelationshipDialog(
+    types: List<TestSummaryDto>,
+    state: CreateRelationshipState,
+    onDismiss: () -> Unit,
+    onConfirm: (testId: String, label: String) -> Unit,
+) {
+    var label by remember { mutableStateOf("") }
+    var selectedTestId by remember { mutableStateOf<String?>(null) }
+    val canConfirm = label.isNotBlank() && selectedTestId != null && !state.saving
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Yeni ilişki") },
+        text = {
+            Column(Modifier.verticalScroll(rememberScrollState())) {
+                OutlinedTextField(
+                    value = label,
+                    onValueChange = { label = it.take(40) },
+                    label = { Text("Ad (ör. Ayşe, Yöneticim)") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                Spacer(Modifier.height(12.dp))
+                Text("İlişki türü", style = MaterialTheme.typography.titleSmall)
+                if (types.isEmpty()) {
+                    Text(
+                        "Türler yüklenemedi. İnternet bağlantını kontrol edip tekrar dene.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = StruvaColors.Muted,
+                    )
+                }
+                types.forEach { type ->
+                    val select = { selectedTestId = type.id }
+                    Row(
+                        modifier = Modifier.fillMaxWidth().clickable(onClick = select),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        RadioButton(
+                            selected = selectedTestId == type.id,
+                            onClick = select,
+                            colors = RadioButtonDefaults.colors(selectedColor = StruvaColors.Accent),
+                        )
+                        Text(relationshipTypeLabel(type.id, type.name), style = MaterialTheme.typography.bodyMedium)
+                    }
+                }
+                state.errorMessage?.let {
+                    Spacer(Modifier.height(6.dp))
+                    Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = { selectedTestId?.let { onConfirm(it, label) } },
+                enabled = canConfirm,
+            ) { Text(if (state.saving) "Kaydediliyor…" else "Oluştur") }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Vazgeç") } },
+    )
 }
 
 @Composable
@@ -108,10 +213,17 @@ private fun MapContent(
     map: RelationshipMapDto,
     onOpenRelationship: (String) -> Unit,
     onOpenHistory: () -> Unit,
+    onAddRelationship: () -> Unit,
 ) {
     LazyColumn(modifier = Modifier.fillMaxSize().padding(16.dp)) {
         if (map.relationships.isEmpty() && map.archived.isEmpty()) {
-            item { EmptyMap(hasUnassigned = map.unassignedCount > 0, onOpenHistory = onOpenHistory) }
+            item {
+                EmptyMap(
+                    hasUnassigned = map.unassignedCount > 0,
+                    onOpenHistory = onOpenHistory,
+                    onAddRelationship = onAddRelationship,
+                )
+            }
         } else {
             if (map.relationships.isNotEmpty()) {
                 item {
@@ -314,7 +426,7 @@ private fun RelationshipRow(node: RelationshipMapNodeDto, onOpen: () -> Unit) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
                 Text(node.label, style = MaterialTheme.typography.titleMedium)
-                Text(node.testName, style = MaterialTheme.typography.labelSmall, color = StruvaColors.Muted)
+                Text(relationshipTypeLabel(node.testId, node.testName), style = MaterialTheme.typography.labelSmall, color = StruvaColors.Muted)
             }
             node.latest?.let {
                 Column(horizontalAlignment = Alignment.End) {
@@ -365,20 +477,22 @@ private fun isStale(node: RelationshipMapNodeDto): Boolean {
 }
 
 @Composable
-private fun EmptyMap(hasUnassigned: Boolean, onOpenHistory: () -> Unit) {
+private fun EmptyMap(hasUnassigned: Boolean, onOpenHistory: () -> Unit, onAddRelationship: () -> Unit) {
     Column(Modifier.fillMaxWidth().padding(top = 24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
         Text("Haritan henüz boş", style = MaterialTheme.typography.titleLarge)
         Spacer(Modifier.height(8.dp))
         Text(
-            "Bir sonucu açıp \"İlişkiye bağla\" dediğinde o ilişki burada bir düğüm olur. Farklı ilişkilerini " +
+            "İlişki ekleyip türünü seç ya da bir sonucu açıp \"İlişkiye bağla\" de; o ilişki burada bir düğüm olur. Farklı ilişkilerini " +
                 "(partner, arkadaş, aile, iş) bağladıkça aralarında tekrar eden örüntüleri görürsün.",
             style = MaterialTheme.typography.bodyMedium,
             color = StruvaColors.Muted,
             textAlign = TextAlign.Center,
         )
+        Spacer(Modifier.height(16.dp))
+        StruvaButton(onClick = onAddRelationship) { Text("İlişki ekle") }
         if (hasUnassigned) {
-            Spacer(Modifier.height(16.dp))
-            StruvaButton(onClick = onOpenHistory) { Text("Sonuçlarıma git") }
+            Spacer(Modifier.height(8.dp))
+            StruvaOutlinedButton(onClick = onOpenHistory) { Text("Sonuçlarıma git") }
         }
     }
 }

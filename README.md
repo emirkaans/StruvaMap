@@ -127,7 +127,8 @@ pnpm dev:api    # http://localhost:3000
 - ✅ Kişisel ilişki haritası: sonuçlar adlandırılmış ilişkilere bağlanır
   (`relationships` tablosu, `results.relationship_id`); Harita sekmesi her
   ilişkinin son skorunu ve ilişkiler arası tekrar eden gerilim/güç
-  örüntülerini gösterir (`findRelationshipPatterns`).
+  örüntülerini gösterir (`findRelationshipPatterns`). Harita'dan ad verip
+  türünü (yayındaki testlerden biri) seçerek doğrudan yeni ilişki eklenebilir.
 - ✅ Emek defteri: nabız eşleşmesindeki iki kişi günlük işleri tek dokunuşla
   kaydeder, son 7 günün kategori bazlı dağılımı gösterilir
   (`labour_entries`, `summarizeLabourWeek`).
