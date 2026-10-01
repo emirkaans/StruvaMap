@@ -12,6 +12,26 @@ function percent(part: number, whole: number): string {
   return whole > 0 ? `%${Math.round((part / whole) * 100)}` : "–";
 }
 
+// "2026-09-01" → "1 Eyl"; yıl bu yıl değilse eklenir ("1 Eyl 2025").
+function shortDate(value: string): string {
+  const [y, m, d] = value.split("-").map(Number);
+  const date = new Date(y, m - 1, d);
+  return date.toLocaleDateString("tr-TR", {
+    day: "numeric",
+    month: "short",
+    ...(y !== new Date().getFullYear() ? { year: "numeric" } : {}),
+  });
+}
+
+// Etiketlerin başına gelen dönem: "1 Eyl - 30 Eyl arası", "1 Eyl sonrası",
+// "30 Eyl öncesi" ya da tarih seçilmemişse "Tüm zamanlarda".
+function rangeLabel(from: string, to: string): string {
+  if (from && to) return `${shortDate(from)} - ${shortDate(to)} arası`;
+  if (from) return `${shortDate(from)} sonrası`;
+  if (to) return `${shortDate(to)} öncesi`;
+  return "Tüm zamanlarda";
+}
+
 function Stat({ value, label }: { value: number | string; label: string }) {
   return (
     <div className="admin-stat-tile">
@@ -42,6 +62,7 @@ export function AdminMobilePage() {
   const pulse = data?.pulse;
   const sources = pulse ? Object.entries(pulse.answerSources).sort(([, a], [, b]) => b - a) : [];
   const sourceTotal = sources.reduce((sum, [, n]) => sum + n, 0);
+  const range = rangeLabel(from, to);
 
   return (
     <main className="wrap admin-wrap">
@@ -69,8 +90,8 @@ export function AdminMobilePage() {
             <Stat value={data.users.total} label="Toplam hesap" />
             <Stat value={data.users.registered} label="Kayıtlı" />
             <Stat value={data.users.guests} label="Misafir" />
-            <Stat value={data.users.newInRange} label="Aralıkta yeni hesap" />
-            <Stat value={data.users.newGuestsInRange} label="Aralıkta yeni misafir" />
+            <Stat value={data.users.newInRange} label={`${range} yeni hesap`} />
+            <Stat value={data.users.newGuestsInRange} label={`${range} yeni misafir`} />
           </div>
 
           <h2>Aktif oturumlar</h2>
@@ -88,13 +109,13 @@ export function AdminMobilePage() {
             <Stat value={pulse.activePairs} label="Aktif eşleşme" />
             <Stat value={pulse.pendingPairs} label="Bekleyen davet" />
             <Stat value={pulse.endedPairs} label="Sonlanan eşleşme" />
-            <Stat value={pulse.endedInRange} label="Aralıkta sonlanan" />
+            <Stat value={pulse.endedInRange} label={`${range} sonlanan`} />
           </div>
           <div className="card">
             <table className="admin-table">
               <thead>
                 <tr>
-                  <th>Nabız günü</th>
+                  <th>{range} nabız günleri</th>
                   <th>Sayı</th>
                   <th>Oran</th>
                 </tr>
@@ -142,7 +163,7 @@ export function AdminMobilePage() {
               </table>
             ) : (
               <p className="muted small" style={{ margin: 0 }}>
-                Bu aralıkta nabız cevabı yok.
+                {range} nabız cevabı yok.
               </p>
             )}
           </div>
@@ -194,20 +215,20 @@ export function AdminMobilePage() {
                 </tr>
                 <tr>
                   <td rowSpan={2}>Emek defteri</td>
-                  <td>Aralıkta kayıt</td>
+                  <td>{range} kayıt</td>
                   <td>{data.features.labour.entriesInRange}</td>
                 </tr>
                 <tr>
-                  <td>Aralıkta kayıt giren eşleşme</td>
+                  <td>{range} kayıt giren eşleşme</td>
                   <td>{data.features.labour.pairsInRange}</td>
                 </tr>
                 <tr>
                   <td rowSpan={2}>Webden uygulamaya aktarma</td>
-                  <td>Aralıkta oluşturulan kod</td>
+                  <td>{range} oluşturulan kod</td>
                   <td>{data.features.claims.createdInRange}</td>
                 </tr>
                 <tr>
-                  <td>Aralıkta uygulamada kullanılan kod</td>
+                  <td>{range} uygulamada kullanılan kod</td>
                   <td>
                     {data.features.claims.redeemedInRange} (
                     {percent(data.features.claims.redeemedInRange, data.features.claims.createdInRange)})

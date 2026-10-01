@@ -1,5 +1,5 @@
 import { Type } from 'class-transformer';
-import { IsDateString, IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
+import { IsISO8601, IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
 
 export class AdminListDto {
   @IsOptional()
@@ -20,10 +20,12 @@ export class AdminListDto {
   testId?: string;
 
   @IsOptional()
-  @IsDateString()
+  // strict: 31 Nisan gibi takvimde olmayan günler de reddedilir (yoksa
+  // Postgres'e ulaşıp 500 veriyordu).
+  @IsISO8601({ strict: true })
   from?: string;
 
   @IsOptional()
-  @IsDateString()
+  @IsISO8601({ strict: true })
   to?: string;
 }
