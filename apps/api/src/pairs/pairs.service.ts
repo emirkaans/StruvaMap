@@ -145,6 +145,20 @@ export class PairsService {
     return (data ?? []) as PulsePairRow[];
   }
 
+  // Satır silinince pulse_checkins ve labour_entries FK cascade ile gider,
+  // relationships.pulse_pair_id null olur (bkz. schema.sql).
+  async deleteEndedBefore(retentionDays: number): Promise<number> {
+    const cutoff = new Date(Date.now() - retentionDays * 24 * 60 * 60 * 1000);
+    const { data, error } = await this.supabase.client
+      .from('pulse_pairs')
+      .delete()
+      .eq('status', 'ended')
+      .lt('ended_at', cutoff.toISOString())
+      .select('id');
+    if (error) throw new InternalServerErrorException(error.message);
+    return data?.length ?? 0;
+  }
+
   assertMember(pair: PulsePairRow, userId: string): void {
     if (pair.user_id_a !== userId && pair.user_id_b !== userId) {
       throw new ForbiddenException('Bu eşleşmeye erişimin yok.');

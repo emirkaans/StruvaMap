@@ -6,7 +6,9 @@ import { PairsService, PulsePairRow } from '../pairs/pairs.service';
 import { DevicesService } from '../devices/devices.service';
 import { PushService } from '../push/push.service';
 import { PulseCheckinRow, PulseService } from './pulse.service';
-import { todayDateString } from './pulse-date.util';
+import { APP_TIME_ZONE, todayDateString } from './pulse-date.util';
+
+const ENDED_PAIR_RETENTION_DAYS = 30;
 
 // Render'da servis her zaman-açık (always-on) planda çalışmalı — idle
 // spin-down'da process durur, cron hiç tetiklenmez (bkz. plan notu).
@@ -24,12 +26,12 @@ export class PulseCronService {
     private readonly pulse: PulseService,
   ) {}
 
-  @Cron('0 8 * * *')
+  @Cron('0 11 * * *', { timeZone: APP_TIME_ZONE })
   async sendMorningPulses(): Promise<void> {
     await this.runMorningJob();
   }
 
-  @Cron('0 19 * * *')
+  @Cron('0 19 * * *', { timeZone: APP_TIME_ZONE })
   async sendEveningReminders(): Promise<void> {
     await this.runEveningJob();
   }
@@ -37,9 +39,21 @@ export class PulseCronService {
   // Pazar akşamı: son 7 günün özeti (bkz. PulseService.getHistory). Tek
   // instance varsayımı burada da geçerli; haftada bir koştuğu için ayrı bir
   // "gönderildi" kolonu tutulmuyor.
-  @Cron('0 20 * * 0')
+  @Cron('0 20 * * 0', { timeZone: APP_TIME_ZONE })
   async sendWeeklySummaries(): Promise<void> {
     await this.runWeeklySummaryJob();
+  }
+
+  // Sonlandırılan eşleşmeler 30 gün sonra kalıcı silinir (kullanıcıya
+  // sonlandırma onayında bu söz veriliyor). Gece, push'larla çakışmayan bir saat.
+  @Cron('0 3 * * *', { timeZone: APP_TIME_ZONE })
+  async purgeEndedPairs(): Promise<void> {
+    try {
+      const count = await this.pairs.deleteEndedBefore(ENDED_PAIR_RETENTION_DAYS);
+      if (count > 0) this.logger.log(`${count} sonlandırılmış eşleşme kalıcı silindi.`);
+    } catch (error) {
+      this.logger.warn(`Eşleşme temizliği başarısız: ${(error as Error).message}`);
+    }
   }
 
   async runWeeklySummaryJob(): Promise<void> {
