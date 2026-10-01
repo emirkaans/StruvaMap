@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { AdminNav } from "../../components/AdminRoute";
+import { AdminDateRange } from "../../components/AdminDateRange";
 import { AdminTrendChart } from "../../components/AdminTrendChart";
 import {
   fetchAdminEventsFunnel,
@@ -10,6 +11,11 @@ import {
 } from "../../lib/api";
 import { AdminPlatformSelect } from "../../components/AdminPlatformSelect";
 
+// Bitiş günü de dahil olsun diye günün sonuna çekilir.
+function endOfDay(date: string): string | undefined {
+  return date ? `${date}T23:59:59` : undefined;
+}
+
 export function AdminEventsPage() {
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
@@ -19,7 +25,7 @@ export function AdminEventsPage() {
   const [trend, setTrend] = useState<AdminEventDailyCount[] | null>(null);
 
   useEffect(() => {
-    fetchAdminEventsFunnel(from || undefined, to || undefined, platform).then((rows) => {
+    fetchAdminEventsFunnel(from || undefined, endOfDay(to), platform).then((rows) => {
       setFunnel(rows);
       setSelectedName((current) => current || rows[0]?.name || "");
     });
@@ -27,7 +33,7 @@ export function AdminEventsPage() {
 
   useEffect(() => {
     if (!selectedName) return;
-    fetchAdminEventsTrend(selectedName, from || undefined, to || undefined, platform).then(setTrend);
+    fetchAdminEventsTrend(selectedName, from || undefined, endOfDay(to), platform).then(setTrend);
   }, [selectedName, from, to, platform]);
 
   // Oranlar tekil oturumla: aynı kişinin tekrar eden olayları oranı şişirmesin.
@@ -38,15 +44,15 @@ export function AdminEventsPage() {
       <AdminNav />
       <h1>Olaylar</h1>
 
+      <AdminDateRange
+        from={from}
+        to={to}
+        onChange={(nextFrom, nextTo) => {
+          setFrom(nextFrom);
+          setTo(nextTo);
+        }}
+      />
       <div className="admin-filters">
-        <label className="admin-field">
-          <span>Başlangıç</span>
-          <input type="date" className="admin-input" value={from} onChange={(e) => setFrom(e.target.value)} />
-        </label>
-        <label className="admin-field">
-          <span>Bitiş</span>
-          <input type="date" className="admin-input" value={to} onChange={(e) => setTo(e.target.value)} />
-        </label>
         <AdminPlatformSelect value={platform} onChange={setPlatform} />
       </div>
 

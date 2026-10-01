@@ -1891,6 +1891,31 @@ p {
   gap: 14px;
   margin-bottom: 16px;
 }
+.admin-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.admin-preset {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--muted);
+  padding: 6px 14px;
+  font-size: 0.86rem;
+  font-family: inherit;
+  cursor: pointer;
+}
+.admin-preset:hover {
+  color: var(--text);
+  border-color: var(--muted);
+}
+.admin-preset.active {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
+}
 .admin-field {
   display: flex;
   flex-direction: column;

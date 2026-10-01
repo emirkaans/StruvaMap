@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { AdminNav } from "../../components/AdminRoute";
+import { AdminDateRange } from "../../components/AdminDateRange";
 import { fetchAdminMobile, type AdminMobileSummary } from "../../lib/api";
 
 const SOURCE_LABELS: Record<string, string> = {
@@ -69,16 +70,14 @@ export function AdminMobilePage() {
       <AdminNav />
       <h1>Mobil</h1>
 
-      <div className="admin-filters">
-        <label className="admin-field">
-          <span>Başlangıç</span>
-          <input type="date" className="admin-input" value={from} onChange={(e) => setFrom(e.target.value)} />
-        </label>
-        <label className="admin-field">
-          <span>Bitiş</span>
-          <input type="date" className="admin-input" value={to} onChange={(e) => setTo(e.target.value)} />
-        </label>
-      </div>
+      <AdminDateRange
+        from={from}
+        to={to}
+        onChange={(nextFrom, nextTo) => {
+          setFrom(nextFrom);
+          setTo(nextTo);
+        }}
+      />
 
       {error && <p className="small" style={{ color: "var(--bad)" }}>{error}</p>}
       {!data && !error && <p className="muted small">Yükleniyor…</p>}
