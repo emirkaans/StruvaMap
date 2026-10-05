@@ -716,7 +716,7 @@ export function AdminTestEditPage() {
 
   useEffect(() => {
     if (!testId) return;
-    fetchTest(testId).then((t) => {
+    fetchTest(testId, { fresh: true }).then((t) => {
       dispatch({ type: "SET_DEF", def: t });
       setOriginalQuestionIds(new Set(t.questions.map((q) => q.id)));
     });

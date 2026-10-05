@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useDocumentTitle } from "../lib/useDocumentTitle";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { resolveQuestionText, type Answers, type Question, type TestDefinition } from "@struva/shared";
-import { createComparison, fetchTest, submitResult } from "../lib/api";
+import { createComparison, fetchTest, getCachedTest, submitResult } from "../lib/api";
 import { track } from "../lib/analytics";
 import { getOrCreateSessionId } from "../lib/session";
 import { minutesFromSubtitle, toTurkishUpper } from "../lib/text";
@@ -19,16 +19,27 @@ function shuffled<T>(arr: T[]): T[] {
   return out;
 }
 
+/* Başka bir teste geçildiğinde (ör. alt menüden) bileşen yeniden kurulsun:
+   önbellekten okunan ilk durum, cevaplar ve sıra eski testten kalmasın. */
 export function TestPage() {
+  const { testId } = useParams<{ testId: string }>();
+  const [searchParams] = useSearchParams();
+  return <TestFlow key={`${testId}|${searchParams.get("compareWith") ?? ""}`} />;
+}
+
+function TestFlow() {
   const { testId } = useParams<{ testId: string }>();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const compareWith = searchParams.get("compareWith");
 
-  const [test, setTest] = useState<TestDefinition | null>(null);
+  // Anasayfadan gelindiyse tanım bellekte hazır: ilk çizimde "Yükleniyor" yok.
+  const [test, setTest] = useState<TestDefinition | null>(() => (testId ? getCachedTest(testId) : null));
   const [error, setError] = useState<string | null>(null);
   // Giriş ekranında bulunan yarım test (varsa) ve başlanıp başlanmadığı.
-  const [saved, setSaved] = useState<SavedProgress | null>(null);
+  const [saved, setSaved] = useState<SavedProgress | null>(() =>
+    test ? loadProgress(test.id, compareWith, test.questions.map((q) => q.id)) : null,
+  );
   const [started, setStarted] = useState(false);
   // Gösterilen soru sırası (question.id); başlarken karıştırılır ya da
   // kaydedilmiş sıradan geri yüklenir.
@@ -56,6 +67,8 @@ export function TestPage() {
   useEffect(() => {
     if (!testId) return;
     track("test_start", { testId });
+    // Tanım önbellekten geldiyse yeniden istemeye gerek yok.
+    if (test?.id === testId) return;
     let cancelled = false;
     fetchTest(testId)
       .then((t) => {
@@ -71,6 +84,7 @@ export function TestPage() {
     return () => {
       cancelled = true;
     };
+    // test bilerek bağımlılık değil: yalnızca testId değişince yüklenir.
   }, [testId, compareWith]);
 
   // Her cevapta ilerleme bu cihaza yazılır; gönderim başarılı olunca silinir.

@@ -20,16 +20,51 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   return res.json() as Promise<T>;
 }
 
+/* Sekme içi test tanımı önbelleği. Anasayfanın aldığı liste soruların
+   tamamını içeriyor; teste tıklanınca aynı tanımı yeniden istemek yerine
+   buradan okunur ve test sayfası beklemeden açılır. Yalnızca bellekte
+   tutulur: sayfa yenilenince boşalır, böylece admin panelinden yapılan bir
+   değişiklik bir sonraki ziyarette görünür. */
+const testCache = new Map<string, TestDefinition>();
+let publishedTests: Promise<TestDefinition[]> | null = null;
+
 export function fetchTests(all?: boolean): Promise<TestDefinition[]> {
-  return request(`/tests${all ? "?all=true" : ""}`);
+  // Admin listesi (gizliler dahil) her zaman tazedir, önbelleğe karışmaz.
+  if (all) return request(`/tests?all=true`);
+  publishedTests ??= request<TestDefinition[]>("/tests")
+    .then((list) => {
+      for (const t of list) testCache.set(t.id, t);
+      return list;
+    })
+    .catch((e: unknown) => {
+      publishedTests = null; // başarısız istek önbellekte kalmasın, sonraki çağrı yeniden denesin
+      throw e;
+    });
+  return publishedTests;
+}
+
+// Önbellekteki tanım, yoksa null. Test sayfası ilk çizimde bunu kullanır.
+export function getCachedTest(testId: string): TestDefinition | null {
+  return testCache.get(testId) ?? null;
 }
 
 export function fetchResultsTotal(): Promise<number> {
   return request<{ total: number }>("/results/stats/total").then((r) => r.total);
 }
 
-export function fetchTest(testId: string): Promise<TestDefinition> {
-  return request(`/tests/${testId}`);
+export async function fetchTest(testId: string, options: { fresh?: boolean } = {}): Promise<TestDefinition> {
+  if (!options.fresh) {
+    const cached = testCache.get(testId);
+    if (cached) return cached;
+    // Liste hâlâ iniyorsa ikinci bir istek atmak yerine onu bekle.
+    if (publishedTests) {
+      const hit = (await publishedTests.catch(() => [])).find((t) => t.id === testId);
+      if (hit) return hit;
+    }
+  }
+  const test = await request<TestDefinition>(`/tests/${testId}`);
+  testCache.set(test.id, test);
+  return test;
 }
 
 export function submitResult(payload: {
@@ -306,8 +341,11 @@ export function fetchAdminComparisons(
 }
 
 export function updateAdminTest(testId: string, definition: TestDefinition): Promise<TestDefinition> {
-  return adminRequest(`/admin/tests/${testId}`, {
+  return adminRequest<TestDefinition>(`/admin/tests/${testId}`, {
     method: "PUT",
     body: JSON.stringify({ definition }),
+  }).then((saved) => {
+    testCache.set(saved.id, saved);
+    return saved;
   });
 }
