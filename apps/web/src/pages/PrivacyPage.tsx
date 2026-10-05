@@ -4,16 +4,23 @@ import { Footer } from "../components/Footer";
 import { Reveal } from "../components/Reveal";
 import { toTurkishUpper } from "../lib/text";
 
+// Uygulamadaki gizlilik ekranı bu sayfanın kısa özetini gösterir ve tam metin
+// için buraya bağlanır (bkz. android PrivacyScreen.kt); metin değişirse
+// oradaki özet de gözden geçirilmeli.
+const CONTROLLER = "Emir Kaan Sarıçam, Çankaya/Ankara";
+const CONTACT_EMAIL = "struvamap@gmail.com";
+const UPDATED = "5 Ekim 2026";
+
 const FACTS = [
   {
     tag: "Hesap",
-    title: "Üyelik yok.",
-    body: "Kayıt olmazsın. Tarayıcında rastgele üretilmiş bir oturum kimliği tutulur; adına, e-postana bağlı değildir.",
+    title: "Webde üyelik yok.",
+    body: "Sitede kayıt olmazsın. Uygulama seni otomatik bir misafir hesabıyla başlatır; kullanıcı adı ve şifreyle kalıcı hesaba çevirmek senin tercihin. E-posta ya da gerçek ad istenmez.",
   },
   {
     tag: "İzleme",
-    title: "Çerez yok.",
-    body: "Üçüncü taraf analiz aracı, IP kaydı veya cihaz parmak izi kullanmıyoruz. Tarayıcında yalnızca oturum kimliği ve yarım kalan testin ilerlemesi tutulur.",
+    title: "Reklam ve izleme aracı yok.",
+    body: "Üçüncü taraf analiz ya da reklam aracı kullanmıyoruz. Kullanım ölçümü yalnızca kendi sunucumuza yazılır.",
   },
   {
     tag: "Puanlama",
@@ -23,7 +30,7 @@ const FACTS = [
   {
     tag: "Silme",
     title: "Silme senin elinde.",
-    body: "Tarayıcı verini temizlemen yeter. Sunucudaki kaydın için elindeki sonuç bağlantısıyla bize yaz.",
+    body: "Uygulamada hesabını profil ekranından silersin; bütün kayıtların kalıcı olarak silinir. Webdeki kayıtların için sonuç bağlantısıyla bize yazman yeterli.",
   },
 ];
 
@@ -34,16 +41,16 @@ export function PrivacyPage() {
       <Header />
 
       <Reveal className="page-head">
-        <span className="eyebrow">{toTurkishUpper("Gizlilik & KVKK")}</span>
+        <span className="eyebrow">{toTurkishUpper("Gizlilik")}</span>
         <h1>Ne biliyoruz, ne bilmiyoruz.</h1>
         <p className="lead">
-          İlişki, aile ve iş dinamiklerine dair yanıtların hassas bir alana
-          değiyor. Ne topladığımızı, ne yapmadığımızı ve haklarını burada açık
-          açık yazıyoruz. Hukuk dili değil, gerçek davranış.
+          İlişki, aile ve ev dinamiklerine dair yanıtların hassas bir alana değiyor. Web sitesinde ve mobil uygulamada ne
+          topladığımızı, kimin neyi gördüğünü ve haklarını burada açık açık yazıyoruz. Hukuk dili değil, gerçek
+          davranış.
         </p>
         <span className="page-meta">
-          Son güncelleme · 5 Ekim 2026 · Veri sorumlusu ·{" "}
-          <a href="mailto:struvamap@gmail.com">struvamap@gmail.com</a>
+          Son güncelleme · {UPDATED} · Veri sorumlusu · {CONTROLLER} ·{" "}
+          <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>
         </span>
       </Reveal>
 
@@ -58,95 +65,153 @@ export function PrivacyPage() {
       </Reveal>
 
       <Reveal className="privacy-section">
-        <h2>Ne topluyoruz</h2>
+        <h2>Kimler için</h2>
+        <p>
+          StruvaMap 18 yaş ve üzerindeki kişiler içindir. 18 yaşından küçüksen web sitesini ve uygulamayı kullanmamanı
+          rica ediyoruz. Bilmeden 18 yaş altı birine ait veri işlediğimizi fark edersek siliyoruz.
+        </p>
+      </Reveal>
+
+      <Reveal className="privacy-section">
+        <h2>Web sitesinde ne topluyoruz</h2>
         <ul>
+          <li>Test yanıtların ve bunlardan hesaplanan skorlar.</li>
           <li>
-            <strong>Test yanıtların.</strong> Verdiğin cevaplar ve bunlardan
-            hesaplanan skorlar.
+            Tarayıcında rastgele üretilen bir oturum kimliği (<code>session_id</code>). Aynı tarayıcıdan gelen sonuçları
+            ve zaman içindeki değişimi birbirine bağlamak için kullanılır; adına ya da e-postana bağlı değildir.
           </li>
           <li>
-            <strong>Oturum kimliğin.</strong> <code>session_id</code>, aynı
-            tarayıcıdan gelen sonuçları ve zaman içindeki değişimi birbirine
-            bağlamak için tutulur.
+            Yarım kalan testin ilerlemesi. Yalnızca senin cihazında saklanır, sunucuya gitmez; testi bitirince ya da bir
+            hafta sonra silinir.
           </li>
           <li>
-            <strong>Yarım kalan test.</strong> Testi bitirmeden çıkarsan cevapların
-            yalnızca bu cihazda saklanır ki kaldığın yerden devam edebilesin. Sunucuya
-            gitmez; testi bitirince ya da bir hafta sonra silinir.
-          </li>
-          <li>
-            <strong>Kullanım olayları.</strong> Hangi test başladı, hangi soruda
-            bırakıldı, davet bağlantısı kullanıldı mı. Kendi sunucumuza yazılır,
-            üçüncü tarafa gitmez.
-          </li>
-          <li>
-            <strong>Hata raporları.</strong> Uygulama hata verirse teknik detay
-            Sentry'ye gider. Kişisel veri gönderimi kapalı, oturum kaydı
-            tutulmaz.
+            Kullanım olayları: hangi test başladı, hangi soruda bırakıldı, davet bağlantısı kullanıldı mı ve olayın web
+            sitesinden mi uygulamadan mı geldiği.
           </li>
         </ul>
       </Reveal>
 
       <Reveal className="privacy-section">
-        <h2>Nerede saklanır</h2>
+        <h2>Mobil uygulamada ne topluyoruz</h2>
+        <p>Web sitesindekilere ek olarak, uygulamanın özellikleri şu verileri gerektirir:</p>
+        <ul>
+          <li>
+            Hesap bilgileri. Misafir hesabında hiçbir kişisel bilgi istenmez. Kalıcı hesapta kullanıcı adın, şifren ve
+            isteğe bağlı bir güvenlik sorusu tutulur. Şifren ve güvenlik sorusunun cevabı şifrelenmiş olarak saklanır,
+            biz de göremeyiz.
+          </li>
+          <li>Test sonuçların ve kıyaslamaların.</li>
+          <li>Günlük nabız: eşleştiğin kişiyle her gün yanıtladığın soru ve cevabın.</li>
+          <li>İlişki haritası: ilişkilerine verdiğin isimler ve onlara eklediğin notlar.</li>
+          <li>Emek defteri: kaydettiğin günlük işler.</li>
+          <li>Tahmin modu: karşı taraf için yaptığın tahminler.</li>
+          <li>
+            Bildirim kimliği. Sana bildirim gönderebilmek için cihazına ait, Google Firebase tarafından üretilen bir
+            kimlik.
+          </li>
+          <li>
+            Pano. Web sitesinde "Google Play'den İndir"e bastıysan, sonucunu uygulamaya taşımak için panoya tek
+            kullanımlık bir kod kopyalanır. Uygulama açılışta panoda yalnızca bu koda bakar; panodaki başka içerik
+            okunup saklanmaz.
+          </li>
+        </ul>
+      </Reveal>
+
+      <Reveal className="privacy-section">
+        <h2>Kim neyi görür</h2>
+        <ul>
+          <li>Sonuç bağlantını paylaştığın herkes o sonucu görebilir.</li>
+          <li>Davet bağlantınla testi çözen kişi, ikinizin yanıtlarını boyut boyut karşılaştırmalı görür.</li>
+          <li>Günlük nabızda eşleştiğin kişi senin günlük cevaplarını ve emek defteri kayıtlarını görür.</li>
+          <li>İlişki adları ve notların yalnızca sana görünür.</li>
+          <li>
+            Biz yönetim panelinde hesap listesini ve kullanım sayılarını görürüz. İlişki adlarını, notlarını ve nabız
+            cevaplarının içeriğini görmeyiz.
+          </li>
+        </ul>
+      </Reveal>
+
+      <Reveal className="privacy-section">
+        <h2>Neden işliyoruz</h2>
+        <ul>
+          <li>
+            Testleri puanlamak, sonuçları ve kıyaslamaları göstermek, nabız, harita ve emek defteri gibi özellikleri
+            çalıştırmak için. Bu, kullandığın hizmetin kendisidir.
+          </li>
+          <li>
+            Ürünün nerede zorlandığını anlamak ve hataları düzeltmek için kullanım olaylarını ve teknik hata kayıtlarını
+            inceleriz.
+          </li>
+          <li>Verilerini satmayız, reklam için kullanmayız ve kimseyle pazarlama amacıyla paylaşmayız.</li>
+        </ul>
+      </Reveal>
+
+      <Reveal className="privacy-section">
+        <h2>Nerede saklanır, kimlerle paylaşılır</h2>
+        <p>Hizmeti sunabilmek için şu altyapı sağlayıcılarıyla çalışıyoruz:</p>
+        <ul>
+          <li>Supabase: veritabanı ve hesap girişi.</li>
+          <li>Render: uygulamanın sunucusu.</li>
+          <li>Netlify: web sitesinin barındırılması.</li>
+          <li>Google Firebase: uygulama bildirimlerinin iletilmesi.</li>
+          <li>Sentry: sunucu tarafındaki teknik hata kayıtları; kişisel veri gönderimi kapalıdır.</li>
+          <li>Cloudflare: alan adı yönetimi.</li>
+        </ul>
         <p>
-          Veriler barındırma sağlayıcımız Supabase'de tutulur. Şu an otomatik
-          bir silme süresi yok. Sen ya da biz talep edip sildirene kadar kayıt
-          kalır. Kıyaslama özelliğini kullanırsan, davet bağlantısını
-          paylaştığın kişi yanıtlarını boyut boyut karşılaştırmalı görür.
+          Bu sağlayıcıların sunucuları yurt dışında bulunabilir; verilerin bu nedenle yurt dışına aktarılır. Kendi
+          kodumuz IP adresi saklamaz, ancak bu sağlayıcılar güvenlik ve işletim amacıyla kendi teknik kayıtlarında IP
+          adresi tutabilir.
         </p>
+      </Reveal>
+
+      <Reveal className="privacy-section">
+        <h2>Ne kadar süre saklanır</h2>
+        <ul>
+          <li>Uygulamada hesabını sildiğinde, hesabına bağlı bütün kayıtlar hemen ve kalıcı olarak silinir.</li>
+          <li>Sonlandırılan nabız eşleşmeleri ve onlara bağlı kayıtlar 30 gün sonra otomatik olarak silinir.</li>
+          <li>Yarım kalan testin cihazındaki ilerlemesi bitirince ya da bir hafta sonra silinir.</li>
+          <li>Web sitesindeki sonuçlar, sen ya da biz silinmesini talep edene kadar saklanır.</li>
+        </ul>
       </Reveal>
 
       <Reveal className="disclaimer">
         <span className="eyebrow">{toTurkishUpper("Hassas veri uyarısı")}</span>
         <p>
-          İlişki ve aile dinamiklerine dair yanıtların dolaylı olarak hassas
-          konulara değinebilir. <em>Vermek tamamen gönüllü.</em> Hiçbir soruyu
-          yanıtlamak zorunda değilsin, testi yarıda bırakabilirsin.
+          İlişki ve aile dinamiklerine dair yanıtların dolaylı olarak hassas konulara değinebilir.{" "}
+          <em>Vermek tamamen gönüllü.</em> Hiçbir soruyu yanıtlamak zorunda değilsin, testi yarıda bırakabilirsin.
         </p>
       </Reveal>
 
       <Reveal className="privacy-section">
         <h2>Hakların neler</h2>
-        <ul>
-          <li>
-            <strong>Öğrenme.</strong> Verinin işlenip işlenmediğini bize
-            sorabilirsin.
-          </li>
-          <li>
-            <strong>Bilgi isteme.</strong> İşlenmişse, ne amaçla işlendiğini
-            öğrenebilirsin.
-          </li>
-          <li>
-            <strong>Düzeltme.</strong> Eksik ya da yanlış işlenmişse
-            düzeltilmesini isteyebilirsin.
-          </li>
-          <li>
-            <strong>Silme.</strong> İşlenme sebebi ortadan kalktıysa silinmesini
-            isteyebilirsin.
-          </li>
-        </ul>
         <p>
-          Bu haklar, 6698 sayılı Kişisel Verilerin Korunması Kanunu'nun 11.
-          maddesinden geliyor. Oturum kimliğin hesapsız yapı gereği bize kayıtlı
-          değil. Tarayıcı verini temizlemen sunucudaki bağı zaten koparır.
-          Sunucu tarafındaki kaydın da silinmesini istiyorsan, elindeki sonuç ya
-          da davet bağlantısıyla aşağıdan bize ulaş.
+          6698 sayılı Kişisel Verilerin Korunması Kanunu'nun 11. maddesi kapsamında şu haklara sahipsin: kişisel
+          verinin işlenip işlenmediğini öğrenmek, işlendiyse bilgi istemek, işlenme amacını ve amaca uygun kullanılıp
+          kullanılmadığını öğrenmek, yurt içinde ya da yurt dışında aktarıldığı üçüncü kişileri bilmek, eksik ya da
+          yanlış işlendiyse düzeltilmesini istemek, silinmesini ya da yok edilmesini istemek, bu düzeltme ve silme
+          işlemlerinin aktarıldığı kişilere bildirilmesini istemek, otomatik sistemlerle analiz edilmesi sonucunda
+          aleyhine bir sonuç çıkmasına itiraz etmek ve kanuna aykırı işleme nedeniyle zarara uğradıysan zararın
+          giderilmesini istemek.
+        </p>
+        <p>
+          Uygulamada hesabını profil ekranından kendin silebilirsin. Web sitesindeki kayıtların için ya da diğer bütün
+          talepler için, elindeki sonuç ya da davet bağlantısıyla birlikte{" "}
+          <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a> adresine yaz. Talebini en geç 30 gün içinde
+          sonuçlandırırız.
         </p>
       </Reveal>
 
       <Reveal className="disclaimer">
         <span className="eyebrow">{toTurkishUpper("Teşhis değil")}</span>
         <p>
-          StruvaMap sosyolojik bir haritalama aracı. Psikometrik doğrulama
-          (Cronbach's alpha, faktör analizi, pilot çalışma) yapılmadı. Klinik
-          teşhis, terapi ya da profesyonel danışmanlık yerine geçmez.
+          StruvaMap sosyolojik bir haritalama aracı. Psikometrik doğrulama (Cronbach's alpha, faktör analizi, pilot
+          çalışma) yapılmadı. Klinik teşhis, terapi ya da profesyonel danışmanlık yerine geçmez.
         </p>
       </Reveal>
 
       <Reveal className="privacy-contact">
         <p>Verinle ilgili bir talebin mi var, yoksa bir şey mi anlamadın?</p>
-        <a href="mailto:struvamap@gmail.com" className="btn secondary">
+        <a href={`mailto:${CONTACT_EMAIL}`} className="btn secondary">
           Bize yaz
         </a>
       </Reveal>

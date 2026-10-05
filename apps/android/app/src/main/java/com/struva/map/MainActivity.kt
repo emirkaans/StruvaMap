@@ -59,6 +59,9 @@ import com.struva.map.ui.privacy.PrivacyScreen
 import com.struva.map.ui.relationships.MapScreen
 import com.struva.map.ui.relationships.RelationshipDetailScreen
 import com.struva.map.ui.profile.ProfileScreen
+import com.struva.map.ui.auth.AgeGateScreen
+import com.struva.map.ui.auth.confirmAge
+import com.struva.map.ui.auth.isAgeConfirmed
 import com.struva.map.ui.pulse.PulseHistoryScreen
 import com.struva.map.ui.pulse.PulsePairingScreen
 import com.struva.map.ui.resultdetail.ResultDetailScreen
@@ -93,9 +96,14 @@ class MainActivity : ComponentActivity() {
     // duruma bakıp senkron kalmalı.
     private var anonymousSignInAttempted by mutableStateOf(false)
 
+    // 18 yaş onayı (bkz. AgeGateScreen). Yalnızca oturumu olmayan, yani yeni
+    // kurulumdaki kullanıcıya sorulur; misafir hesabı onaydan sonra açılır.
+    private var ageConfirmed by mutableStateOf(false)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
+        ageConfirmed = isAgeConfirmed(this)
         // Oturum durumu netleşene kadar splash'i ekranda tut — NotAuthenticated
         // artık bir "son durum" değil, anonim giriş denemesi bitene kadar geçici
         // bir ara durum (bkz. AuthViewModel.signInAnonymously). Çıplak spinner
@@ -103,7 +111,8 @@ class MainActivity : ComponentActivity() {
         splashScreen.setKeepOnScreenCondition {
             when (authViewModel.sessionStatus.value) {
                 is SessionStatus.Authenticated -> false
-                is SessionStatus.NotAuthenticated -> !anonymousSignInAttempted
+                // Onay ekranı gösterilecekse splash beklemesin.
+                is SessionStatus.NotAuthenticated -> ageConfirmed && !anonymousSignInAttempted
                 else -> true
             }
         }
@@ -137,7 +146,12 @@ class MainActivity : ComponentActivity() {
                         )
                     }
                     is SessionStatus.NotAuthenticated -> {
-                        if (anonymousSignInAttempted) {
+                        if (!ageConfirmed) {
+                            AgeGateScreen(onConfirmed = {
+                                confirmAge(this@MainActivity)
+                                ageConfirmed = true
+                            })
+                        } else if (anonymousSignInAttempted) {
                             AuthScreen()
                         } else {
                             LaunchedEffect(Unit) {

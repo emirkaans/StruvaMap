@@ -172,6 +172,7 @@ function TestFlow() {
             )}
             <li>Cevapların yalnızca puanlama için kullanılır. Hesap açılmaz, kimlik bilgisi istenmez.</li>
             <li>İstediğin an ara verebilirsin; ilerlemen bu cihazda saklanır.</li>
+            <li>StruvaMap 18 yaş ve üzerindeki kişiler içindir.</li>
           </ul>
           <div className="test-intro-actions">
             {saved && done > 0 ? (

@@ -152,7 +152,7 @@ fun ProfileScreen(
                 Text("Hesabı sil", style = MaterialTheme.typography.titleSmall)
                 Spacer(Modifier.height(8.dp))
                 Text(
-                    "Hesabın ve girişin kalıcı olarak silinir. Geçmiş sonuçların kişisel bilgi taşımadan (kime ait olduğu bilgisi silinerek) saklanmaya devam eder.",
+                    "Hesabın, test sonuçların, kıyaslamaların, nabız, ilişki ve emek defteri kayıtların kalıcı olarak silinir.",
                     style = MaterialTheme.typography.bodySmall,
                     color = StruvaColors.Muted,
                 )
