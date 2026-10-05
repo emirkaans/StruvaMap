@@ -1391,6 +1391,104 @@ p {
   gap: 16px;
   flex-wrap: wrap;
 }
+/* İletişim sayfası */
+.contact-form {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  max-width: 560px;
+}
+.contact-topics {
+  border: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.contact-topics legend,
+.contact-field > span {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 8px;
+  padding: 0;
+}
+.contact-topics .option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.94rem;
+}
+.contact-topics input {
+  accent-color: var(--accent);
+  margin: 0;
+}
+@media (max-width: 520px) {
+  .contact-topics {
+    grid-template-columns: 1fr;
+  }
+}
+.contact-field {
+  display: flex;
+  flex-direction: column;
+}
+.contact-field small {
+  margin-top: 6px;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+.contact-input {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  padding: 12px 14px;
+  font: inherit;
+  font-size: 0.98rem;
+}
+.contact-input:focus {
+  outline: 1px solid var(--accent);
+  border-color: var(--accent);
+}
+textarea.contact-input {
+  resize: vertical;
+  min-height: 140px;
+  line-height: 1.55;
+}
+.contact-form .btn {
+  align-self: flex-start;
+}
+/* Bot tuzağı: görünmez ama DOM'da; botlar doldurur, insanlar görmez. */
+.contact-trap {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+.contact-sent p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+/* Admin: mesajlar */
+.admin-message-head,
+.admin-message-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+}
+.admin-message-body {
+  white-space: pre-wrap;
+  margin: 12px 0;
+  line-height: 1.6;
+}
+
 .privacy-contact-actions {
   display: flex;
   flex-wrap: wrap;

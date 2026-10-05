@@ -12,6 +12,7 @@ import { ComparisonsModule } from './comparisons/comparisons.module';
 import { EventsModule } from './events/events.module';
 import { AdminModule } from './admin/admin.module';
 import { ShareModule } from './share/share.module';
+import { ContactModule } from './contact/contact.module';
 import { DevicesModule } from './devices/devices.module';
 import { PushModule } from './push/push.module';
 import { PairsModule } from './pairs/pairs.module';
@@ -39,6 +40,7 @@ import { LabourModule } from './labour/labour.module';
     EventsModule,
     AdminModule,
     ShareModule,
+    ContactModule,
     DevicesModule,
     PushModule,
     PairsModule,

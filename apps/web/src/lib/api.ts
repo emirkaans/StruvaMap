@@ -48,6 +48,24 @@ export function getCachedTest(testId: string): TestDefinition | null {
   return testCache.get(testId) ?? null;
 }
 
+export type ContactTopic = "data_request" | "feedback" | "bug" | "other";
+
+// 204 döner, gövde yok; bu yüzden request() (res.json()) yerine doğrudan fetch.
+export async function sendContactMessage(body: {
+  topic: ContactTopic;
+  message: string;
+  replyEmail?: string;
+  reference?: string;
+  website?: string;
+}): Promise<void> {
+  const res = await fetch(`${API_URL}/contact`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) throw new Error(`API hatası (${res.status})`);
+}
+
 export function fetchResultsTotal(): Promise<number> {
   return request<{ total: number }>("/results/stats/total").then((r) => r.total);
 }
@@ -291,6 +309,32 @@ export function fetchAdminUsers(params: AdminUsersParams): Promise<AdminPaginate
 
 export function fetchAdminUser(id: string): Promise<AdminUserDetail> {
   return adminRequest(`/admin/users/${encodeURIComponent(id)}`);
+}
+
+export interface AdminContactMessage {
+  id: string;
+  topic: ContactTopic;
+  message: string;
+  reply_email: string | null;
+  reference: string | null;
+  platform: "web" | "android";
+  handled_at: string | null;
+  created_at: string;
+}
+
+export function fetchAdminContactMessages(params: {
+  page: number;
+  pageSize: number;
+  status: "open" | "handled" | "all";
+}): Promise<AdminPaginated<AdminContactMessage>> {
+  return adminRequest(`/admin/contact${toQuery({ ...params })}`);
+}
+
+export function setAdminContactHandled(id: string, handled: boolean): Promise<AdminContactMessage> {
+  return adminRequest(`/admin/contact/${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    body: JSON.stringify({ handled }),
+  });
 }
 
 export function lookupAdminData(q: string): Promise<AdminDataLookup> {

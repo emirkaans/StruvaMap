@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { useDocumentTitle } from "../lib/useDocumentTitle";
 import { ContactBlock } from "../components/ContactBlock";
 import { Header } from "../components/Header";
@@ -89,6 +90,10 @@ export function PrivacyPage() {
             Kullanım olayları: hangi test başladı, hangi soruda bırakıldı, davet bağlantısı kullanıldı mı ve olayın web
             sitesinden mi uygulamadan mı geldiği.
           </li>
+          <li>
+            İletişim formundan yazarsan mesajın ve, yanıt istersen bıraktığın e-posta adresi. E-posta adresin
+            yalnızca sana yanıt vermek için kullanılır.
+          </li>
         </ul>
       </Reveal>
 
@@ -172,6 +177,7 @@ export function PrivacyPage() {
           <li>Sonlandırılan nabız eşleşmeleri ve onlara bağlı kayıtlar 30 gün sonra otomatik olarak silinir.</li>
           <li>Yarım kalan testin cihazındaki ilerlemesi bitirince ya da bir hafta sonra silinir.</li>
           <li>Web sitesindeki sonuçlar, sen ya da biz silinmesini talep edene kadar saklanır.</li>
+          <li>İletişim mesajları, talebin sonuçlandıktan sonra da kayıt için saklanabilir; silinmesini isteyebilirsin.</li>
         </ul>
       </Reveal>
 
@@ -196,8 +202,9 @@ export function PrivacyPage() {
         </p>
         <p>
           Uygulamada hesabını profil ekranından kendin silebilirsin. Web sitesindeki kayıtların için ya da diğer bütün
-          talepler için, elindeki sonuç ya da davet bağlantısıyla birlikte{" "}
-          <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a> adresine yaz. Talebini en geç 30 gün içinde
+          talepler için <Link to="/iletisim?konu=veri">iletişim sayfasından</Link> ya da{" "}
+          <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a> adresinden, elindeki sonuç ya da davet
+          bağlantısıyla birlikte yaz. Talebini en geç 30 gün içinde
           sonuçlandırırız.
         </p>
       </Reveal>

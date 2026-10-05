@@ -51,7 +51,7 @@ const FAQ = [
   },
   {
     q: "Verilerimi nasıl sildiririm?",
-    a: "Elindeki sonuç ya da davet bağlantısıyla struvamap@gmail.com adresine yaz; o cihaza ait sonuçlar, kıyaslamalar ve kullanım kayıtları silinir.",
+    a: "Uygulamada hesabını profil ekranından silebilirsin. Web sitesindeki kayıtların için iletişim sayfasından (konu: verimle ilgili bir talep) ya da struvamap@gmail.com adresinden, elindeki sonuç ya da davet bağlantısıyla yaz; o cihaza ait sonuçlar, kıyaslamalar ve kullanım kayıtları silinir.",
   },
 ];
 

@@ -211,6 +211,21 @@ create table if not exists labour_entries (
 
 create index if not exists labour_entries_pair_date_idx on labour_entries (pair_id, entry_date);
 
+-- İletişim formu (web /iletisim). E-posta gönderim servisi yok; mesajlar
+-- burada durur, admin panelindeki "Mesajlar" sayfasından okunur.
+create table if not exists contact_messages (
+  id uuid primary key default gen_random_uuid(),
+  topic text not null,
+  message text not null,
+  reply_email text,
+  reference text,
+  platform text not null default 'web',
+  handled_at timestamptz,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists contact_messages_created_idx on contact_messages (created_at desc);
+
 alter table results enable row level security;
 alter table comparisons enable row level security;
 alter table events enable row level security;
@@ -225,4 +240,5 @@ alter table predictions enable row level security;
 alter table relationships enable row level security;
 alter table labour_entries enable row level security;
 alter table relationship_notes enable row level security;
+alter table contact_messages enable row level security;
 -- Politika yok: yalnızca service-role key (backend) erişebilir.

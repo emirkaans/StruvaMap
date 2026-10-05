@@ -39,6 +39,7 @@ export function Footer() {
           <span className="site-footer-label">Bağlantılar</span>
           <Link to="/#ne-olcuyoruz">Nasıl Çalışır</Link>
           <Link to="/yontem">Yöntem ve SSS</Link>
+          <Link to="/iletisim">İletişim</Link>
           <Link to="/gizlilik">Gizlilik Politikası</Link>
           <a href={PLAY_STORE_URL} target="_blank" rel="noopener">
             Mobil Uygulama

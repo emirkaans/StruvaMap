@@ -1,38 +1,18 @@
-import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Reveal } from "./Reveal";
 
-/* "Bize yaz" yalnızca mailto linki olunca, bilgisayarda tanımlı bir e-posta
-   uygulaması yoksa tıklamak hiçbir şey yapmıyordu. Adres açıkça yazılır ve
-   kopyalanabilir; e-posta uygulaması olan için mailto da durur. */
+/* Sayfa sonundaki iletişim çağrısı: iletişim sayfasına yönlendirir, veri
+   talebi için konu seçili gelir. Adres de görünür kalır. */
 export function ContactBlock({ email }: { email: string }) {
-  const [copied, setCopied] = useState(false);
-
   return (
     <Reveal className="privacy-contact">
       <p>
-        Verinle ilgili bir talebin mi var, yoksa bir şey mi anlamadın? Bize{" "}
-        <span className="privacy-contact-email">{email}</span> adresinden ulaşabilirsin.
+        Verinle ilgili bir talebin mi var, yoksa bir şey mi anlamadın? İletişim sayfasından yazabilir ya da{" "}
+        <span className="privacy-contact-email">{email}</span> adresine e-posta gönderebilirsin.
       </p>
-      <div className="privacy-contact-actions">
-        <button
-          type="button"
-          className="btn secondary"
-          onClick={() => {
-            navigator.clipboard
-              .writeText(email)
-              .then(() => {
-                setCopied(true);
-                setTimeout(() => setCopied(false), 1800);
-              })
-              .catch(() => {});
-          }}
-        >
-          {copied ? "Kopyalandı!" : "Adresi kopyala"}
-        </button>
-        <a href={`mailto:${email}`} className="btn secondary">
-          E-posta uygulamasında aç
-        </a>
-      </div>
+      <Link to="/iletisim?konu=veri" className="btn secondary">
+        Bize yaz
+      </Link>
     </Reveal>
   );
 }

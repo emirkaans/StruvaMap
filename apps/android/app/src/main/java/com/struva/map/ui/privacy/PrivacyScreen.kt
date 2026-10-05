@@ -24,8 +24,9 @@ import com.struva.map.ui.common.StruvaOutlinedButton
 import com.struva.map.ui.theme.StruvaColors
 import com.struva.map.ui.theme.struvaTopAppBarColors
 
-private const val CONTACT_EMAIL = "struvamap@gmail.com"
 const val PRIVACY_URL = "https://struvamap.com/gizlilik"
+// E-posta uygulaması olmayan cihazda mailto hiçbir şey açmıyor; iletişim web sayfasında.
+private const val CONTACT_URL = "https://struvamap.com/iletisim?konu=veri"
 private const val CONTROLLER = "Emir Kaan Sarıçam, Çankaya/Ankara"
 
 // Tam metin tek yerde, web'deki /gizlilik sayfasında (PrivacyPage.tsx); burada
@@ -120,7 +121,7 @@ fun PrivacyScreen(onBack: () -> Unit) {
             ) { Text("Tam metni oku") }
             Spacer(Modifier.height(12.dp))
             StruvaOutlinedButton(
-                onClick = { uriHandler.openUri("mailto:$CONTACT_EMAIL") },
+                onClick = { uriHandler.openUri(CONTACT_URL) },
                 modifier = Modifier.fillMaxWidth(),
             ) { Text("Bize yaz") }
             Spacer(Modifier.height(24.dp))

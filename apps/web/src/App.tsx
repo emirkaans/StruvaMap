@@ -6,6 +6,7 @@ import { ResultPage } from "./pages/ResultPage";
 import { ComparisonPage } from "./pages/ComparisonPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
 import { MethodPage } from "./pages/MethodPage";
+import { ContactPage } from "./pages/ContactPage";
 import { InviteShortLink, ResultShortLink } from "./pages/ShortLinkPage";
 import { PrivacyPage } from "./pages/PrivacyPage";
 
@@ -25,6 +26,7 @@ const AdminUsersPage = lazy(() => import("./pages/admin/AdminUsersPage").then((m
 const AdminUserDetailPage = lazy(() =>
   import("./pages/admin/AdminUserDetailPage").then((m) => ({ default: m.AdminUserDetailPage })),
 );
+const AdminContactPage = lazy(() => import("./pages/admin/AdminContactPage").then((m) => ({ default: m.AdminContactPage })));
 const AdminTestsPage = lazy(() => import("./pages/admin/AdminTestsPage").then((m) => ({ default: m.AdminTestsPage })));
 const AdminTestEditPage = lazy(() => import("./pages/admin/AdminTestEditPage").then((m) => ({ default: m.AdminTestEditPage })));
 
@@ -37,6 +39,7 @@ export function App() {
       <Route path="/comparisons/:comparisonId" element={<ComparisonPage />} />
       <Route path="/gizlilik" element={<PrivacyPage />} />
       <Route path="/yontem" element={<MethodPage />} />
+      <Route path="/iletisim" element={<ContactPage />} />
       <Route path="/r/:id" element={<ResultShortLink />} />
       <Route path="/d/:id" element={<InviteShortLink />} />
 
@@ -125,6 +128,16 @@ export function App() {
           <Suspense fallback={null}>
             <AdminRoute>
               <AdminUserDetailPage />
+            </AdminRoute>
+          </Suspense>
+        }
+      />
+      <Route
+        path="/admin/contact"
+        element={
+          <Suspense fallback={null}>
+            <AdminRoute>
+              <AdminContactPage />
             </AdminRoute>
           </Suspense>
         }
