@@ -24,6 +24,10 @@ export function fetchTests(all?: boolean): Promise<TestDefinition[]> {
   return request(`/tests${all ? "?all=true" : ""}`);
 }
 
+export function fetchResultsTotal(): Promise<number> {
+  return request<{ total: number }>("/results/stats/total").then((r) => r.total);
+}
+
 export function fetchTest(testId: string): Promise<TestDefinition> {
   return request(`/tests/${testId}`);
 }

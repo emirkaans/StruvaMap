@@ -28,6 +28,13 @@ export class ResultsController {
     return this.resultsService.findBySession(query.sessionId, query.testId);
   }
 
+  // Anasayfadaki "bugüne kadar" sayısı; yalnızca toplam, kişisel veri yok.
+  // ':id'den önce tanımlı olmalı, yoksa "stats" bir sonuç kimliği sanılır.
+  @Get('stats/total')
+  total() {
+    return this.resultsService.countAll().then((total) => ({ total }));
+  }
+
   @Get(':id')
   getOne(@Param('id') id: string) {
     return this.resultsService.findById(id);

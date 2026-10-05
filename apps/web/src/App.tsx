@@ -5,6 +5,8 @@ import { TestPage } from "./pages/TestPage";
 import { ResultPage } from "./pages/ResultPage";
 import { ComparisonPage } from "./pages/ComparisonPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
+import { MethodPage } from "./pages/MethodPage";
+import { InviteShortLink, ResultShortLink } from "./pages/ShortLinkPage";
 import { PrivacyPage } from "./pages/PrivacyPage";
 
 /* Admin panel lazy: @supabase/supabase-js istemcisi burada başlatılır ve
@@ -34,6 +36,9 @@ export function App() {
       <Route path="/result/:resultId" element={<ResultPage />} />
       <Route path="/comparisons/:comparisonId" element={<ComparisonPage />} />
       <Route path="/gizlilik" element={<PrivacyPage />} />
+      <Route path="/yontem" element={<MethodPage />} />
+      <Route path="/r/:id" element={<ResultShortLink />} />
+      <Route path="/d/:id" element={<InviteShortLink />} />
 
       <Route
         path="/admin/login"

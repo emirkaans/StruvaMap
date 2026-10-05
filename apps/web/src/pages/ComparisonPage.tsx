@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
+import { useDocumentTitle } from "../lib/useDocumentTitle";
 import { Link, useParams } from "react-router-dom";
 import type { TestDefinition } from "@struva/shared";
-import { bandOf as interpBandOf } from "@struva/shared";
+import { bandOf as interpBandOf, getConversationPrompts } from "@struva/shared";
 import { fetchComparison, fetchTest, type ComparisonRow } from "../lib/api";
 import { track } from "../lib/analytics";
+import { shareOrCopy } from "../lib/share";
 import { toTurkishUpper } from "../lib/text";
 import { useCountUp } from "../lib/useCountUp";
 import { Bar, Donut } from "../components/charts";
@@ -11,6 +13,7 @@ import { Header } from "../components/Header";
 import { Footer } from "../components/Footer";
 import { AppCta } from "../components/AppCta";
 import { Reveal } from "../components/Reveal";
+import { ConversationCard } from "../components/ConversationCard";
 
 const PERCEPTION_GAP_THRESHOLD = 20;
 
@@ -26,6 +29,7 @@ export function ComparisonPage() {
   const [test, setTest] = useState<TestDefinition | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  useDocumentTitle(test ? `${test.name} · Kıyaslama` : "Kıyaslama");
 
   useEffect(() => {
     if (!comparisonId) return;
@@ -68,6 +72,17 @@ export function ComparisonPage() {
 
   const { a, b } = comparison;
   const rsiGap = Math.abs(a.score.rsi - b.score.rsi);
+
+  // Konuşmaya en değer iki boyut: algı farkı en büyük olanlar. Belirgin bir
+  // fark yoksa ikinizin de en düşük gördüğü alanlar (ortak gerilim).
+  const prompts = getConversationPrompts(test.id);
+  const dimIds = Object.keys(test.dimensions).filter((d) => prompts[d]?.length);
+  const gapOf = (d: string) => Math.abs(a.score.dimensions[d] - b.score.dimensions[d]);
+  const avgOf = (d: string) => (a.score.dimensions[d] + b.score.dimensions[d]) / 2;
+  const hasPerceptionGap = dimIds.some((d) => gapOf(d) >= PERCEPTION_GAP_THRESHOLD);
+  const conversationDims = [...dimIds]
+    .sort((x, y) => (hasPerceptionGap ? gapOf(y) - gapOf(x) : avgOf(x) - avgOf(y)))
+    .slice(0, 2);
 
   return (
     <main className="wrap">
@@ -116,14 +131,19 @@ export function ComparisonPage() {
             type="button"
             className="btn secondary"
             onClick={() => {
-              navigator.clipboard.writeText(window.location.href).then(() => {
-                track("link_copied", { testId: test.id });
-                setCopied(true);
-                setTimeout(() => setCopied(false), 1800);
-              });
+              shareOrCopy({ title: `${test.name} · Kıyaslama · StruvaMap`, url: window.location.href })
+                .then((outcome) => {
+                  if (outcome === "cancelled") return;
+                  track("link_copied", { testId: test.id, props: { method: outcome } });
+                  if (outcome === "copied") {
+                    setCopied(true);
+                    setTimeout(() => setCopied(false), 1800);
+                  }
+                })
+                .catch(() => {});
             }}
           >
-            {copied ? "Kopyalandı!" : "Bağlantıyı kopyala"}
+            {copied ? "Kopyalandı!" : "Kıyaslamayı paylaş"}
           </button>
         </div>
       </Reveal>
@@ -155,6 +175,28 @@ export function ComparisonPage() {
           </Reveal>
         );
       })}
+
+      {conversationDims.length > 0 && (
+        <>
+          <h2>Konuşmaya Buradan Başlayın</h2>
+          <p className="muted small" style={{ marginTop: 0 }}>
+            Skor bir son değil, bir başlangıç. Bu sorular kimin haklı olduğunu değil, aynı yapıyı neden farklı
+            yaşadığınızı anlamak için.
+          </p>
+          {conversationDims.map((d) => (
+            <ConversationCard
+              key={d}
+              dimensionName={test.dimensions[d].name}
+              note={
+                hasPerceptionGap
+                  ? `Algı farkı ${gapOf(d)} puan`
+                  : `İkinizin de daha düşük gördüğü alan (ortalama ${Math.round(avgOf(d))})`
+              }
+              prompts={prompts[d]}
+            />
+          ))}
+        </>
+      )}
 
       <Reveal className="disclaimer">
         <span className="eyebrow">{toTurkishUpper("Teşhis değil")}</span>

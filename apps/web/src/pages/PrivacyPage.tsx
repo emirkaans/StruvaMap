@@ -1,3 +1,4 @@
+import { useDocumentTitle } from "../lib/useDocumentTitle";
 import { Header } from "../components/Header";
 import { Footer } from "../components/Footer";
 import { Reveal } from "../components/Reveal";
@@ -12,7 +13,7 @@ const FACTS = [
   {
     tag: "İzleme",
     title: "Çerez yok.",
-    body: "Üçüncü taraf analiz aracı, IP kaydı veya cihaz parmak izi kullanmıyoruz. Tek iz: localStorage'daki oturum kimliği.",
+    body: "Üçüncü taraf analiz aracı, IP kaydı veya cihaz parmak izi kullanmıyoruz. Tarayıcında yalnızca oturum kimliği ve yarım kalan testin ilerlemesi tutulur.",
   },
   {
     tag: "Puanlama",
@@ -27,6 +28,7 @@ const FACTS = [
 ];
 
 export function PrivacyPage() {
+  useDocumentTitle("Gizlilik");
   return (
     <main className="wrap privacy-page">
       <Header />
@@ -40,7 +42,7 @@ export function PrivacyPage() {
           açık yazıyoruz. Hukuk dili değil, gerçek davranış.
         </p>
         <span className="page-meta">
-          Son güncelleme · 30 Ağustos 2026 · Veri sorumlusu ·{" "}
+          Son güncelleme · 5 Ekim 2026 · Veri sorumlusu ·{" "}
           <a href="mailto:struvamap@gmail.com">struvamap@gmail.com</a>
         </span>
       </Reveal>
@@ -66,6 +68,11 @@ export function PrivacyPage() {
             <strong>Oturum kimliğin.</strong> <code>session_id</code>, aynı
             tarayıcıdan gelen sonuçları ve zaman içindeki değişimi birbirine
             bağlamak için tutulur.
+          </li>
+          <li>
+            <strong>Yarım kalan test.</strong> Testi bitirmeden çıkarsan cevapların
+            yalnızca bu cihazda saklanır ki kaldığın yerden devam edebilesin. Sunucuya
+            gitmez; testi bitirince ya da bir hafta sonra silinir.
           </li>
           <li>
             <strong>Kullanım olayları.</strong> Hangi test başladı, hangi soruda

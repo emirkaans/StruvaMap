@@ -4,7 +4,8 @@
   --bg: #0b0c10;
   --surface: #181a21;
   --text: #ecedef;
-  --muted: #9092a0;
+  /* #9092a0'dan açıldı: küçük punto açıklamalar koyu zeminde rahat okunsun. */
+  --muted: #a9abb8;
   --border: #26272f;
   --accent: #5470ff;
   --accent-soft: #171b30;
@@ -157,7 +158,94 @@ p {
 .q-count {
   font-size: 0.85rem;
   color: var(--muted);
-  margin-bottom: 20px;
+}
+/* Soru üstü satır: hangi endeks ve boyutta olunduğu (marka dilindeki mono
+   etiket) ve sıra. */
+.q-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 6px 16px;
+  margin: 14px 0 20px;
+}
+.q-dim {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: var(--accent);
+}
+.q-saved-note {
+  margin: 18px 0 0;
+  font-size: 0.82rem;
+  color: var(--muted);
+  text-align: center;
+}
+
+/* Test giriş ekranı */
+.test-intro {
+  padding: 28px 0 8px;
+}
+.test-intro h1 {
+  font-family: "Archivo", sans-serif;
+  font-weight: 800;
+  font-size: clamp(1.9rem, 5vw, 2.6rem);
+  line-height: 1.1;
+  margin: 0 0 16px;
+}
+.test-intro-lead {
+  margin: 0 0 28px;
+  color: var(--muted);
+  font-size: 1.05rem;
+  line-height: 1.6;
+  max-width: 52ch;
+}
+.test-intro-facts {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 24px;
+}
+.test-intro-facts div {
+  padding: 18px 0;
+}
+.test-intro-facts div + div {
+  padding-left: 18px;
+  border-left: 1px solid var(--border);
+}
+.test-intro-facts b {
+  display: block;
+  font-family: "Archivo", sans-serif;
+  font-size: 1.6rem;
+  font-weight: 800;
+  line-height: 1;
+}
+.test-intro-facts span {
+  display: block;
+  margin-top: 8px;
+  font-size: 0.84rem;
+  color: var(--muted);
+}
+.test-intro-notes {
+  margin: 0 0 28px;
+  padding: 0 0 0 16px;
+  border-left: 2px solid var(--accent);
+  list-style: none;
+}
+.test-intro-notes li {
+  font-size: 0.94rem;
+  color: var(--muted);
+  line-height: 1.5;
+}
+.test-intro-notes li + li {
+  margin-top: 8px;
+}
+.test-intro-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
 }
 .q-text {
   font-size: 1.25rem;
@@ -881,7 +969,7 @@ p {
 .hero-invite-note {
   margin: 14px 0 0;
   color: var(--muted);
-  font-size: 0.86rem;
+  font-size: 0.9rem;
   max-width: 42ch;
 }
 
@@ -927,7 +1015,7 @@ p {
 }
 .stats-row .stat span {
   display: block;
-  font-size: 0.78rem;
+  font-size: 0.84rem;
   color: var(--muted);
   margin-top: 10px;
   line-height: 1.4;
@@ -1158,7 +1246,9 @@ p {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 1px;
-  background: var(--border);
+  /* Ayraç çizgileri kartlarla birlikte belirsin; zemin rengi olsaydı kartlar
+     görünmeden önce boş gri bir kutu kalıyordu. */
+  background: transparent;
   border: 1px solid var(--border);
   border-radius: 14px;
   overflow: hidden;
@@ -1170,6 +1260,7 @@ p {
 }
 .dim-card {
   background: var(--bg);
+  box-shadow: 0 0 0 1px var(--border);
   padding: 22px 20px;
 }
 .dim-card .dim-tag {
@@ -1231,7 +1322,8 @@ p {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 1px;
-  background: var(--border);
+  /* Ayraçlar kartların gölgesinden gelir (bkz. .dim-card), dims-grid ile aynı. */
+  background: transparent;
   border: 1px solid var(--border);
   border-radius: 14px;
   overflow: hidden;
@@ -1330,6 +1422,10 @@ p {
   font-size: 0.94rem;
   color: var(--muted);
   line-height: 1.4;
+}
+.app-cta-list li strong {
+  color: var(--text);
+  font-weight: 600;
 }
 .app-cta-list li:last-child {
   border-bottom: none;
@@ -1551,7 +1647,7 @@ p {
 }
 .site-footer-brand p {
   margin: 12px 0 0;
-  font-size: 0.82rem;
+  font-size: 0.86rem;
   color: var(--muted);
   max-width: 42ch;
   line-height: 1.6;
@@ -1587,7 +1683,7 @@ p {
   gap: 8px;
   padding-top: 20px;
   border-top: 1px solid var(--border);
-  font-size: 0.78rem;
+  font-size: 0.82rem;
   color: var(--muted);
 }
 @media (max-width: 620px) {
@@ -1687,6 +1783,80 @@ p {
 }
 
 /* Boyut bazında kıyaslama kartı: iki bar üst üste, üstte ayraç payı */
+/* Yöntem sayfası: üç katman yan yana, telefonda alt alta */
+.method-page .fact-grid {
+  grid-template-columns: repeat(3, 1fr);
+}
+@media (max-width: 760px) {
+  .method-page .fact-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Yöntem sayfası: sık sorulanlar */
+.faq details {
+  border-bottom: 1px solid var(--border);
+  padding: 14px 0;
+}
+.faq summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--text);
+  list-style-position: outside;
+}
+.faq details p {
+  margin: 10px 0 0;
+}
+.method-cta {
+  margin: 32px 0 8px;
+  text-align: center;
+}
+.dims-more {
+  margin: 14px 0 0;
+  font-size: 0.92rem;
+}
+.dims-more a {
+  color: var(--accent);
+  text-decoration: none;
+}
+.dims-more a:hover {
+  text-decoration: underline;
+}
+
+/* Kıyaslama: konuşma kartları */
+.conversation-card .eyebrow {
+  font-size: 0.72rem;
+}
+.conversation-prompt {
+  font-family: "Archivo", sans-serif;
+  font-size: 1.15rem;
+  font-weight: 600;
+  line-height: 1.45;
+  margin: 4px 0 16px;
+}
+.conversation-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+}
+.conversation-next {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--accent);
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+@media print {
+  .conversation-next {
+    display: none;
+  }
+}
+
 .compare-dim h3 {
   margin-bottom: 10px;
 }

@@ -1,13 +1,14 @@
 import { useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import type { TestDefinition } from "@struva/shared";
-import { fetchTests } from "../lib/api";
+import { fetchResultsTotal, fetchTests } from "../lib/api";
 import { track } from "../lib/analytics";
-import { toTurkishUpper } from "../lib/text";
+import { minutesFromSubtitle, toTurkishUpper } from "../lib/text";
 import { Header } from "../components/Header";
 import { Footer } from "../components/Footer";
 import { AppCta } from "../components/AppCta";
 import { Reveal } from "../components/Reveal";
+import { useDocumentTitle } from "../lib/useDocumentTitle";
 import heykelRomantic from "../assets/heykel-romantik.webp";
 import heykelFriendship from "../assets/heykel-arkadaslik.webp";
 import heykelWork from "../assets/heykel-is.webp";
@@ -16,6 +17,8 @@ import heykelRoommate from "../assets/heykel-ev-arkadasi.webp";
 
 interface HeroContent {
   pillLabel: string;
+  // Test verisi gelmeden de hero çizilebilsin diye davet metni burada da var.
+  inviteCta: string;
   headline: string[];
   lead: string;
   image: string;
@@ -26,6 +29,7 @@ interface HeroContent {
 const HERO_CONTENT: Record<string, HeroContent> = {
   romantic: {
     pillLabel: "Romantik İlişki",
+    inviteCta: "Partnerini davet et",
     headline: [
       "Görünmeyen Yapı.",
       "Ölçülebilir Denge.",
@@ -38,6 +42,7 @@ const HERO_CONTENT: Record<string, HeroContent> = {
   },
   friendship: {
     pillLabel: "Arkadaşlık",
+    inviteCta: "Arkadaşını davet et",
     headline: ["Dostlukta Hesap Tutulmaz.", "Ama Denge Hissedilir."],
     lead: "Arkadaşlığınızda sohbetin ötesinde bir katman vardır: girişim, destek, dürüstlük, özerklik... StruvaMap bunları birlikte görünür kılar.",
     image: heykelFriendship,
@@ -46,11 +51,8 @@ const HERO_CONTENT: Record<string, HeroContent> = {
   },
   work: {
     pillLabel: "İş",
-    headline: [
-      "Ofis Bir Sahne Gibi.",
-      "Roller Net,",
-      "Emek Genellike Belirsiz.",
-    ],
+    inviteCta: "İş arkadaşını davet et",
+    headline: ["Roller Yazılıdır.", "Emek Çoğu Zaman Yazılmaz."],
     lead: "Terfi baskısı, mikro yönetim, mesai dışı mesajlar... Yönetici-çalışan ilişkisi de karar payı, emek ve güvenle örülüdür. StruvaMap bu dinamiği ölçülebilir kılar.",
     image: heykelWork,
     dimNote: "iş ilişkisini oluşturan alanlar",
@@ -58,6 +60,7 @@ const HERO_CONTENT: Record<string, HeroContent> = {
   },
   family: {
     pillLabel: "Aile",
+    inviteCta: "Aile üyeni davet et",
     headline: [
       "Aileyi sevgi birleştirir.",
       "Roller düzenler.",
@@ -70,25 +73,45 @@ const HERO_CONTENT: Record<string, HeroContent> = {
   },
   roommate: {
     pillLabel: "Ev Arkadaşlığı",
-    headline: ["Bulaşık Kimde Kalıyor?", "Çöpü kim çıkarıyor?"],
-    lead: "Aynı evi paylaşmak, kirayı bölüşmenin ötesinde bir katmandır: ev işi, masraf, düzen ve mahremiyet dengesi. StruvaMap bu yapıyı görünür kılar.",
+    inviteCta: "Ev arkadaşını davet et",
+    headline: ["Aynı Çatı.", "Paylaşılan Düzen.", "Görünmeyen Emek."],
+    lead: "Aynı evi paylaşmak, kirayı bölüşmekten fazlasıdır. Ev işi, masraf, düzen ve mahremiyet birlikte bir yapı kurar. StruvaMap bu yapıyı görünür kılar.",
     image: heykelRoommate,
     dimNote: "ev arkadaşlığını oluşturan alanlar",
     indexNote: "emek, uyum, sınırlar",
   },
 };
 
-function parseMinutes(subtitle: string): string {
-  const m = subtitle.match(/~?(\d+)\s*dakika/);
-  return m ? m[1] : "?";
+// İlk ziyarette test listesi gelmeden hero bu sırayla çizilir; sonraki
+// ziyaretlerde en son görülen yayındaki liste kullanılır.
+const DEFAULT_HERO_IDS = ["romantic", "friendship", "roommate"];
+const HERO_IDS_KEY = "struva_hero_ids";
+
+// Tamamlanan test sayısı bu eşiğin altındayken gösterilmez: küçük bir sayı
+// güven vermek yerine tersini yapar.
+const RESULTS_TOTAL_MIN = 250;
+
+function initialHeroIds(): string[] {
+  try {
+    const stored = JSON.parse(localStorage.getItem(HERO_IDS_KEY) ?? "null") as unknown;
+    if (Array.isArray(stored) && stored.length > 0 && stored.every((id) => typeof id === "string" && HERO_CONTENT[id])) {
+      return stored as string[];
+    }
+  } catch {
+    // bozuk ya da erişilemeyen depolama: varsayılana düş
+  }
+  return DEFAULT_HERO_IDS;
 }
 
 export function LandingPage() {
   const [tests, setTests] = useState<TestDefinition[] | null>(null);
+  const [resultsTotal, setResultsTotal] = useState<number | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [heroVisible, setHeroVisible] = useState(true);
   const [otherImagesReady, setOtherImagesReady] = useState(false);
   const heroScreenRef = useRef<HTMLDivElement>(null);
+  const location = useLocation();
+  useDocumentTitle(null);
 
   useEffect(() => {
     track("landing_view");
@@ -96,8 +119,21 @@ export function LandingPage() {
 
   useEffect(() => {
     fetchTests()
-      .then(setTests)
+      .then((list) => {
+        setTests(list);
+        try {
+          localStorage.setItem(HERO_IDS_KEY, JSON.stringify(list.map((t) => t.id).filter((id) => HERO_CONTENT[id])));
+        } catch {
+          // depolama kapalıysa bir sonraki ziyarette varsayılan sıra kullanılır
+        }
+      })
       .catch(() => setTests([]));
+  }, []);
+
+  useEffect(() => {
+    fetchResultsTotal()
+      .then(setResultsTotal)
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -116,11 +152,23 @@ export function LandingPage() {
     return () => observer.disconnect();
   }, []);
 
-  const heroTests = (tests ?? []).filter((t) => HERO_CONTENT[t.id]);
+  // Hero sabit içerikten çizilir, API beklenmez. Test listesi gelince yalnızca
+  // yayındaki testler kalır. Alttaki istatistik ve metodoloji test verisine bağlı.
+  const [fallbackIds] = useState(initialHeroIds);
+  const heroTests: { id: string }[] = tests
+    ? tests.filter((t) => HERO_CONTENT[t.id])
+    : fallbackIds.map((id) => ({ id }));
   const activeId = selectedId ?? heroTests[0]?.id ?? null;
   const activeIndex = heroTests.findIndex((t) => t.id === activeId);
-  const activeTest = heroTests[activeIndex] ?? null;
+  const activeTest = tests?.find((t) => t.id === activeId) ?? null;
   const heroIds = heroTests.map((t) => t.id).join(",");
+
+  // Başka sayfadan "/#ne-olcuyoruz" ile gelindiğinde bölüm test verisiyle
+  // birlikte çizildiği için tarayıcının kendi kaydırması boşa düşer.
+  useEffect(() => {
+    if (!location.hash || !activeTest) return;
+    document.getElementById(location.hash.slice(1))?.scrollIntoView({ behavior: "smooth" });
+  }, [location.hash, activeTest]);
 
   const touchStartX = useRef<number | null>(null);
   const SWIPE_THRESHOLD = 40;
@@ -171,9 +219,9 @@ export function LandingPage() {
       <div className="hero-screen" ref={heroScreenRef}>
         <Header
           cta={
-            activeTest && (
+            activeId && (
               <Link
-                to={`/test/${activeTest.id}`}
+                to={`/test/${activeId}`}
                 className="btn"
                 style={{
                   borderRadius: 99,
@@ -188,11 +236,6 @@ export function LandingPage() {
         />
 
         <div className="landing-wrap">
-          {!tests && (
-            <p className="muted" style={{ textAlign: "center", marginTop: 60 }}>
-              Yükleniyor…
-            </p>
-          )}
           {tests && heroTests.length === 0 && (
             <p className="muted" style={{ textAlign: "center", marginTop: 60 }}>
               Şu anda kullanılabilir test yok.
@@ -260,8 +303,8 @@ export function LandingPage() {
                           </a>
                         </div>
                         <p className="hero-invite-note">
-                          {t.inviteCta} . Testi bitirince sonuçlarınız yan yana
-                          kıyaslanır.
+                          {content.inviteCta}. Testi bitirince sonuçlarınız yan
+                          yana kıyaslanır.
                         </p>
                       </div>
                       <div className="hero-visual">
@@ -295,9 +338,15 @@ export function LandingPage() {
               <span>Endeks · {HERO_CONTENT[activeTest.id].indexNote}</span>
             </div>
             <div className="stat">
-              <b>~{parseMinutes(activeTest.subtitle)}dk</b>
+              <b>~{minutesFromSubtitle(activeTest.subtitle)}dk</b>
               <span>Ortalama tamamlama süresi</span>
             </div>
+            {resultsTotal != null && resultsTotal >= RESULTS_TOTAL_MIN && (
+              <div className="stat">
+                <b>{resultsTotal.toLocaleString("tr-TR")}</b>
+                <span>Bugüne kadar haritalanan ilişki</span>
+              </div>
+            )}
           </Reveal>
         )}
 
@@ -330,6 +379,9 @@ export function LandingPage() {
                 </div>
               ))}
             </Reveal>
+            <p className="dims-more">
+              <Link to="/yontem">Yöntemin tamamı ve sık sorulanlar →</Link>
+            </p>
           </section>
         )}
 

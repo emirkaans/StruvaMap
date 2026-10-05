@@ -1,1 +1,5 @@
+# Paylaşım kısa linkleri: bot'lar sonuca özel önizlemeyi API'den alır,
+# tarayıcılar oradan asıl sayfaya yönlenir (bkz. apps/api/src/share).
+/r/*  https://api.struvamap.com/share/r/:splat  200
+/d/*  https://api.struvamap.com/share/d/:splat  200
 /*    /index.html   200

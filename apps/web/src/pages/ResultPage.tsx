@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
+import { useDocumentTitle } from "../lib/useDocumentTitle";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { composeProfileStory, computeProfileLabel, type ScoreResult, type TestDefinition } from "@struva/shared";
 import { fetchComparisonByResultId, fetchResult, fetchResultHistory, fetchTest, type ResultRow } from "../lib/api";
 import { track } from "../lib/analytics";
+import { shareOrCopy } from "../lib/share";
 import { toTurkishUpper } from "../lib/text";
 import { useCountUp } from "../lib/useCountUp";
 import { Bar, Donut, Radar, TrendChart, bandHex, bandOf } from "../components/charts";
@@ -220,6 +222,9 @@ export function ResultPage() {
   }, [result, comparisonId, invited]);
 
   const rsiCount = useCountUp(result?.score.rsi ?? 0);
+  useDocumentTitle(
+    result && test ? `${computeProfileLabel(test.indices, result.score.indices).title} · Sonuç` : "Sonuç",
+  );
 
   if (error) {
     return (
@@ -347,28 +352,48 @@ export function ResultPage() {
             type="button"
             className="btn secondary"
             onClick={() => {
-              navigator.clipboard.writeText(window.location.href).then(() => {
-                track("link_copied", { testId: test.id });
-                setCopied(true);
-                setTimeout(() => setCopied(false), 1800);
-              });
+              shareOrCopy({
+                title: `${profile.title} · StruvaMap`,
+                text: `${test.name} sonucum: ${profile.title}.`,
+                // Kısa link: paylaşılınca sonuca özel önizleme çıkar (bkz. public/_redirects).
+                url: `${window.location.origin}/r/${result.id}`,
+              })
+                .then((outcome) => {
+                  if (outcome === "cancelled") return;
+                  track("link_copied", { testId: test.id, props: { method: outcome } });
+                  if (outcome === "copied") {
+                    setCopied(true);
+                    setTimeout(() => setCopied(false), 1800);
+                  }
+                })
+                .catch(() => {});
             }}
           >
-            {copied ? "Kopyalandı!" : "Bağlantıyı kopyala"}
+            {copied ? "Kopyalandı!" : "Sonucu paylaş"}
           </button>
           {!comparisonId && (
             <button
               type="button"
               className="btn secondary"
               onClick={() => {
-                const url = `${window.location.origin}/test/${test.id}?compareWith=${result.id}`;
-                navigator.clipboard.writeText(url).then(() => {
-                  track("invite_copied", { testId: test.id });
-                  localStorage.setItem(invitedStorageKey(result.id), "1");
-                  setInvited(true);
-                  setInviteCopied(true);
-                  setTimeout(() => setInviteCopied(false), 1800);
-                });
+                // Kısa davet linki: önizlemede davet metni görünür, açılınca teste yönlenir.
+                const url = `${window.location.origin}/d/${result.id}`;
+                shareOrCopy({
+                  title: "StruvaMap · Birlikte haritalayalım",
+                  text: "İlişkimizin görünmeyen yapısını birlikte haritalayalım. Testi çöz, sonuçlarımız yan yana kıyaslansın.",
+                  url,
+                })
+                  .then((outcome) => {
+                    if (outcome === "cancelled") return;
+                    track("invite_copied", { testId: test.id, props: { method: outcome } });
+                    localStorage.setItem(invitedStorageKey(result.id), "1");
+                    setInvited(true);
+                    if (outcome === "copied") {
+                      setInviteCopied(true);
+                      setTimeout(() => setInviteCopied(false), 1800);
+                    }
+                  })
+                  .catch(() => {});
               }}
             >
               {inviteCopied ? "Davet bağlantısı kopyalandı!" : test.inviteCta}

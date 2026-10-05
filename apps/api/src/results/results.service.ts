@@ -67,6 +67,14 @@ export class ResultsService {
     return data as ResultRow;
   }
 
+  async countAll(): Promise<number> {
+    const { count, error } = await this.supabase.client
+      .from('results')
+      .select('*', { count: 'exact', head: true });
+    if (error) throw new InternalServerErrorException(error.message);
+    return count ?? 0;
+  }
+
   async findById(id: string): Promise<ResultRow> {
     const { data, error } = await this.supabase.client
       .from('results')

@@ -59,10 +59,10 @@ export function AppCta({ variant, resultId }: { variant: "full" | "compact"; res
         </div>
         <div className="app-cta-compact-copy">
           <span className="eyebrow">{toTurkishUpper("Mobil uygulama")}</span>
-          <h2>Bu yalnızca başlangıç.</h2>
+          <h2>Bir ölçüm, bir an.</h2>
           <p>
-            Ekonomik güç, duygusal emek, yaşam tarzı uyumu ve &quot;istenen yapı vs mevcut yapı&quot; farkı
-            gibi derin analizler mobil uygulamada.
+            Yapı her gün yeniden kurulur. Uygulamada bu sonuç bir haritanın ilk noktası olur: günlük nabız,
+            ilişkiler arası örüntüler, tahmin modu ve emek defteriyle zaman içinde izlenir.
           </p>
           <AppCtaButton resultId={resultId} />
         </div>
@@ -75,11 +75,24 @@ export function AppCta({ variant, resultId }: { variant: "full" | "compact"; res
       <div className="app-cta-grid">
         <div className="app-cta-copy">
           <span className="eyebrow">{toTurkishUpper("Mobil uygulama")}</span>
-          <h2>Web Yüzeyi Ölçer. Uygulama Derini.</h2>
+          <h2>
+            Ölçüm Bir An.
+            <br />
+            Yapı Bir Süreç.
+          </h2>
           <ul className="app-cta-list">
-            <li>Ekonomik güç &amp; duygusal emek</li>
-            <li>Yaşam tarzı uyumu</li>
-            <li>&quot;İstenen yapı vs mevcut yapı&quot; farkı</li>
+            <li>
+              <strong>Günlük nabız.</strong> Partnerinle her gün tek bir soru; denge zaman içinde görünür olur.
+            </li>
+            <li>
+              <strong>İlişki haritası.</strong> Bütün ilişkilerin yan yana; tekrar eden gerilim ve güç örüntüleri.
+            </li>
+            <li>
+              <strong>Tahmin modu.</strong> Karşı tarafın cevabını önceden tahmin et, algı farkını gör.
+            </li>
+            <li>
+              <strong>Emek defteri.</strong> Günlük işler tek dokunuşla kaydedilir, dağılım haftalık izlenir.
+            </li>
           </ul>
           <AppCtaButton />
         </div>
@@ -97,7 +110,7 @@ export function AppCta({ variant, resultId }: { variant: "full" | "compact"; res
                 <i />
                 <i />
               </div>
-              <span className="app-cta-caption">Boyut Radarı</span>
+              <span className="app-cta-caption">Günlük Nabız</span>
             </div>
           </div>
         </div>

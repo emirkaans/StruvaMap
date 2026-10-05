@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /r/
+Disallow: /d/
+
+Sitemap: https://struvamap.com/sitemap.xml
