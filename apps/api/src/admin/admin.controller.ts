@@ -1,4 +1,12 @@
-import { Controller, Delete, Get, Param, Query, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseUUIDPipe,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { AdminGuard } from '../auth/admin.guard';
 import { EventsService } from '../events/events.service';
 import { EVENT_NAMES } from '../events/track-event.dto';
@@ -9,6 +17,8 @@ import { AdminEventsQueryDto, AdminEventsTrendDto } from './admin-events-query.d
 import { AdminMobileService } from './admin-mobile.service';
 import { AdminDataService } from './admin-data.service';
 import { AdminDataLookupDto } from './admin-data.dto';
+import { AdminUsersService } from './admin-users.service';
+import { AdminUsersQueryDto } from './admin-users.dto';
 
 @Controller('admin')
 @UseGuards(AdminGuard)
@@ -19,6 +29,7 @@ export class AdminController {
     private readonly comparisons: ComparisonsService,
     private readonly mobile: AdminMobileService,
     private readonly data: AdminDataService,
+    private readonly users: AdminUsersService,
   ) {}
 
   @Get('events/summary')
@@ -64,6 +75,16 @@ export class AdminController {
   @Get('mobile')
   mobileSummary(@Query() query: AdminEventsQueryDto) {
     return this.mobile.summary(query.from, query.to);
+  }
+
+  @Get('users')
+  listUsers(@Query() query: AdminUsersQueryDto) {
+    return this.users.list(query);
+  }
+
+  @Get('users/:id')
+  userDetail(@Param('id', ParseUUIDPipe) id: string) {
+    return this.users.detail(id);
   }
 
   @Get('data/lookup')

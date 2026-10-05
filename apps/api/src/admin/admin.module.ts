@@ -8,10 +8,11 @@ import { AdminController } from './admin.controller';
 import { AdminTestsController } from './admin-tests.controller';
 import { AdminMobileService } from './admin-mobile.service';
 import { AdminDataService } from './admin-data.service';
+import { AdminUsersService } from './admin-users.service';
 
 @Module({
   imports: [AuthModule, EventsModule, ResultsModule, ComparisonsModule, TestsModule],
   controllers: [AdminController, AdminTestsController],
-  providers: [AdminMobileService, AdminDataService],
+  providers: [AdminMobileService, AdminDataService, AdminUsersService],
 })
 export class AdminModule {}

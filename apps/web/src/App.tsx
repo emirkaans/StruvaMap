@@ -19,6 +19,10 @@ const AdminResultsPage = lazy(() => import("./pages/admin/AdminResultsPage").the
 const AdminComparisonsPage = lazy(() => import("./pages/admin/AdminComparisonsPage").then((m) => ({ default: m.AdminComparisonsPage })));
 const AdminMobilePage = lazy(() => import("./pages/admin/AdminMobilePage").then((m) => ({ default: m.AdminMobilePage })));
 const AdminDataPage = lazy(() => import("./pages/admin/AdminDataPage").then((m) => ({ default: m.AdminDataPage })));
+const AdminUsersPage = lazy(() => import("./pages/admin/AdminUsersPage").then((m) => ({ default: m.AdminUsersPage })));
+const AdminUserDetailPage = lazy(() =>
+  import("./pages/admin/AdminUserDetailPage").then((m) => ({ default: m.AdminUserDetailPage })),
+);
 const AdminTestsPage = lazy(() => import("./pages/admin/AdminTestsPage").then((m) => ({ default: m.AdminTestsPage })));
 const AdminTestEditPage = lazy(() => import("./pages/admin/AdminTestEditPage").then((m) => ({ default: m.AdminTestEditPage })));
 
@@ -96,6 +100,26 @@ export function App() {
           <Suspense fallback={null}>
             <AdminRoute>
               <AdminDataPage />
+            </AdminRoute>
+          </Suspense>
+        }
+      />
+      <Route
+        path="/admin/users"
+        element={
+          <Suspense fallback={null}>
+            <AdminRoute>
+              <AdminUsersPage />
+            </AdminRoute>
+          </Suspense>
+        }
+      />
+      <Route
+        path="/admin/users/:userId"
+        element={
+          <Suspense fallback={null}>
+            <AdminRoute>
+              <AdminUserDetailPage />
             </AdminRoute>
           </Suspense>
         }

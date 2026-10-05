@@ -205,6 +205,55 @@ export interface AdminDeletionReport {
   events: number;
 }
 
+export type AdminPulseStatus = "none" | "pending" | "active" | "ended";
+
+export interface AdminUserRow {
+  id: string;
+  username: string | null;
+  guest: boolean;
+  createdAt: string;
+  lastSignInAt: string | null;
+  resultCount: number;
+  pulse: AdminPulseStatus;
+  relationshipCount: number;
+  hasPushToken: boolean;
+}
+
+export interface AdminUserDetail extends AdminUserRow {
+  results: { id: string; testId: string; createdAt: string; rsi: number | null }[];
+  pulseDetail: {
+    status: AdminPulseStatus;
+    acceptedAt: string | null;
+    endedAt: string | null;
+    checkinDays: number;
+    ownAnsweredDays: number;
+    bothAnsweredDays: number;
+  };
+  counts: {
+    activeRelationships: number;
+    archivedRelationships: number;
+    notes: number;
+    labourEntries: number;
+    predictions: number;
+  };
+}
+
+export interface AdminUsersParams {
+  page?: number;
+  pageSize?: number;
+  q?: string;
+  type?: "all" | "registered" | "guest";
+  sort?: "newest" | "oldest";
+}
+
+export function fetchAdminUsers(params: AdminUsersParams): Promise<AdminPaginated<AdminUserRow>> {
+  return adminRequest(`/admin/users${toQuery({ ...params })}`);
+}
+
+export function fetchAdminUser(id: string): Promise<AdminUserDetail> {
+  return adminRequest(`/admin/users/${encodeURIComponent(id)}`);
+}
+
 export function lookupAdminData(q: string): Promise<AdminDataLookup> {
   return adminRequest(`/admin/data/lookup${toQuery({ q })}`);
 }
