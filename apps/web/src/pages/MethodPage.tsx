@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useDocumentTitle } from "../lib/useDocumentTitle";
 import { Header } from "../components/Header";
@@ -56,6 +57,8 @@ const FAQ = [
 
 export function MethodPage() {
   useDocumentTitle("Yöntem");
+  // Akordiyon: bir soru açılınca diğeri kapanır.
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
   return (
     <main className="wrap privacy-page method-page">
       <Header />
@@ -113,9 +116,18 @@ export function MethodPage() {
       <Reveal className="privacy-section">
         <h2>Sık sorulanlar</h2>
         <div className="faq">
-          {FAQ.map((item) => (
-            <details key={item.q}>
-              <summary>{item.q}</summary>
+          {FAQ.map((item, i) => (
+            <details key={item.q} open={openIndex === i}>
+              <summary
+                onClick={(e) => {
+                  // Tarayıcının kendi aç/kapa davranışı yerine durum yönetir,
+                  // böylece aynı anda tek soru açık kalır.
+                  e.preventDefault();
+                  setOpenIndex((current) => (current === i ? null : i));
+                }}
+              >
+                {item.q}
+              </summary>
               <p>{item.a}</p>
             </details>
           ))}

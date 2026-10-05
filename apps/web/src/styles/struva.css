@@ -619,8 +619,16 @@ p {
 }
 
 /* --- Sonuç/Kıyaslama: sade üst bar (yalnızca logo) --- */
+/* İç sayfaların başlığı içerik sütunundan (720px) taşıp anasayfadaki gibi
+   1080px genişliğe yayılır; logo ve sağ taraf anasayfayla aynı hizada durur. */
 .page-nav {
-  padding: 4px 0 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: min(1080px, 100vw);
+  margin-left: calc((100% - min(1080px, 100vw)) / 2);
+  padding: 0 clamp(16px, 4vw, 24px) 20px;
 }
 
 /* --- Sonuç: güçlü/gerilim alanları yan yana, ortada ince ayraç --- */
@@ -1382,6 +1390,17 @@ p {
   justify-content: space-between;
   gap: 16px;
   flex-wrap: wrap;
+}
+.privacy-contact-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+.privacy-contact-email {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 0.92rem;
+  color: var(--text);
 }
 .privacy-contact p {
   margin: 0;

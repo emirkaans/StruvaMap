@@ -1,4 +1,5 @@
 import { useDocumentTitle } from "../lib/useDocumentTitle";
+import { ContactBlock } from "../components/ContactBlock";
 import { Header } from "../components/Header";
 import { Footer } from "../components/Footer";
 import { Reveal } from "../components/Reveal";
@@ -209,12 +210,7 @@ export function PrivacyPage() {
         </p>
       </Reveal>
 
-      <Reveal className="privacy-contact">
-        <p>Verinle ilgili bir talebin mi var, yoksa bir şey mi anlamadın?</p>
-        <a href={`mailto:${CONTACT_EMAIL}`} className="btn secondary">
-          Bize yaz
-        </a>
-      </Reveal>
+      <ContactBlock email={CONTACT_EMAIL} />
 
       <Footer />
     </main>
