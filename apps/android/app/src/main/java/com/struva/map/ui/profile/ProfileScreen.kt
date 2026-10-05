@@ -169,7 +169,7 @@ fun ProfileScreen(
         AlertDialog(
             onDismissRequest = { showDeleteConfirm = false },
             title = { Text("Hesabını silmek istediğine emin misin?") },
-            text = { Text("Bu işlem geri alınamaz.") },
+            text = { Text("Bu işlem geri alınamaz. Hesabın, test sonuçların, kıyaslamaların, nabız, ilişki ve emek defteri kayıtların kalıcı olarak silinir.") },
             confirmButton = {
                 TextButton(
                     onClick = {

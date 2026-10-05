@@ -189,13 +189,36 @@ export class AuthController {
     return { username: newUsername };
   }
 
-  // Hesap silme: sonuçlar (results.user_id) anonimleştirilip korunur — kişisel
-  // veri kalmaz, ama toplu istatistikler bozulmaz. auth.users silinince
-  // profiles satırı zaten cascade ile gider (bkz. supabase/schema.sql).
+  // Hesap silme: hesaba bağlı her şey kalıcı olarak silinir. Sonuçlar
+  // anonimleştirilip tutulmaz; cihaz kimliği (session_id) üzerinden hâlâ
+  // bir kişiye bağlanabilirlerdi. Sıra önemli: kıyaslamaların sonuçlara FK'sı
+  // cascade değil, önce onlar silinir. Tahmin, claim ve bildirim kayıtları
+  // sonuçla; profil, nabız, ilişki, not ve emek defteri kayıtları auth.users
+  // silinince cascade ile gider (bkz. supabase/schema.sql).
   @Delete('me')
   @UseGuards(UserGuard)
   async deleteAccount(@Req() req: AuthedRequest) {
-    await this.supabase.client.from('results').update({ user_id: null }).eq('user_id', req.user.id);
+    const { data: ownResults, error: listError } = await this.supabase.client
+      .from('results')
+      .select('id')
+      .eq('user_id', req.user.id);
+    if (listError) throw new InternalServerErrorException(listError.message);
+
+    const ids = (ownResults ?? []).map((r: { id: string }) => r.id);
+    if (ids.length > 0) {
+      const list = ids.join(',');
+      const { error: comparisonError } = await this.supabase.client
+        .from('comparisons')
+        .delete()
+        .or(`result_id_a.in.(${list}),result_id_b.in.(${list})`);
+      if (comparisonError) throw new InternalServerErrorException(comparisonError.message);
+
+      const { error: resultError } = await this.supabase.client
+        .from('results')
+        .delete()
+        .eq('user_id', req.user.id);
+      if (resultError) throw new InternalServerErrorException(resultError.message);
+    }
 
     const { error } = await this.supabase.client.auth.admin.deleteUser(req.user.id);
     if (error) throw new InternalServerErrorException(error.message);

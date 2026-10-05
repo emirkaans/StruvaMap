@@ -61,7 +61,7 @@ fun PrivacyScreen(onBack: () -> Unit) {
             Spacer(Modifier.height(16.dp))
             PrivacyFact("Yapay zekâ skor hesaplamaz.", "Sonucun sabit, tekrarlanabilir kurallarla üretilir. Yanıtların bir modele gönderilmez.")
             Spacer(Modifier.height(16.dp))
-            PrivacyFact("Silme senin elinde.", "Hesabını profil ekranından silebilirsin; geçmiş sonuçların kime ait olduğu bilgisi bu işlemde ayrıca kaldırılır.")
+            PrivacyFact("Silme senin elinde.", "Hesabını profil ekranından silebilirsin; sonuçların ve bütün kayıtların kalıcı olarak silinir.")
 
             Spacer(Modifier.height(28.dp))
             HorizontalDivider(color = StruvaColors.Border)
