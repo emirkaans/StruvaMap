@@ -52,10 +52,10 @@ android {
 
     buildTypes {
         debug {
-            // 127.0.0.1 + adb reverse: emulator VE gerçek cihazda aynı adres
-            // çalışır (adb reverse ikisinde de desteklenir). Bu sayede
-            // emulator'a özel 10.0.2.2'ye geçmeye gerek yok — aşağıdaki
-            // adbReverse task'ı her installDebug'da otomatik kurar.
+            // Gerçek cihaz: 127.0.0.1 + adb reverse (aşağıdaki adbReverse
+            // task'ı kurar). Emulator'da NetworkModule bunu runtime'da
+            // 10.0.2.2'ye çevirir; reverse kuralı adb bağlantısı
+            // yenilendiğinde silindiği için emulator ona güvenmez.
             buildConfigField("String", "API_BASE_URL", "\"http://127.0.0.1:3000/\"")
         }
         release {

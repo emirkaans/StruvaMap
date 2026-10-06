@@ -307,6 +307,15 @@ private fun AppNavHost(
                     onOpenLabour = { navController.navigate("labour") },
                     onOpenComparison = { comparisonId -> navController.navigate("comparison/$comparisonId") },
                     onOpenPrediction = { resultId -> navController.navigate("predict/$resultId") },
+                    onOpenRelationship = { id -> navController.navigate("relationship/$id") },
+                    // Sekme geçişiyle aynı: Harita sekmesine geçer, alt çubuk da onu seçili gösterir.
+                    onOpenMap = {
+                        navController.navigate("map") {
+                            popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    },
                 )
             }
             composable("map") {

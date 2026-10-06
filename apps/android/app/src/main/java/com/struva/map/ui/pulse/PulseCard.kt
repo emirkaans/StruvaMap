@@ -58,10 +58,19 @@ fun PulseCard(
     onOpenPairing: () -> Unit,
     onOpenHistory: () -> Unit,
     onOpenLabour: () -> Unit,
+    // Anasayfa nabzı yalnızca eşleşmesi olana gösterir; eşleşme daveti
+    // romantik ilişkinin kendi ekranında. Yüklenirken de çizilmez ki
+    // eşleşmesi olmayanda kart bir an belirip kaybolmasın.
+    hideWhenNoPair: Boolean = false,
     viewModel: PulseViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsState()
     LaunchedEffect(Unit) { viewModel.refresh() }
+    if (hideWhenNoPair && (state is PulseUiState.NoPair || state is PulseUiState.Idle ||
+            state is PulseUiState.Loading || state is PulseUiState.Error)
+    ) {
+        return
+    }
 
     StruvaCard(modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp)) {
         when (val s = state) {

@@ -1,5 +1,6 @@
 package com.struva.map.di
 
+import android.os.Build
 import com.struva.map.BuildConfig
 import com.struva.map.network.ApiService
 import com.struva.map.network.AuthInterceptor
@@ -61,7 +62,7 @@ object NetworkModule {
     @Singleton
     fun provideRetrofit(okHttpClient: OkHttpClient, json: Json): Retrofit =
         Retrofit.Builder()
-            .baseUrl(BuildConfig.API_BASE_URL)
+            .baseUrl(apiBaseUrl())
             .client(okHttpClient)
             .addConverterFactory(NullOnEmptyConverterFactory())
             .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
@@ -70,4 +71,19 @@ object NetworkModule {
     @Provides
     @Singleton
     fun provideApiService(retrofit: Retrofit): ApiService = retrofit.create(ApiService::class.java)
+
+    // Debug build 127.0.0.1'i hedefliyor; bu adb reverse ister ve emulator'un
+    // adb bağlantısı her yenilendiğinde reverse kuralı silinip "failed to
+    // connect" veriyor. Emulator makineye 10.0.2.2 üzerinden kuralsız erişir,
+    // bu yüzden emulator'da onu kullan. Gerçek cihaz 127.0.0.1 + adb reverse'te kalır.
+    private fun apiBaseUrl(): String {
+        val url = BuildConfig.API_BASE_URL
+        return if (BuildConfig.DEBUG && isEmulator()) url.replace("127.0.0.1", "10.0.2.2") else url
+    }
+
+    private fun isEmulator(): Boolean =
+        Build.HARDWARE == "ranchu" ||
+            Build.HARDWARE == "goldfish" ||
+            Build.PRODUCT.startsWith("sdk_gphone") ||
+            Build.FINGERPRINT.startsWith("generic")
 }
