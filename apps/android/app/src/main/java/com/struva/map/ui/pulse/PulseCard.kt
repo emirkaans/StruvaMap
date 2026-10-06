@@ -57,7 +57,6 @@ private val KnobSize = 30.dp
 fun PulseCard(
     onOpenPairing: () -> Unit,
     onOpenHistory: () -> Unit,
-    onOpenLabour: () -> Unit,
     // Anasayfa nabzı yalnızca eşleşmesi olana gösterir; eşleşme daveti
     // romantik ilişkinin kendi ekranında. Yüklenirken de çizilmez ki
     // eşleşmesi olmayanda kart bir an belirip kaybolmasın.
@@ -117,7 +116,7 @@ fun PulseCard(
                 Text(s.questionText, style = MaterialTheme.typography.titleSmall)
                 Spacer(Modifier.height(16.dp))
                 UnansweredGauge(checkinId = s.checkinId, onSubmit = viewModel::submitAnswer)
-                PulseLinks(onOpenHistory, onOpenLabour)
+                PulseLinks(onOpenHistory)
             }
 
             is PulseUiState.WaitingForPartner -> {
@@ -128,7 +127,7 @@ fun PulseCard(
                 GaugeEndLabels()
                 Spacer(Modifier.height(16.dp))
                 PulsePartnerRow(value = null, waiting = true)
-                PulseLinks(onOpenHistory, onOpenLabour)
+                PulseLinks(onOpenHistory)
             }
 
             is PulseUiState.BothAnswered -> {
@@ -143,7 +142,7 @@ fun PulseCard(
                 GaugeEndLabels()
                 Spacer(Modifier.height(16.dp))
                 PulsePartnerRow(value = s.partnerAnswer, waiting = false)
-                PulseLinks(onOpenHistory, onOpenLabour)
+                PulseLinks(onOpenHistory)
             }
         }
     }
@@ -230,17 +229,14 @@ private fun PulseGaugeTrack(value: Int?, onTap: ((Int) -> Unit)? = null) {
     }
 }
 
-// Yalnızca aktif eşleşmede (soru durumlarında) görünür — geçmiş/özet ve
-// emek defteri eşleşmesiz anlamsız.
+// Yalnızca aktif eşleşmede (soru durumlarında) görünür — geçmiş/özet
+// eşleşmesiz anlamsız.
 @Composable
-private fun PulseLinks(onOpenHistory: () -> Unit, onOpenLabour: () -> Unit) {
+private fun PulseLinks(onOpenHistory: () -> Unit) {
     Spacer(Modifier.height(8.dp))
     Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
         TextButton(onClick = onOpenHistory, contentPadding = PaddingValues(0.dp)) {
             Text("Geçmiş ve özet →", style = MaterialTheme.typography.labelMedium, color = StruvaColors.Accent)
-        }
-        TextButton(onClick = onOpenLabour, contentPadding = PaddingValues(0.dp)) {
-            Text("Emek defteri →", style = MaterialTheme.typography.labelMedium, color = StruvaColors.Accent)
         }
     }
 }

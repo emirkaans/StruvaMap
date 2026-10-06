@@ -48,7 +48,6 @@ export interface AdminMobileSummary {
       evaluated: number;
       averageAccuracy: number | null;
     };
-    labour: { entriesInRange: number; pairsInRange: number };
     claims: { createdInRange: number; redeemedInRange: number };
   };
 }
@@ -150,7 +149,6 @@ export class AdminMobileService {
       relationships,
       linkedResults,
       predictions,
-      labour,
       claimsCreated,
       claimsRedeemed,
     ] = await Promise.all([
@@ -165,14 +163,6 @@ export class AdminMobileService {
         this.countQuery('results').not('relationship_id', 'is', null),
       ),
       this.predictionStats(),
-      fetchAll<{ pair_id: string }>((start, end) =>
-        inRange(
-          this.supabase.client.from('labour_entries').select('pair_id'),
-          'entry_date',
-        )
-          .order('id')
-          .range(start, end),
-      ),
       this.headCount(inRange(this.countQuery('claim_tokens'), 'created_at')),
       this.headCount(inRange(this.countQuery('claim_tokens'), 'claimed_at')),
     ]);
@@ -185,10 +175,6 @@ export class AdminMobileService {
         linkedResults,
       },
       predictions,
-      labour: {
-        entriesInRange: labour.length,
-        pairsInRange: new Set(labour.map((l) => l.pair_id)).size,
-      },
       claims: {
         createdInRange: claimsCreated,
         redeemedInRange: claimsRedeemed,

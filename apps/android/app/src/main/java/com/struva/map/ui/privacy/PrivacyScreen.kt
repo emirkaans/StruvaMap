@@ -55,7 +55,7 @@ fun PrivacyScreen(onBack: () -> Unit) {
                 .padding(16.dp),
         ) {
             Text(
-                "Son güncelleme · 5 Ekim 2026 · Veri sorumlusu · $CONTROLLER",
+                "Son güncelleme · 6 Ekim 2026 · Veri sorumlusu · $CONTROLLER",
                 style = MaterialTheme.typography.bodySmall,
                 color = StruvaColors.Muted,
             )
@@ -87,13 +87,13 @@ fun PrivacyScreen(onBack: () -> Unit) {
 
             PrivacySection(
                 title = "Ne topluyoruz",
-                body = "Test yanıtların ve sonuçların, kıyaslamaların, günlük nabız cevapların, ilişkilerine verdiğin isimler ve notlar, emek defteri kayıtların, tahminlerin, bildirim gönderebilmek için cihazına ait bildirim kimliği ve kullanım olayları. Web'de çözdüğün sonucu uygulamaya taşımak için uygulama açılışta panoda yalnızca tek kullanımlık bir kod arar.",
+                body = "Test yanıtların ve sonuçların, kıyaslamaların, günlük nabız cevapların, ilişkilerine verdiğin isimler ve notlar, tahminlerin, bildirim gönderebilmek için cihazına ait bildirim kimliği ve kullanım olayları. Web'de çözdüğün sonucu uygulamaya taşımak için uygulama açılışta panoda yalnızca tek kullanımlık bir kod arar.",
             )
 
             Spacer(Modifier.height(20.dp))
             PrivacySection(
                 title = "Kim neyi görür",
-                body = "Günlük nabızda eşleştiğin kişi günlük cevaplarını ve emek defterini görür. Kıyaslama davetini kabul eden kişi yanıtlarını boyut boyut karşılaştırmalı görür. İlişki adların ve notların yalnızca sana görünür; biz de içeriklerini görmeyiz.",
+                body = "Günlük nabızda eşleştiğin kişi günlük cevaplarını görür. Kıyaslama davetini kabul eden kişi yanıtlarını boyut boyut karşılaştırmalı görür. İlişki adların ve notların yalnızca sana görünür; biz de içeriklerini görmeyiz.",
             )
 
             Spacer(Modifier.height(20.dp))

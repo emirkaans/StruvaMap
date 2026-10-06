@@ -10,7 +10,6 @@ import {
   findRelationshipPatterns,
   summarizeRelationshipHistory,
   type RelationshipHistorySummary,
-  type LabourWeekSummary,
   type PulseWeekSummary,
   type RelationshipPattern,
   type ScoreResult,
@@ -20,7 +19,6 @@ import { ResultsService } from '../results/results.service';
 import { TestsService } from '../tests/tests.service';
 import { PairsService } from '../pairs/pairs.service';
 import { PulseService } from '../pulse/pulse.service';
-import { LabourService } from '../labour/labour.service';
 import { AssignResultDto, CreateRelationshipDto } from './relationship.dto';
 
 export interface RelationshipRow {
@@ -71,9 +69,8 @@ export interface RelationshipDetailDto extends RelationshipDto {
   // Eskiden yeniye.
   results: RelationshipDetailResult[];
   summary: RelationshipHistorySummary;
-  // Bağlı nabız eşleşmesinin son 7 günü ve emek defteri özeti; bağ yoksa null.
+  // Bağlı nabız eşleşmesinin son 7 günü; bağ yoksa null.
   pulse: { pairId: string; week: PulseWeekSummary } | null;
-  labour: LabourWeekSummary | null;
   // Bağ yoksa ve kullanıcının aynı test türünde aktif eşleşmesi varsa, bağlanabilecek eşleşme.
   linkablePairId: string | null;
   // Bu ilişkinin sonuçlarını içeren kıyaslamalar, eskiden yeniye.
@@ -129,7 +126,6 @@ export class RelationshipsService {
     private readonly tests: TestsService,
     private readonly pairs: PairsService,
     private readonly pulse: PulseService,
-    private readonly labour: LabourService,
   ) {}
 
   async list(userId: string): Promise<RelationshipDto[]> {
@@ -466,22 +462,20 @@ export class RelationshipsService {
     return toDto(data as RelationshipRow);
   }
 
-  // En iyi çaba: nabız/emek verisi alınamazsa ilişki detayı yine döner.
+  // En iyi çaba: nabız verisi alınamazsa ilişki detayı yine döner.
   private async linkedPulse(
     userId: string,
     row: RelationshipRow,
-  ): Promise<
-    Pick<RelationshipDetailDto, 'pulse' | 'labour' | 'linkablePairId'>
-  > {
+  ): Promise<Pick<RelationshipDetailDto, 'pulse' | 'linkablePairId'>> {
     try {
       if (row.pulse_pair_id) {
-        const [history, labour] = await Promise.all([
-          this.pulse.getHistory(userId, row.pulse_pair_id, 7),
-          this.labour.week(userId, row.pulse_pair_id),
-        ]);
+        const history = await this.pulse.getHistory(
+          userId,
+          row.pulse_pair_id,
+          7,
+        );
         return {
           pulse: { pairId: row.pulse_pair_id, week: history.week },
-          labour: labour.week,
           linkablePairId: null,
         };
       }
@@ -491,11 +485,10 @@ export class RelationshipsService {
       );
       return {
         pulse: null,
-        labour: null,
         linkablePairId: linkable?.id ?? null,
       };
     } catch {
-      return { pulse: null, labour: null, linkablePairId: null };
+      return { pulse: null, linkablePairId: null };
     }
   }
 

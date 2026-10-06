@@ -100,7 +100,7 @@ create index if not exists pulse_pairs_user_a_idx on pulse_pairs (user_id_a);
 create index if not exists pulse_pairs_user_b_idx on pulse_pairs (user_id_b);
 
 -- Unpair: satırı silmek yerine status='ended' yapılır (bkz. PairsService.end).
--- pulse_checkins/labour_entries olduğu gibi kalır — getActivePair() zaten
+-- pulse_checkins olduğu gibi kalır — getActivePair() zaten
 -- yalnızca status='active' aradığı için ended eşleşme her iki tarafın
 -- ekranından da otomatik kaybolur. Kalıcı silme (30 gün sonra) ayrı bir
 -- temizlik job'ı işi, MVP kapsamı dışında.
@@ -178,8 +178,8 @@ create index if not exists relationships_user_idx on relationships (user_id);
 
 alter table results add column if not exists relationship_id uuid references relationships (id) on delete set null;
 
--- İlişkiye bağlı nabız eşleşmesi: ilişki detayında nabız ve emek defteri
--- özetleri test sonuçlarının yanında gösterilir. Her kullanıcı kendi
+-- İlişkiye bağlı nabız eşleşmesi: ilişki detayında nabız özeti test
+-- sonuçlarının yanında gösterilir. Her kullanıcı kendi
 -- ilişkisini bağlar (eşleşme iki kişi arasında ortak, ilişki kişiye özel).
 alter table relationships add column if not exists pulse_pair_id uuid references pulse_pairs (id) on delete set null;
 
@@ -198,18 +198,8 @@ create table if not exists relationship_notes (
 
 create index if not exists relationship_notes_rel_idx on relationship_notes (relationship_id, created_at);
 
--- Emek defteri: nabız eşleşmesindeki iki kişinin günlük iş kayıtları
--- (bkz. packages/shared/src/labour.ts LABOUR_CATEGORIES).
-create table if not exists labour_entries (
-  id uuid primary key default gen_random_uuid(),
-  pair_id uuid not null references pulse_pairs (id) on delete cascade,
-  user_id uuid not null references auth.users (id) on delete cascade,
-  category text not null,
-  entry_date date not null,
-  created_at timestamptz not null default now()
-);
-
-create index if not exists labour_entries_pair_date_idx on labour_entries (pair_id, entry_date);
+-- Emek defteri (labour_entries) 2026-10'da kaldırıldı; canlıdaki tablo
+-- `drop table if exists labour_entries;` ile silinir.
 
 -- İletişim formu (web /iletisim). E-posta gönderim servisi yok; mesajlar
 -- burada durur, admin panelindeki "Mesajlar" sayfasından okunur.
@@ -238,7 +228,6 @@ alter table user_push_tokens enable row level security;
 alter table claim_tokens enable row level security;
 alter table predictions enable row level security;
 alter table relationships enable row level security;
-alter table labour_entries enable row level security;
 alter table relationship_notes enable row level security;
 alter table contact_messages enable row level security;
 -- Politika yok: yalnızca service-role key (backend) erişebilir.

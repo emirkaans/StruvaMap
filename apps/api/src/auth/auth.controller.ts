@@ -193,7 +193,7 @@ export class AuthController {
   // anonimleştirilip tutulmaz; cihaz kimliği (session_id) üzerinden hâlâ
   // bir kişiye bağlanabilirlerdi. Sıra önemli: kıyaslamaların sonuçlara FK'sı
   // cascade değil, önce onlar silinir. Tahmin, claim ve bildirim kayıtları
-  // sonuçla; profil, nabız, ilişki, not ve emek defteri kayıtları auth.users
+  // sonuçla; profil, nabız, ilişki ve not kayıtları auth.users
   // silinince cascade ile gider (bkz. supabase/schema.sql).
   @Delete('me')
   @UseGuards(UserGuard)

@@ -213,15 +213,6 @@ export function AdminMobilePage() {
                   </td>
                 </tr>
                 <tr>
-                  <td rowSpan={2}>Emek defteri</td>
-                  <td>{range} kayıt</td>
-                  <td>{data.features.labour.entriesInRange}</td>
-                </tr>
-                <tr>
-                  <td>{range} kayıt giren eşleşme</td>
-                  <td>{data.features.labour.pairsInRange}</td>
-                </tr>
-                <tr>
                   <td rowSpan={2}>Webden uygulamaya aktarma</td>
                   <td>{range} oluşturulan kod</td>
                   <td>{data.features.claims.createdInRange}</td>

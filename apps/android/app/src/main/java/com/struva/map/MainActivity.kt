@@ -52,7 +52,6 @@ import com.struva.map.ui.auth.CompleteProfileScreen
 import com.struva.map.ui.comparison.ComparisonScreen
 import com.struva.map.ui.history.HistoryScreen
 import com.struva.map.ui.home.HomeScreen
-import com.struva.map.ui.labour.LabourScreen
 import com.struva.map.ui.myresults.MyResultsScreen
 import com.struva.map.ui.prediction.PredictionScreen
 import com.struva.map.ui.privacy.PrivacyScreen
@@ -304,7 +303,6 @@ private fun AppNavHost(
                     onTestClick = { testId -> navController.navigate("testDetail/$testId") },
                     onOpenPulsePairing = { navController.navigate("pulsePairing") },
                     onOpenPulseHistory = { navController.navigate("pulseHistory") },
-                    onOpenLabour = { navController.navigate("labour") },
                     onOpenComparison = { comparisonId -> navController.navigate("comparison/$comparisonId") },
                     onOpenPrediction = { resultId -> navController.navigate("predict/$resultId") },
                     onOpenRelationship = { id -> navController.navigate("relationship/$id") },
@@ -358,12 +356,6 @@ private fun AppNavHost(
                     onOpenPairing = { navController.navigate("pulsePairing") },
                 )
             }
-            composable("labour") {
-                LabourScreen(
-                    onBack = { navController.popBackStack() },
-                    onOpenPairing = { navController.navigate("pulsePairing") },
-                )
-            }
             composable(
                 "completeProfile/{mode}",
                 arguments = listOf(navArgument("mode") { type = NavType.StringType }),
@@ -400,7 +392,6 @@ private fun AppNavHost(
                         navController.navigate("solve/$testId?relationshipId=$relationshipId")
                     },
                     onOpenPulseHistory = { navController.navigate("pulseHistory") },
-                    onOpenLabour = { navController.navigate("labour") },
                     onOpenComparison = { comparisonId -> navController.navigate("comparison/$comparisonId") },
                 )
             }

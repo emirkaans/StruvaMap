@@ -11,7 +11,7 @@ import { toTurkishUpper } from "../lib/text";
 // oradaki özet de gözden geçirilmeli.
 const CONTROLLER = "Emir Kaan Sarıçam, Çankaya/Ankara";
 const CONTACT_EMAIL = "struvamap@gmail.com";
-const UPDATED = "5 Ekim 2026";
+const UPDATED = "6 Ekim 2026";
 
 const FACTS = [
   {
@@ -109,7 +109,6 @@ export function PrivacyPage() {
           <li>Test sonuçların ve kıyaslamaların.</li>
           <li>Günlük nabız: eşleştiğin kişiyle her gün yanıtladığın soru ve cevabın.</li>
           <li>İlişki haritası: ilişkilerine verdiğin isimler ve onlara eklediğin notlar.</li>
-          <li>Emek defteri: kaydettiğin günlük işler.</li>
           <li>Tahmin modu: karşı taraf için yaptığın tahminler.</li>
           <li>
             Bildirim kimliği. Sana bildirim gönderebilmek için cihazına ait, Google Firebase tarafından üretilen bir
@@ -128,7 +127,7 @@ export function PrivacyPage() {
         <ul>
           <li>Sonuç bağlantını paylaştığın herkes o sonucu görebilir.</li>
           <li>Davet bağlantınla testi çözen kişi, ikinizin yanıtlarını boyut boyut karşılaştırmalı görür.</li>
-          <li>Günlük nabızda eşleştiğin kişi senin günlük cevaplarını ve emek defteri kayıtlarını görür.</li>
+          <li>Günlük nabızda eşleştiğin kişi senin günlük cevaplarını görür.</li>
           <li>İlişki adları ve notların yalnızca sana görünür.</li>
           <li>
             Biz yönetim panelinde hesap listesini ve kullanım sayılarını görürüz. İlişki adlarını, notlarını ve nabız
@@ -141,7 +140,7 @@ export function PrivacyPage() {
         <h2>Neden işliyoruz</h2>
         <ul>
           <li>
-            Testleri puanlamak, sonuçları ve kıyaslamaları göstermek, nabız, harita ve emek defteri gibi özellikleri
+            Testleri puanlamak, sonuçları ve kıyaslamaları göstermek, nabız ve harita gibi özellikleri
             çalıştırmak için. Bu, kullandığın hizmetin kendisidir.
           </li>
           <li>

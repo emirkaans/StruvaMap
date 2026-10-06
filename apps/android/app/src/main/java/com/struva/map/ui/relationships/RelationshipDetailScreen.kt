@@ -72,7 +72,6 @@ fun RelationshipDetailScreen(
     onOpenResult: (String) -> Unit,
     onRetake: (testId: String, relationshipId: String) -> Unit,
     onOpenPulseHistory: () -> Unit,
-    onOpenLabour: () -> Unit,
     onOpenComparison: (String) -> Unit,
     viewModel: RelationshipDetailViewModel = hiltViewModel(),
 ) {
@@ -148,7 +147,6 @@ fun RelationshipDetailScreen(
                     onRetake = { onRetake(s.detail.testId, s.detail.id) },
                     onLinkPulse = viewModel::linkPulse,
                     onOpenPulseHistory = onOpenPulseHistory,
-                    onOpenLabour = onOpenLabour,
                     onOpenComparison = onOpenComparison,
                     onAddNote = viewModel::addNote,
                     onDeleteNote = viewModel::deleteNote,
@@ -207,7 +205,6 @@ private fun DetailContent(
     onRetake: () -> Unit,
     onLinkPulse: (String) -> Unit,
     onOpenPulseHistory: () -> Unit,
-    onOpenLabour: () -> Unit,
     onOpenComparison: (String) -> Unit,
     onAddNote: (String) -> Unit,
     onDeleteNote: (String) -> Unit,
@@ -295,7 +292,7 @@ private fun DetailContent(
         if (detail.pulse != null || detail.linkablePairId != null) {
             item {
                 Section("Günlük Nabız ve Emek")
-                PulseSection(detail, onLinkPulse, onOpenPulseHistory, onOpenLabour)
+                PulseSection(detail, onLinkPulse, onOpenPulseHistory)
                 Spacer(Modifier.height(24.dp))
             }
         }
@@ -390,21 +387,19 @@ private fun DetailContent(
     }
 }
 
-// Testteki algının yanına gündelik kayıt: bağlı nabız eşleşmesinin son 7
-// günü ve emek defteri payı, testteki Emek endeksiyle yan yana.
+// Testteki algının yanına gündelik kayıt: bağlı nabız eşleşmesinin son 7 günü.
 @Composable
 private fun PulseSection(
     detail: RelationshipDetailDto,
     onLinkPulse: (String) -> Unit,
     onOpenPulseHistory: () -> Unit,
-    onOpenLabour: () -> Unit,
 ) {
     val pulse = detail.pulse
     StruvaCard(modifier = Modifier.fillMaxWidth()) {
         if (pulse == null) {
             Text(
-                "Bu ilişki için partnerinle bir nabız eşleşmen var. Bağlarsan günlük nabız ve emek defteri " +
-                    "özetleri test sonuçlarının yanında burada görünür.",
+                "Bu ilişki için partnerinle bir nabız eşleşmen var. Bağlarsan günlük nabız özeti " +
+                    "test sonuçlarının yanında burada görünür.",
                 style = MaterialTheme.typography.bodyMedium,
             )
             Spacer(Modifier.height(10.dp))
@@ -434,28 +429,7 @@ private fun PulseSection(
                     )
                 }
             }
-            val labourShare = detail.labour?.myShare
-            val labourIndex = detail.results.lastOrNull()?.indices?.get("labour")
-            if (labourShare != null || labourIndex != null) {
-                Spacer(Modifier.height(12.dp))
-                Text("EMEK: ALGI VE KAYIT", style = EyebrowStyle)
-                Spacer(Modifier.height(4.dp))
-                labourIndex?.let {
-                    Text(
-                        "Testteki ${detail.indexNames["labour"] ?: "Emek"} endeksi: $it",
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                }
-                Text(
-                    labourShare?.let { "Emek defterinde son 7 gün senin payın: %$it" }
-                        ?: "Emek defterinde bu hafta kayıt yok.",
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-            }
-            Row {
-                TextButton(onClick = onOpenPulseHistory) { Text("Nabız geçmişi →") }
-                TextButton(onClick = onOpenLabour) { Text("Emek defteri →") }
-            }
+            TextButton(onClick = onOpenPulseHistory) { Text("Nabız geçmişi →") }
         }
     }
 }

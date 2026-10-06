@@ -145,7 +145,7 @@ export class PairsService {
     return (data ?? []) as PulsePairRow[];
   }
 
-  // Satır silinince pulse_checkins ve labour_entries FK cascade ile gider,
+  // Satır silinince pulse_checkins FK cascade ile gider,
   // relationships.pulse_pair_id null olur (bkz. schema.sql).
   async deleteEndedBefore(retentionDays: number): Promise<number> {
     const cutoff = new Date(Date.now() - retentionDays * 24 * 60 * 60 * 1000);

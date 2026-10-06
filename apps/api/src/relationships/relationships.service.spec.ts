@@ -89,7 +89,6 @@ function makeService(
     tests as never,
     pairs as never,
     {} as never,
-    {} as never,
   );
   return { service, supabase };
 }

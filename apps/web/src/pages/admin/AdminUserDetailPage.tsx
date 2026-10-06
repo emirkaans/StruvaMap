@@ -158,10 +158,6 @@ export function AdminUserDetailPage() {
                   <td>{user.counts.notes}</td>
                 </tr>
                 <tr>
-                  <td>Emek defteri kaydı</td>
-                  <td>{user.counts.labourEntries}</td>
-                </tr>
-                <tr>
                   <td>Tahmin</td>
                   <td>{user.counts.predictions}</td>
                 </tr>

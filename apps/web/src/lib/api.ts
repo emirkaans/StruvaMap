@@ -239,7 +239,6 @@ export interface AdminMobileSummary {
   features: {
     relationships: { total: number; archived: number; users: number; linkedResults: number };
     predictions: { total: number; evaluated: number; averageAccuracy: number | null };
-    labour: { entriesInRange: number; pairsInRange: number };
     claims: { createdInRange: number; redeemedInRange: number };
   };
 }
@@ -290,7 +289,6 @@ export interface AdminUserDetail extends AdminUserRow {
     activeRelationships: number;
     archivedRelationships: number;
     notes: number;
-    labourEntries: number;
     predictions: number;
   };
 }

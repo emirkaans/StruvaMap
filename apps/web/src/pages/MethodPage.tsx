@@ -47,7 +47,7 @@ const FAQ = [
   },
   {
     q: "Mobil uygulamanın farkı ne?",
-    a: "Web tek bir an ölçer. Uygulama bu ölçümü zaman içinde izler: günlük nabız, bütün ilişkilerini yan yana gösteren harita, tahmin modu ve emek defteri.",
+    a: "Web tek bir an ölçer. Uygulama bu ölçümü zaman içinde izler: günlük nabız, bütün ilişkilerini yan yana gösteren harita ve tahmin modu.",
   },
   {
     q: "Verilerimi nasıl sildiririm?",

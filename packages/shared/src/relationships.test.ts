@@ -5,7 +5,6 @@ import {
   type RelationshipResultPoint,
   type RelationshipSnapshot,
 } from "./relationships.js";
-import { summarizeLabourWeek } from "./labour.js";
 
 const names = { power: "Güç", labour: "Emek", support: "Destek" };
 function snap(label: string, indices: Record<string, number>): RelationshipSnapshot {
@@ -70,27 +69,6 @@ describe("findRelationshipPatterns kalıcılık", () => {
     expect(patterns[0].persistentLabels).toEqual(["Ayşe"]);
   });
 });
-
-describe("summarizeLabourWeek", () => {
-  it("kategori ve kişi bazında sayar, payı yüzde olarak verir", () => {
-    const summary = summarizeLabourWeek([
-      { category: "cooking", mine: true },
-      { category: "cooking", mine: true },
-      { category: "cooking", mine: false },
-      { category: "bills", mine: false },
-    ]);
-    expect(summary.mine).toBe(2);
-    expect(summary.partner).toBe(2);
-    expect(summary.myShare).toBe(50);
-    expect(summary.categories.find((c) => c.id === "cooking")).toEqual({ id: "cooking", label: "Yemek", mine: 2, partner: 1 });
-    expect(summary.categories).toHaveLength(9);
-  });
-
-  it("kayıt yoksa pay null", () => {
-    expect(summarizeLabourWeek([]).myShare).toBeNull();
-  });
-});
-
 
 function point(createdAt: string, rsi: number, dimensions: Record<string, number>): RelationshipResultPoint {
   return { resultId: createdAt, createdAt, rsi, dimensions };

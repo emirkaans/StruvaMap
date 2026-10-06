@@ -84,9 +84,8 @@ data class RelationshipDetailDto(
     val indexNames: Map<String, String>,
     val results: List<RelationshipResultPointDto>, // eskiden yeniye
     val summary: RelationshipHistorySummaryDto,
-    // Bağlı nabız eşleşmesi (son 7 gün) ve emek defteri özeti; bağ yoksa null.
+    // Bağlı nabız eşleşmesi (son 7 gün); bağ yoksa null.
     val pulse: RelationshipPulseDto? = null,
-    val labour: LabourWeekSummaryDto? = null,
     // Bağ yoksa, aynı test türündeki aktif eşleşme (bağlanmaya aday).
     val linkablePairId: String? = null,
     // Bu ilişkinin sonuçlarını içeren kıyaslamalar, eskiden yeniye.

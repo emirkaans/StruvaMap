@@ -51,7 +51,6 @@ fun HomeScreen(
     onTestClick: (String) -> Unit = {},
     onOpenPulsePairing: () -> Unit = {},
     onOpenPulseHistory: () -> Unit = {},
-    onOpenLabour: () -> Unit = {},
     onOpenComparison: (String) -> Unit = {},
     onOpenPrediction: (String) -> Unit = {},
     onOpenRelationship: (String) -> Unit = {},
@@ -119,7 +118,6 @@ fun HomeScreen(
                         PulseCard(
                             onOpenPairing = onOpenPulsePairing,
                             onOpenHistory = onOpenPulseHistory,
-                            onOpenLabour = onOpenLabour,
                             hideWhenNoPair = true,
                         )
                     }

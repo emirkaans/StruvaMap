@@ -46,7 +46,6 @@ export interface AdminUserDetail extends AdminUserRow {
     activeRelationships: number;
     archivedRelationships: number;
     notes: number;
-    labourEntries: number;
     predictions: number;
   };
 }
@@ -115,43 +114,35 @@ export class AdminUsersService {
       throw new NotFoundException('Kullanıcı bulunamadı.');
     const user = data.user;
 
-    const [
-      usernames,
-      results,
-      pairs,
-      relationships,
-      notes,
-      labour,
-      predictions,
-    ] = await Promise.all([
-      this.usernames([id]),
-      fetchAll<{
-        id: string;
-        test_id: string;
-        created_at: string;
-        score: { rsi?: number };
-      }>((start, end) =>
-        this.supabase.client
-          .from('results')
-          .select('id, test_id, created_at, score')
-          .eq('user_id', id)
-          .order('created_at', { ascending: false })
-          .order('id')
-          .range(start, end),
-      ),
-      this.pairsOf([id]),
-      fetchAll<{ archived_at: string | null }>((start, end) =>
-        this.supabase.client
-          .from('relationships')
-          .select('archived_at')
-          .eq('user_id', id)
-          .order('id')
-          .range(start, end),
-      ),
-      this.countWhere('relationship_notes', 'user_id', id),
-      this.countWhere('labour_entries', 'user_id', id),
-      this.countWhere('predictions', 'user_id', id),
-    ]);
+    const [usernames, results, pairs, relationships, notes, predictions] =
+      await Promise.all([
+        this.usernames([id]),
+        fetchAll<{
+          id: string;
+          test_id: string;
+          created_at: string;
+          score: { rsi?: number };
+        }>((start, end) =>
+          this.supabase.client
+            .from('results')
+            .select('id, test_id, created_at, score')
+            .eq('user_id', id)
+            .order('created_at', { ascending: false })
+            .order('id')
+            .range(start, end),
+        ),
+        this.pairsOf([id]),
+        fetchAll<{ archived_at: string | null }>((start, end) =>
+          this.supabase.client
+            .from('relationships')
+            .select('archived_at')
+            .eq('user_id', id)
+            .order('id')
+            .range(start, end),
+        ),
+        this.countWhere('relationship_notes', 'user_id', id),
+        this.countWhere('predictions', 'user_id', id),
+      ]);
 
     const [row] = await this.toRows([user], usernames);
     const pair = this.mainPair(pairs, id);
@@ -169,7 +160,6 @@ export class AdminUsersService {
         archivedRelationships: relationships.filter((r) => r.archived_at)
           .length,
         notes,
-        labourEntries: labour,
         predictions,
       },
     };

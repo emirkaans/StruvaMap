@@ -62,7 +62,7 @@ export function AppCta({ variant, resultId }: { variant: "full" | "compact"; res
           <h2>Bir ölçüm, bir an.</h2>
           <p>
             Yapı her gün yeniden kurulur. Uygulamada bu sonuç bir haritanın ilk noktası olur: günlük nabız,
-            ilişkiler arası örüntüler, tahmin modu ve emek defteriyle zaman içinde izlenir.
+            ilişkiler arası örüntüler ve tahmin moduyla zaman içinde izlenir.
           </p>
           <AppCtaButton resultId={resultId} />
         </div>
@@ -89,9 +89,6 @@ export function AppCta({ variant, resultId }: { variant: "full" | "compact"; res
             </li>
             <li>
               <strong>Tahmin modu.</strong> Karşı tarafın cevabını önceden tahmin et, algı farkını gör.
-            </li>
-            <li>
-              <strong>Emek defteri.</strong> Günlük işler tek dokunuşla kaydedilir, dağılım haftalık izlenir.
             </li>
           </ul>
           <AppCtaButton />

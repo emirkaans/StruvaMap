@@ -152,7 +152,7 @@ fun ProfileScreen(
                 Text("Hesabı sil", style = MaterialTheme.typography.titleSmall)
                 Spacer(Modifier.height(8.dp))
                 Text(
-                    "Hesabın, test sonuçların, kıyaslamaların, nabız, ilişki ve emek defteri kayıtların kalıcı olarak silinir.",
+                    "Hesabın, test sonuçların, kıyaslamaların, nabız ve ilişki kayıtların kalıcı olarak silinir.",
                     style = MaterialTheme.typography.bodySmall,
                     color = StruvaColors.Muted,
                 )
@@ -169,7 +169,7 @@ fun ProfileScreen(
         AlertDialog(
             onDismissRequest = { showDeleteConfirm = false },
             title = { Text("Hesabını silmek istediğine emin misin?") },
-            text = { Text("Bu işlem geri alınamaz. Hesabın, test sonuçların, kıyaslamaların, nabız, ilişki ve emek defteri kayıtların kalıcı olarak silinir.") },
+            text = { Text("Bu işlem geri alınamaz. Hesabın, test sonuçların, kıyaslamaların, nabız ve ilişki kayıtların kalıcı olarak silinir.") },
             confirmButton = {
                 TextButton(
                     onClick = {

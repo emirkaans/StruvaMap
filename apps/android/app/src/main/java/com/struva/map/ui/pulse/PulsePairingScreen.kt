@@ -138,7 +138,7 @@ private fun PairedSection(pair: PairDto, busy: Boolean, actionError: String?, on
     Text("Eşleşiksin", style = MaterialTheme.typography.titleSmall)
     Spacer(Modifier.height(8.dp))
     Text(
-        "$partnerName ile $since tarihinden beri günlük nabız ve emek defterini paylaşıyorsunuz.",
+        "$partnerName ile $since tarihinden beri günlük nabzı paylaşıyorsunuz.",
         style = MaterialTheme.typography.bodyMedium,
         color = StruvaColors.Muted,
     )
@@ -158,7 +158,7 @@ private fun PairedSection(pair: PairDto, busy: Boolean, actionError: String?, on
             onDismissRequest = { confirmStep = 0 },
             title = { Text("Eşleşmeyi sonlandırmak istediğine emin misin?") },
             text = {
-                Text("$partnerName ile eşleşmeni sonlandırırsan nabız geçmişiniz ve emek defteriniz birlikte kaybolur.")
+                Text("$partnerName ile eşleşmeni sonlandırırsan nabız geçmişiniz birlikte kaybolur.")
             },
             confirmButton = {
                 TextButton(onClick = { confirmStep = 2 }) { Text("Devam et") }

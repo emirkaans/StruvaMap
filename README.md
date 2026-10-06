@@ -129,13 +129,10 @@ pnpm dev:api    # http://localhost:3000
   ilişkinin son skorunu ve ilişkiler arası tekrar eden gerilim/güç
   örüntülerini gösterir (`findRelationshipPatterns`). Harita'dan ad verip
   türünü (yayındaki testlerden biri) seçerek doğrudan yeni ilişki eklenebilir.
-- ✅ Emek defteri: nabız eşleşmesindeki iki kişi günlük işleri tek dokunuşla
-  kaydeder, son 7 günün kategori bazlı dağılımı gösterilir
-  (`labour_entries`, `summarizeLabourWeek`).
 - ✅ İlişki detay sayfası: zaman grafiği, "ne değişti", kalıcı/yeni gerilim
   ve toparlanan alanlar (`summarizeRelationshipHistory`), "Yeniden çöz" ile
   otomatik bağlama; test başında "Kimin için çözüyorsun?"; ilişkiye
-  bağlanan nabız eşleşmesiyle nabız ve emek defteri özetleri
+  bağlanan nabız eşleşmesiyle nabız özeti
   (`relationships.pulse_pair_id`).
 - ✅ İlişki detayında kıyaslama geçmişi (algı farkı ve tahmin isabetinin
   seyri), yalnızca sahibinin gördüğü notlar (`relationship_notes`) ve
