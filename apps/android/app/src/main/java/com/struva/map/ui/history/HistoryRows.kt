@@ -72,3 +72,6 @@ fun filterAndSort(rows: List<ArchiveRow>, filter: String?, newestFirst: Boolean)
     val sorted = filtered.sortedBy { it.createdAt }
     return if (newestFirst) sorted.reversed() else sorted
 }
+
+fun com.struva.map.network.dto.TestDetailDto.toDefinitionInfo(): TestDefinitionInfo =
+    TestDefinitionInfo(name, indices.mapValues { it.value.name })

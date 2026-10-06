@@ -57,7 +57,7 @@ fun MyResultsScreen(
             when (val s = state) {
                 is MyResultsUiState.Loading -> CircularProgressIndicator()
                 is MyResultsUiState.Error -> Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("Sonuçlar yüklenemedi: ${s.message}")
+                    Text("Sonuçlar yüklenemedi. ${s.message}")
                     Spacer(Modifier.height(12.dp))
                     StruvaButton(onClick = viewModel::load) { Text("Tekrar dene") }
                 }

@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.struva.map.network.ApiService
+import com.struva.map.network.ArchiveContextRepository
 import com.struva.map.network.dto.TestDetailDto
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
@@ -22,6 +23,7 @@ sealed interface TestDetailUiState {
 @HiltViewModel
 class TestDetailViewModel @Inject constructor(
     private val api: ApiService,
+    private val archiveContext: ArchiveContextRepository,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
     private val testId: String = checkNotNull(savedStateHandle["testId"])
@@ -31,13 +33,16 @@ class TestDetailViewModel @Inject constructor(
 
     init {
         load()
+        // "Geçmiş sonuçlarım" açıldığında beklemesin diye sonuçlar, ilişki
+        // adları ve test tanımı şimdiden arka planda yüklenir.
+        viewModelScope.launch { archiveContext.refresh(testId) }
     }
 
     fun load() {
         viewModelScope.launch {
             _uiState.value = TestDetailUiState.Loading
             _uiState.value = try {
-                TestDetailUiState.Loaded(api.getTest(testId))
+                TestDetailUiState.Loaded(api.getTest(testId).also(archiveContext::rememberTest))
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {

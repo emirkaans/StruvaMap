@@ -3,15 +3,16 @@ package com.struva.map.ui.myresults
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.struva.map.network.ApiService
+import com.struva.map.network.ArchiveContextRepository
 import com.struva.map.network.ResultsRepository
+import com.struva.map.network.TestsRepository
 import com.struva.map.ui.history.ArchiveRow
 import com.struva.map.ui.history.TestDefinitionInfo
 import com.struva.map.ui.history.buildArchiveRows
 import com.struva.map.ui.history.filterAndSort
+import com.struva.map.ui.history.toDefinitionInfo
 import com.struva.map.ui.relationships.relationshipTypeLabel
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -27,11 +28,14 @@ sealed interface MyResultsUiState {
 }
 
 // Test detayındaki "Geçmiş sonuçlarım": tek bir testin sonuçları, Geçmiş
-// sekmesiyle aynı satırlarla (bkz. ArchiveRowItem). Tür filtresi yok, test zaten belli.
+// sekmesiyle aynı satırlarla (bkz. ArchiveRowItem). Satırlar ancak profil
+// başlığı ve ilişki adları için gereken bilgi hazır olunca çizilir; test
+// detayı bunu arka planda önceden yüklediği için çoğu zaman bekleme olmaz.
 @HiltViewModel
 class MyResultsViewModel @Inject constructor(
-    private val repository: ResultsRepository,
-    private val api: ApiService,
+    private val results: ResultsRepository,
+    private val tests: TestsRepository,
+    private val context: ArchiveContextRepository,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
     private val testId: String = checkNotNull(savedStateHandle["testId"])
@@ -39,20 +43,24 @@ class MyResultsViewModel @Inject constructor(
     private val _uiState = MutableStateFlow<MyResultsUiState>(MyResultsUiState.Loading)
     val uiState: StateFlow<MyResultsUiState> = _uiState.asStateFlow()
 
-    private val testInfo = MutableStateFlow<TestDefinitionInfo?>(null)
-    private val relationshipLabels = MutableStateFlow<Map<String, String>>(emptyMap())
+    private val ready = MutableStateFlow(context.isReady(testId))
     private val newestFirst = MutableStateFlow(true)
-    private var loadedOnce = false
 
     init {
         viewModelScope.launch {
-            combine(repository.observeByTest(testId), testInfo, relationshipLabels, newestFirst) { results, info, labels, newest ->
-                if (results.isEmpty() && !loadedOnce) return@combine null
-                val tests = info?.let { mapOf(testId to it) }.orEmpty()
-                val rows = buildArchiveRows(results, tests, labels, LocalDate.now().year)
+            combine(
+                combine(results.observeByTest(testId), tests.cachedTests, ::Pair),
+                context.tests,
+                context.labels,
+                newestFirst,
+                ready,
+            ) { (rows, summaries), definitions, labels, newest, isReady ->
+                if (!isReady) return@combine null
+                val info = definitions[testId]?.toDefinitionInfo()
+                    ?: TestDefinitionInfo(summaries.firstOrNull { it.id == testId }?.name ?: testId, emptyMap())
                 MyResultsUiState.Loaded(
-                    typeLabel = relationshipTypeLabel(testId, info?.name ?: testId),
-                    rows = filterAndSort(rows, null, newest),
+                    typeLabel = relationshipTypeLabel(testId, info.name),
+                    rows = filterAndSort(buildArchiveRows(rows, mapOf(testId to info), labels, LocalDate.now().year), null, newest),
                     newestFirst = newest,
                 )
             }.collect { state -> if (state != null) _uiState.value = state }
@@ -64,47 +72,19 @@ class MyResultsViewModel @Inject constructor(
         newestFirst.value = !newestFirst.value
     }
 
+    // Hazırsa ekran hemen çizilir ve bu yenileme sessizce arkada çalışır;
+    // değilse bitene kadar yükleniyor gösterilir. Ağ hatasında da elde ne
+    // varsa onunla açılır.
     fun load() {
         viewModelScope.launch {
-            if (_uiState.value !is MyResultsUiState.Loaded) _uiState.value = MyResultsUiState.Loading
-            try {
-                val fresh = repository.refresh(testId)
-                loadedOnce = true
-                loadExtras(fresh.mapNotNull { r -> r.relationshipId?.let { r.id to it } }.toMap())
-                if (_uiState.value !is MyResultsUiState.Loaded) {
-                    _uiState.value = MyResultsUiState.Loaded(relationshipTypeLabel(testId, testId), emptyList(), true)
-                }
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                if (_uiState.value !is MyResultsUiState.Loaded) {
-                    _uiState.value = MyResultsUiState.Error(e.message ?: "Bilinmeyen hata")
-                }
+            if (_uiState.value is MyResultsUiState.Error) _uiState.value = MyResultsUiState.Loading
+            val fetched = context.refresh(testId)
+            // Ağ yok ve önbellek boş: "henüz çözmedin" yanıltıcı olur.
+            if (!fetched && results.cachedAll().none { it.score.testId == testId }) {
+                _uiState.value = MyResultsUiState.Error("İnternet bağlantını kontrol edip tekrar dene.")
+            } else {
+                ready.value = true
             }
-        }
-    }
-
-    // Endeks adları ve ilişki adları en iyi çaba: gelmezse satırlar test adı
-    // ve "ilişkiye bağlı değil" ile görünür.
-    private suspend fun loadExtras(relationshipByResult: Map<String, String>) {
-        try {
-            val t = api.getTest(testId)
-            testInfo.value = TestDefinitionInfo(t.name, t.indices.mapValues { it.value.name })
-        } catch (e: CancellationException) {
-            throw e
-        } catch (e: Exception) {
-            // endeks adları olmadan devam
-        }
-        if (relationshipByResult.isEmpty()) return
-        try {
-            val labels = api.getRelationships().associate { it.id to it.label }
-            relationshipLabels.value = relationshipByResult.mapNotNull { (resultId, relId) ->
-                labels[relId]?.let { resultId to it }
-            }.toMap()
-        } catch (e: CancellationException) {
-            throw e
-        } catch (e: Exception) {
-            // ilişki adları olmadan devam
         }
     }
 }

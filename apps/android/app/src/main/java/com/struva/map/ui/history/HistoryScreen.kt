@@ -63,7 +63,7 @@ fun HistoryScreen(
             when (val s = state) {
                 is HistoryUiState.Loading -> CircularProgressIndicator()
                 is HistoryUiState.Error -> Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("Geçmiş yüklenemedi: ${s.message}")
+                    Text("Geçmiş yüklenemedi. ${s.message}")
                     Spacer(Modifier.height(12.dp))
                     StruvaButton(onClick = viewModel::load) { Text("Tekrar dene") }
                 }
