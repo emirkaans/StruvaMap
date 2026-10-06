@@ -49,7 +49,9 @@ class ResultsRepository @Inject constructor(
     // Tam anlık görüntü (snapshot) değişimi: sunucudaki tüm sonuçlarla cache'i
     // baştan kurar, testId bazlı refresh()'lerle çakışmaz çünkü satır id'si
     // birincil anahtar (REPLACE).
-    suspend fun refreshAll() {
+    // Ağdan gelen satırları da döndürür: Room önbelleği relationship_id'yi
+    // tutmuyor, ona ihtiyaç duyan ekran (Geçmiş) ikinci bir istek atmasın.
+    suspend fun refreshAll(): List<ResultRowDto> {
         val results = api.getMyResults(testId = null)
         dao.deleteAll()
         dao.insertAll(
@@ -62,5 +64,6 @@ class ResultsRepository @Inject constructor(
                 )
             },
         )
+        return results
     }
 }

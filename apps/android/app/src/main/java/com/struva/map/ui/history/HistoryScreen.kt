@@ -1,43 +1,56 @@
 package com.struva.map.ui.history
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.struva.map.ui.common.StruvaButton
-import com.struva.map.ui.common.StruvaCard
+import com.struva.map.ui.theme.IBMPlexMono
 import com.struva.map.ui.theme.StruvaColors
+import com.struva.map.ui.theme.bandColorForScore
 import com.struva.map.ui.theme.struvaTopAppBarColors
-import java.time.OffsetDateTime
-import java.time.format.DateTimeFormatter
-import java.util.Locale
 
-private val HistoryDateFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy, HH:mm", Locale("tr"))
+private val SegmentShape = RoundedCornerShape(10.dp)
+private val SegmentItemShape = RoundedCornerShape(8.dp)
+private val BarShape = RoundedCornerShape(99.dp)
 
-private fun formatHistoryDate(iso: String): String = try {
-    OffsetDateTime.parse(iso).format(HistoryDateFormatter)
-} catch (e: Exception) {
-    iso
-}
-
+// Geçmiş: filtreli arşiv. Her satırda tarih, sözlü özet, ilişki, genel skor ve
+// testin üç endeksi küçük çubuklar halinde.
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HistoryScreen(
@@ -63,16 +76,48 @@ fun HistoryScreen(
                     StruvaButton(onClick = viewModel::load) { Text("Tekrar dene") }
                 }
                 is HistoryUiState.Loaded -> {
-                    if (s.rows.isEmpty()) {
+                    if (s.total == 0) {
                         Text(
-                            "Henüz bir test çözmedin.",
+                            "Henüz bir test çözmedin. Çözdüğün her test, o günkü haritan olarak burada saklanır.",
                             style = MaterialTheme.typography.bodyMedium,
                             color = StruvaColors.Muted,
+                            modifier = Modifier.padding(32.dp),
                         )
                     } else {
-                        LazyColumn(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-                            items(s.rows, key = { it.result.id }) { row ->
-                                HistoryCard(row, onClick = { onResultClick(row.result.id) })
+                        LazyColumn(modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
+                            item {
+                                FilterBar(s.filters, s.filter, onPick = viewModel::setFilter)
+                                Row(
+                                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 2.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    Text(
+                                        "${s.rows.size} ölçüm",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = StruvaColors.Muted,
+                                        modifier = Modifier.weight(1f),
+                                    )
+                                    TextButton(onClick = viewModel::toggleSort) {
+                                        Text(
+                                            if (s.newestFirst) "En yeni önce" else "En eski önce",
+                                            color = StruvaColors.Accent,
+                                            fontWeight = FontWeight.SemiBold,
+                                        )
+                                    }
+                                }
+                                HorizontalDivider(color = StruvaColors.Border)
+                            }
+                            items(s.rows, key = { it.resultId }) { row ->
+                                ArchiveRowItem(row, onClick = { onResultClick(row.resultId) })
+                                HorizontalDivider(color = StruvaColors.Border)
+                            }
+                            item {
+                                Text(
+                                    "Sağdaki sayı genel skor; altındaki üç çizgi testin üç endeksi. Uzunluk skoru, renk dengeyi gösterir.",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = StruvaColors.Muted,
+                                    modifier = Modifier.padding(top = 12.dp, bottom = 24.dp),
+                                )
                             }
                         }
                     }
@@ -83,12 +128,100 @@ fun HistoryScreen(
 }
 
 @Composable
-private fun HistoryCard(row: HistoryRow, onClick: () -> Unit) {
-    StruvaCard(modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp), onClick = onClick) {
-        Text(row.testName, style = MaterialTheme.typography.labelSmall, color = StruvaColors.Muted)
-        Spacer(Modifier.height(4.dp))
-        Text("Genel skor ${row.result.score.rsi}", style = MaterialTheme.typography.titleMedium)
-        Spacer(Modifier.height(4.dp))
-        Text(formatHistoryDate(row.result.createdAt), style = MaterialTheme.typography.bodySmall, color = StruvaColors.Muted)
+private fun FilterBar(filters: List<HistoryFilter>, selected: String?, onPick: (String?) -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 12.dp)
+            .clip(SegmentShape)
+            .background(StruvaColors.Surface)
+            .border(1.dp, StruvaColors.Border, SegmentShape)
+            .padding(3.dp),
+    ) {
+        filters.forEach { f ->
+            val on = f.testId == selected
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .heightIn(min = 40.dp)
+                    .clip(SegmentItemShape)
+                    .background(if (on) StruvaColors.Border else StruvaColors.Surface)
+                    .semantics { this.selected = on }
+                    .clickable { onPick(f.testId) },
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    f.label,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = if (on) StruvaColors.Text else StruvaColors.Muted,
+                    fontWeight = if (on) FontWeight.SemiBold else FontWeight.Normal,
+                    maxLines = 1,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ArchiveRowItem(row: ArchiveRow, onClick: () -> Unit) {
+    val description = "Genel skor ${row.score}, " + row.indices.joinToString(", ") { "${it.first} ${it.second}" }
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(vertical = 14.dp, horizontal = 2.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Column(Modifier.width(48.dp)) {
+            Text(row.day, style = MaterialTheme.typography.titleSmall.copy(fontFamily = IBMPlexMono))
+            Text(row.month, style = MaterialTheme.typography.labelSmall, color = StruvaColors.Muted)
+        }
+        Column(Modifier.weight(1f)) {
+            Text(
+                row.title,
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Text(
+                "${row.who} · ${row.typeLabel}",
+                style = MaterialTheme.typography.bodySmall,
+                color = StruvaColors.Muted,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
+        Column(
+            modifier = Modifier.width(72.dp).semantics { contentDescription = description },
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            Text(
+                "${row.score}",
+                style = MaterialTheme.typography.titleMedium.copy(fontFamily = IBMPlexMono, fontWeight = FontWeight.SemiBold),
+                color = bandColorForScore(row.score),
+            )
+            row.indices.take(3).forEach { (_, value) -> IndexBar(value) }
+        }
+    }
+}
+
+@Composable
+private fun IndexBar(value: Int) {
+    Box(
+        Modifier
+            .fillMaxWidth()
+            .height(5.dp)
+            .clip(BarShape)
+            .background(StruvaColors.Border),
+    ) {
+        Box(
+            Modifier
+                .fillMaxWidth(value.coerceIn(0, 100) / 100f)
+                .fillMaxHeight()
+                .clip(BarShape)
+                .background(bandColorForScore(value)),
+        )
     }
 }
