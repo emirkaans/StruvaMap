@@ -16,8 +16,8 @@ const val INVITE_LOOKBACK_DAYS = 30L
 
 sealed interface TodayItem {
     data class FirstTest(val testId: String, val testName: String) : TodayItem
-    data class ComparisonReady(val comparisonId: String, val testName: String) : TodayItem
-    data class WaitingForInvitee(val resultId: String, val testName: String) : TodayItem
+    data class ComparisonReady(val comparisonId: String, val testId: String, val testName: String) : TodayItem
+    data class WaitingForInvitee(val resultId: String, val testId: String, val testName: String) : TodayItem
     data class Retest(val testId: String, val testName: String, val daysAgo: Long) : TodayItem
 }
 
@@ -43,10 +43,10 @@ fun buildTodayItems(
 
     val ready = inviteStatuses
         .filter { it.comparisonId != null && !it.seen }
-        .map { TodayItem.ComparisonReady(it.comparisonId!!, nameOf(it.testId)) }
+        .map { TodayItem.ComparisonReady(it.comparisonId!!, it.testId, nameOf(it.testId)) }
     val waiting = inviteStatuses
         .filter { it.comparisonId == null }
-        .map { TodayItem.WaitingForInvitee(it.resultId, nameOf(it.testId)) }
+        .map { TodayItem.WaitingForInvitee(it.resultId, it.testId, nameOf(it.testId)) }
 
     val retests = results
         .groupBy { it.score.testId }

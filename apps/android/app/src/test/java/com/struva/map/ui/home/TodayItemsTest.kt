@@ -59,8 +59,8 @@ class TodayItemsTest {
         )
         assertEquals(
             listOf(
-                TodayItem.ComparisonReady("c1", "Romantik İlişki"),
-                TodayItem.WaitingForInvitee("r0", "İş İlişkisi"),
+                TodayItem.ComparisonReady("c1", "romantic", "Romantik İlişki"),
+                TodayItem.WaitingForInvitee("r0", "work", "İş İlişkisi"),
             ),
             buildTodayItems(tests, results, invites, now),
         )

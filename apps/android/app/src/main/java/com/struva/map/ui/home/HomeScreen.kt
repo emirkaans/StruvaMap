@@ -1,5 +1,7 @@
 package com.struva.map.ui.home
 
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -7,6 +9,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -26,11 +33,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.struva.map.ui.common.StruvaButton
 import com.struva.map.ui.common.StruvaCard
 import com.struva.map.ui.common.StruvaLogo
+import com.struva.map.ui.common.statueFor
 import com.struva.map.ui.pulse.PulseCard
 import com.struva.map.ui.theme.EyebrowStyle
 import com.struva.map.ui.theme.StruvaColors
@@ -250,12 +261,55 @@ private fun TodayCard(
             "Bir ilişkinin görünmeyen yapısını haritalamak için ilk testini çöz. Yaklaşık 7 dakika.",
         ) { onTestClick(item.testId) }
     }
+    val statue = statueFor(
+        when (item) {
+            is TodayItem.ComparisonReady -> item.testId
+            is TodayItem.WaitingForInvitee -> item.testId
+            is TodayItem.Retest -> item.testId
+            is TodayItem.FirstTest -> item.testId
+        },
+    )
     StruvaCard(modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp), onClick = onClick) {
-        Text(eyebrow, style = EyebrowStyle)
-        Spacer(Modifier.height(4.dp))
-        Text(title, style = MaterialTheme.typography.titleMedium)
-        Spacer(Modifier.height(4.dp))
-        Text(body, style = MaterialTheme.typography.bodyMedium, color = StruvaColors.Muted)
+        // Kartın sağ yarısında ilişki türünün heykeli; sola doğru kart
+        // zeminine karışır, yazı okunur kalır. Sayfadaki tek heykel burası.
+        Box(Modifier.fillMaxWidth().heightIn(min = 150.dp)) {
+            if (statue != null) {
+                // matchParentSize: görsel kartın boyunu belirlemesin, taşan
+                // kısmı kartın köşelerinde kırpılsın.
+                Box(Modifier.matchParentSize()) {
+                    Image(
+                        painter = painterResource(statue),
+                        contentDescription = null,
+                        contentScale = ContentScale.FillWidth,
+                        alignment = Alignment.TopCenter,
+                        alpha = 0.6f,
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .offset(x = 28.dp, y = (-20).dp)
+                            .width(180.dp)
+                            .wrapContentHeight(align = Alignment.Top, unbounded = true),
+                    )
+                }
+                Box(
+                    Modifier
+                        .matchParentSize()
+                        .background(
+                            Brush.horizontalGradient(
+                                0.45f to StruvaColors.Surface,
+                                0.7f to StruvaColors.Surface.copy(alpha = 0.55f),
+                                1f to StruvaColors.Surface.copy(alpha = 0.15f),
+                            ),
+                        ),
+                )
+            }
+            Column(Modifier.widthIn(max = 205.dp)) {
+                Text(eyebrow, style = EyebrowStyle)
+                Spacer(Modifier.height(4.dp))
+                Text(title, style = MaterialTheme.typography.titleMedium)
+                Spacer(Modifier.height(4.dp))
+                Text(body, style = MaterialTheme.typography.bodyMedium, color = StruvaColors.Muted)
+            }
+        }
     }
 }
 

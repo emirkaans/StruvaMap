@@ -44,7 +44,7 @@ class HomeSectionsTest {
     fun `sıradaki adımda hazır kıyaslama yeniden çözmenin önüne geçer`() {
         val items = listOf(
             TodayItem.Retest("romantic", "Romantik", 120),
-            TodayItem.ComparisonReady("c1", "Romantik"),
+            TodayItem.ComparisonReady("c1", "romantic", "Romantik"),
         )
         assertTrue(pickNextStep(items) is TodayItem.ComparisonReady)
         assertNull(pickNextStep(emptyList()))

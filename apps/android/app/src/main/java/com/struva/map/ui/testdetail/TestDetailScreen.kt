@@ -1,5 +1,7 @@
 package com.struva.map.ui.testdetail
 
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -7,6 +9,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -21,6 +24,11 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.struva.map.network.dto.DimensionDefDto
@@ -28,6 +36,9 @@ import com.struva.map.ui.common.BackIconButton
 import com.struva.map.ui.common.StruvaButton
 import com.struva.map.ui.common.StruvaCard
 import com.struva.map.ui.common.StruvaOutlinedButton
+import com.struva.map.ui.common.statueFor
+import com.struva.map.ui.relationships.relationshipTypeLabel
+import java.util.Locale
 import com.struva.map.ui.theme.EyebrowStyle
 import com.struva.map.ui.theme.IBMPlexMono
 import com.struva.map.ui.theme.StruvaColors
@@ -63,7 +74,8 @@ fun TestDetailScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Test detayı") },
+                // Başlık kapağın altında; üst çubukta tekrar edilmez.
+                title = {},
                 navigationIcon = { BackIconButton(onClick = onBack) },
                 colors = struvaTopAppBarColors(),
             )
@@ -82,9 +94,9 @@ fun TestDetailScreen(
                 }
                 is TestDetailUiState.Loaded -> {
                     val test = s.test
-                    LazyColumn(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+                    LazyColumn(modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
+                        item { TestCover(test.id, test.name) }
                         item {
-                            Text(test.name, style = MaterialTheme.typography.headlineSmall)
                             Spacer(Modifier.height(8.dp))
                             Text(test.subtitle, style = MaterialTheme.typography.bodyMedium)
                             Spacer(Modifier.height(16.dp))
@@ -139,6 +151,41 @@ fun TestDetailScreen(
                     }
                 }
             }
+        }
+    }
+}
+
+// Testin heykeli sayfanın üstünü kaplar, alta doğru zemine karışır; test adı
+// heykelin alt kısmına yerleşir. Görseli olmayan testte yalnızca başlık kalır.
+@Composable
+private fun TestCover(testId: String, name: String) {
+    val statue = statueFor(testId)
+    Box(Modifier.fillMaxWidth().height(if (statue != null) 300.dp else 96.dp)) {
+        if (statue != null) {
+            Image(
+                painter = painterResource(statue),
+                contentDescription = null,
+                contentScale = ContentScale.FillWidth,
+                alignment = Alignment.TopCenter,
+                alpha = 0.62f,
+                modifier = Modifier.align(Alignment.TopCenter).width(280.dp),
+            )
+            Box(
+                Modifier
+                    .matchParentSize()
+                    .background(
+                        Brush.verticalGradient(
+                            0.3f to Color.Transparent,
+                            0.68f to StruvaColors.Background.copy(alpha = 0.55f),
+                            1f to StruvaColors.Background,
+                        ),
+                    ),
+            )
+        }
+        Column(Modifier.align(Alignment.BottomStart).padding(bottom = 8.dp)) {
+            Text(relationshipTypeLabel(testId, name).uppercase(Locale.forLanguageTag("tr")), style = EyebrowStyle)
+            Spacer(Modifier.height(4.dp))
+            Text(name, style = MaterialTheme.typography.headlineSmall, maxLines = 2, overflow = TextOverflow.Ellipsis)
         }
     }
 }
