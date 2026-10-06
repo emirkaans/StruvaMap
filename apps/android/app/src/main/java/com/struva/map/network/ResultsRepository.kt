@@ -31,7 +31,8 @@ class ResultsRepository @Inject constructor(
     // Tek seferlik okuma (Flow'u dinlemeden) — bkz. HomeViewModel davet kontrolü.
     suspend fun cachedAll(): List<ResultRowDto> = observeAll().first()
 
-    suspend fun refresh(testId: String) {
+    // refreshAll gibi çektiği satırları döndürür (relationship_id önbellekte yok).
+    suspend fun refresh(testId: String): List<ResultRowDto> {
         val results = api.getMyResults(testId)
         dao.deleteByTest(testId)
         dao.insertAll(
@@ -44,6 +45,7 @@ class ResultsRepository @Inject constructor(
                 )
             },
         )
+        return results
     }
 
     // Tam anlık görüntü (snapshot) değişimi: sunucudaki tüm sonuçlarla cache'i
