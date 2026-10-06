@@ -28,6 +28,11 @@ class ResultsRepository @Inject constructor(
         rows.map { ResultRowDto(id = it.id, createdAt = it.createdAt, score = json.decodeFromString(it.scoreJson)) }
     }
 
+    // Başka bir hesaba geçilince (bkz. UserDataGuard).
+    suspend fun clearCache() {
+        dao.deleteAll()
+    }
+
     // Tek seferlik okuma (Flow'u dinlemeden) — bkz. HomeViewModel davet kontrolü.
     suspend fun cachedAll(): List<ResultRowDto> = observeAll().first()
 

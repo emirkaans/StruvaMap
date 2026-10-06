@@ -37,6 +37,15 @@ class ArchiveContextRepository @Inject constructor(
     // Bağlantıları en az bir kez ağdan öğrenilmiş testler ("tümü" için null).
     private val linksLoadedFor = mutableSetOf<String?>()
 
+    // Başka bir hesaba geçilince (bkz. UserDataGuard). Test tanımları kullanıcıya
+    // ait değil, kalabilir; bağlantılar ve ilişki adları silinir.
+    fun clear() {
+        links.value = emptyMap()
+        relationshipNames.value = emptyMap()
+        _labels.value = emptyMap()
+        synchronized(linksLoadedFor) { linksLoadedFor.clear() }
+    }
+
     fun rememberTest(test: TestDetailDto) {
         _tests.value = _tests.value + (test.id to test)
     }

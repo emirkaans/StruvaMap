@@ -30,6 +30,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
+import androidx.compose.runtime.remember
+import javax.inject.Inject
+import com.struva.map.network.UserDataGuard
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -79,6 +83,9 @@ const val EXTRA_ROUTE = "route"
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     private val authViewModel: AuthViewModel by viewModels()
+
+    @Inject
+    lateinit var userDataGuard: UserDataGuard
     private val requestNotificationPermission =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) {}
 
@@ -129,20 +136,39 @@ class MainActivity : ComponentActivity() {
                 val sessionStatus by authViewModel.sessionStatus.collectAsState()
                 when (sessionStatus) {
                     is SessionStatus.Authenticated -> {
-                        // Taze login VE "oturum açıkken app'i yeniden açma" senaryosunu
-                        // kapsar — nabız check-in push'ları kalıcı, kullanıcı bazlı
-                        // token'a ihtiyaç duyar (bkz. AuthViewModel.registerPushTokenIfNeeded).
-                        LaunchedEffect(Unit) { authViewModel.registerPushTokenIfNeeded() }
-                        // Web → app sonuç taşıma: kullanıcı web'de "İndir"e basınca
-                        // panoya bir claim token'ı kopyalanmış olabilir (bkz.
-                        // AppCta.tsx). Her açılışta (ve tab geçişinde) kontrol etmek
-                        // zararsız — token zaten sunucu tarafında tek kullanımlık.
-                        val context = LocalContext.current
-                        LaunchedEffect(Unit) { checkClipboardForClaim(context, authViewModel) }
-                        AppNavHost(
-                            pendingDeepLink = pendingDeepLink,
-                            onDeepLinkConsumed = { pendingDeepLink = null },
-                        )
+                        val userId = (sessionStatus as SessionStatus.Authenticated).session.user?.id.orEmpty()
+                        // Önbellek bu kullanıcıya ait olana kadar ekranlar çizilmez
+                        // (bkz. UserDataGuard): çıkış yapıp başka hesapla girince
+                        // önceki hesabın sonuçları bir an bile görünmesin.
+                        var preparedFor by remember { mutableStateOf<String?>(null) }
+                        LaunchedEffect(userId) {
+                            userDataGuard.prepareFor(userId)
+                            preparedFor = userId
+                        }
+                        if (preparedFor != userId) {
+                            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                CircularProgressIndicator()
+                            }
+                            return@StruvaMapTheme
+                        }
+                        // Oturum açıkken başka hesaba geçilirse (misafirken var olan
+                        // hesaba giriş) gezinme ve ekranların ViewModel'leri de sıfırlanır.
+                        key(userId) {
+                            // Taze login VE "oturum açıkken app'i yeniden açma" senaryosunu
+                            // kapsar — nabız check-in push'ları kalıcı, kullanıcı bazlı
+                            // token'a ihtiyaç duyar (bkz. AuthViewModel.registerPushTokenIfNeeded).
+                            LaunchedEffect(Unit) { authViewModel.registerPushTokenIfNeeded() }
+                            // Web → app sonuç taşıma: kullanıcı web'de "İndir"e basınca
+                            // panoya bir claim token'ı kopyalanmış olabilir (bkz.
+                            // AppCta.tsx). Her açılışta (ve tab geçişinde) kontrol etmek
+                            // zararsız — token zaten sunucu tarafında tek kullanımlık.
+                            val context = LocalContext.current
+                            LaunchedEffect(Unit) { checkClipboardForClaim(context, authViewModel) }
+                            AppNavHost(
+                                pendingDeepLink = pendingDeepLink,
+                                onDeepLinkConsumed = { pendingDeepLink = null },
+                            )
+                        }
                     }
                     is SessionStatus.NotAuthenticated -> {
                         if (!ageConfirmed) {
