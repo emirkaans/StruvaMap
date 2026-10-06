@@ -84,8 +84,8 @@ android {
 // Debug API_BASE_URL 127.0.0.1'i hedefliyor; bu, çalışan tek bir emulator ya
 // da USB'ye takılı tek bir gerçek cihazın adb port'unu makinenin 3000
 // portuna forward eder (adb reverse ikisinde de aynı şekilde çalışır).
-// installDebug'a bağlı olduğu için Android Studio'dan Run/Debug bastığında
-// elle çalıştırmaya gerek kalmadan otomatik kurulur. Birden fazla cihaz/
+// installDebug ve assembleDebug'a bağlı olduğu için Android Studio'dan
+// Run/Debug bastığında elle çalıştırmaya gerek kalmadan otomatik kurulur. Birden fazla cihaz/
 // emulator aynı anda bağlıysa adb hedef seçemez, komut sessizce atlanır —
 // o durumda `adb -s <serial> reverse tcp:3000 tcp:3000` elle gerekir.
 val localPropertiesFile = rootProject.file("local.properties")
@@ -110,7 +110,9 @@ tasks.register("adbReverse") {
     }
 }
 
-tasks.matching { it.name == "installDebug" }.configureEach {
+// Android Studio Run, installDebug'ı değil assembleDebug'ı çalıştırıp APK'yı
+// kendisi kuruyor; bu yüzden ikisine de bağlı.
+tasks.matching { it.name == "installDebug" || it.name == "assembleDebug" }.configureEach {
     dependsOn("adbReverse")
 }
 
