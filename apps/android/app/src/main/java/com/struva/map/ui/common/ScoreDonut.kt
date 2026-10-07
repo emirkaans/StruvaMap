@@ -13,6 +13,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -22,23 +23,6 @@ import androidx.compose.ui.unit.sp
 import com.struva.map.ui.theme.IBMPlexMono
 import com.struva.map.ui.theme.StruvaColors
 import com.struva.map.ui.theme.bandColorForScore
-
-private val ScoreNumberStyle = TextStyle(
-    fontFamily = IBMPlexMono,
-    fontWeight = FontWeight.Medium,
-    fontSize = 40.sp,
-    lineHeight = 44.sp,
-    letterSpacing = (-0.5).sp,
-    color = StruvaColors.Text,
-)
-
-private val ScoreUnitStyle = TextStyle(
-    fontFamily = IBMPlexMono,
-    fontWeight = FontWeight.Medium,
-    fontSize = 11.sp,
-    letterSpacing = 0.5.sp,
-    color = StruvaColors.Muted,
-)
 
 // Web'deki RSI halkası (ResultPage.tsx donutSvg) — skor/100 oranında dolan
 // bir yay, ortada mono fontla sayı. Aynı giriş easing'i (cubic-bezier
@@ -56,6 +40,29 @@ fun ScoreDonut(
         label = "scoreDonut",
     )
     val color = bandColorForScore(value)
+    // Sayı halkanın boyuna göre ölçeklenir ve telefonun yazı boyutu ayarından
+    // etkilenmez; büyük yazı ayarında halkanın dışına taşıyordu. 148 dp
+    // halkada 40 sp sayı ve 11 sp birim, küçük halkalarda orantılı.
+    val density = LocalDensity.current
+    val numberStyle = with(density) {
+        TextStyle(
+            fontFamily = IBMPlexMono,
+            fontWeight = FontWeight.Medium,
+            fontSize = (size * 0.27f).toSp(),
+            lineHeight = (size * 0.3f).toSp(),
+            letterSpacing = (-0.5).sp,
+            color = StruvaColors.Text,
+        )
+    }
+    val unitStyle = with(density) {
+        TextStyle(
+            fontFamily = IBMPlexMono,
+            fontWeight = FontWeight.Medium,
+            fontSize = maxOf(size * 0.075f, 9.dp).toSp(),
+            letterSpacing = 0.5.sp,
+            color = StruvaColors.Muted,
+        )
+    }
 
     Box(modifier = modifier.size(size), contentAlignment = Alignment.Center) {
         Canvas(modifier = Modifier.size(size)) {
@@ -76,8 +83,8 @@ fun ScoreDonut(
             )
         }
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(value.toString(), style = ScoreNumberStyle)
-            Text("/ 100", style = ScoreUnitStyle)
+            Text(value.toString(), style = numberStyle)
+            Text("/ 100", style = unitStyle)
         }
     }
 }

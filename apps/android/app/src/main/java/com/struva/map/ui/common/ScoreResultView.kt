@@ -2,6 +2,8 @@ package com.struva.map.ui.common
 
 import android.content.Intent
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -12,6 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -27,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.struva.map.network.dto.ScoreResultDto
 import com.struva.map.ui.relationships.RelationshipAssignSection
+import com.struva.map.ui.relationships.RelationshipAssignViewModel
 import com.struva.map.ui.theme.EyebrowStyle
 import com.struva.map.ui.theme.StruvaColors
 import java.util.Locale
@@ -47,13 +51,26 @@ fun ScoreResultView(
     onDone: (() -> Unit)? = null,
     onOpenPrediction: ((String) -> Unit)? = null,
     detailViewModel: ScoreDetailViewModel = hiltViewModel(),
+    relationshipViewModel: RelationshipAssignViewModel = hiltViewModel(),
 ) {
     val detail by detailViewModel.state.collectAsState()
+    val relationship by relationshipViewModel.state.collectAsState()
     val test = detail.test
     val context = LocalContext.current
 
     LaunchedEffect(score.testId) { detailViewModel.init(score.testId) }
     LaunchedEffect(resultId) { detailViewModel.trackResultView(resultId, score.testId) }
+    // İlişki kartı da burada başlatılır: ekran hazır olana kadar kart
+    // çizilmediği için kendi LaunchedEffect'i yüklemeyi tetikleyemez.
+    LaunchedEffect(resultId) { relationshipViewModel.init(resultId, score.testId) }
+
+    // Başlık, endeks halkaları, konuşma kartları ve ilişki kartı ayrı
+    // isteklerden geliyor; hepsi gelene kadar beklenir, ekran kaymadan açılır.
+    val ready = detail.ready && (relationship.loaded || relationship.loadError != null)
+    if (!ready) {
+        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
+        return
+    }
 
     val profile = test?.let { computeProfileLabel(it.indices.mapValues { e -> e.value.name }, score.indices) }
     val story = profile?.let { composeProfileStory(it, score.interpretation, score.strengths, score.tensions) }
@@ -115,17 +132,25 @@ fun ScoreResultView(
                 }
             }
             Spacer(Modifier.height(16.dp))
-            RelationshipAssignSection(resultId = resultId, testId = score.testId)
+            RelationshipAssignSection(resultId = resultId, testId = score.testId, viewModel = relationshipViewModel)
             Spacer(Modifier.height(28.dp))
 
             if (test != null && score.indices.isNotEmpty()) {
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-                    score.indices.forEach { (key, value) ->
-                        val name = test.indices[key]?.name ?: key
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            ScoreDonut(value, size = 108.dp, strokeWidth = 9.dp)
-                            Spacer(Modifier.height(8.dp))
-                            Text(name, style = MaterialTheme.typography.bodyMedium, textAlign = TextAlign.Center)
+                // Halkalar ekran genişliğine göre küçülür: sabit 108 dp, dar
+                // ekranlarda (ör. 360 dp genişlikte) üçü yan yana sığmıyordu.
+                BoxWithConstraints(Modifier.fillMaxWidth()) {
+                    val count = score.indices.size
+                    val gap = 12.dp
+                    val cell = (maxWidth - gap * (count - 1)) / count
+                    val donutSize = minOf(108.dp, cell * 0.88f)
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(gap)) {
+                        score.indices.forEach { (key, value) ->
+                            val name = test.indices[key]?.name ?: key
+                            Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                                ScoreDonut(value, size = donutSize, strokeWidth = donutSize / 12)
+                                Spacer(Modifier.height(8.dp))
+                                Text(name, style = MaterialTheme.typography.bodyMedium, textAlign = TextAlign.Center)
+                            }
                         }
                     }
                 }

@@ -30,7 +30,9 @@ fun RadarChart(values: List<Pair<String, Int>>, modifier: Modifier = Modifier) {
     )
     if (values.size < 3) return
 
-    val gridColor = StruvaColors.Border
+    // Kenarlık rengi kart zemininde neredeyse kayboluyordu; ızgara soluk
+    // metin renginde ve 1 dp kalınlıkta çizilir.
+    val gridColor = StruvaColors.Muted.copy(alpha = 0.35f)
     val accent = StruvaColors.Accent
     val labelColor = StruvaColors.Muted
     val valueColor = StruvaColors.Text
@@ -55,11 +57,11 @@ fun RadarChart(values: List<Pair<String, Int>>, modifier: Modifier = Modifier) {
                 if (i == 0) path.moveTo(p.x, p.y) else path.lineTo(p.x, p.y)
             }
             path.close()
-            drawPath(path, color = gridColor, style = Stroke(width = 1f))
+            drawPath(path, color = gridColor, style = Stroke(width = 1.dp.toPx()))
         }
         for (i in 0 until n) {
             val p = pointAt(i, radius)
-            drawLine(gridColor, center, p, strokeWidth = 1f)
+            drawLine(gridColor, center, p, strokeWidth = 1.dp.toPx())
         }
 
         // Değer poligonu

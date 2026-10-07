@@ -8,6 +8,7 @@ import com.struva.map.network.ResultsRepository
 import com.struva.map.network.dto.TestDetailDto
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -19,6 +20,9 @@ data class ScoreDetailState(
     val rsiHistory: List<Int> = emptyList(),
     // boyut id → konuşma kartı soruları (gerilim alanları için).
     val prompts: Map<String, List<String>> = emptyMap(),
+    // Test tanımı, konuşma soruları ve geçmiş ilk kez gelince (başarısız
+    // olsalar da) true; ekran o ana kadar parça parça değil, tek seferde açılır.
+    val ready: Boolean = false,
 )
 
 // ScoreResultView'in kendi başına yeterli olması için: hem yeni çözülen
@@ -58,34 +62,39 @@ class ScoreDetailViewModel @Inject constructor(
         initializedFor = testId
 
         viewModelScope.launch {
-            try {
-                val test = api.getTest(testId)
-                _state.value = _state.value.copy(test = test)
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                // Hero zenginleştirmesi (başlık/öykü/endeks isimleri) olmadan
-                // devam eder — skor kartı zaten elde, ekran boş kalmaz.
+            coroutineScope {
+                launch {
+                    try {
+                        val test = api.getTest(testId)
+                        _state.value = _state.value.copy(test = test)
+                    } catch (e: CancellationException) {
+                        throw e
+                    } catch (e: Exception) {
+                        // Hero zenginleştirmesi (başlık/öykü/endeks isimleri) olmadan
+                        // devam eder — skor kartı zaten elde, ekran boş kalmaz.
+                    }
+                }
+                launch {
+                    try {
+                        val prompts = api.getConversationPrompts(testId)
+                        _state.value = _state.value.copy(prompts = prompts)
+                    } catch (e: CancellationException) {
+                        throw e
+                    } catch (e: Exception) {
+                        // Konuşma kartları olmadan devam eder.
+                    }
+                }
+                launch {
+                    try {
+                        resultsRepository.refresh(testId)
+                    } catch (e: CancellationException) {
+                        throw e
+                    } catch (e: Exception) {
+                        // Sessizce yut — trend bölümü "tekrar çözün" mesajına düşer.
+                    }
+                }
             }
-        }
-        viewModelScope.launch {
-            try {
-                val prompts = api.getConversationPrompts(testId)
-                _state.value = _state.value.copy(prompts = prompts)
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                // Konuşma kartları olmadan devam eder.
-            }
-        }
-        viewModelScope.launch {
-            try {
-                resultsRepository.refresh(testId)
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                // Sessizce yut — trend bölümü "tekrar çözün" mesajına düşer.
-            }
+            _state.value = _state.value.copy(ready = true)
         }
         viewModelScope.launch {
             resultsRepository.observeByTest(testId).collect { rows ->
