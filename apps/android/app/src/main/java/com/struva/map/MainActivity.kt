@@ -44,6 +44,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -52,6 +53,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.struva.map.ui.auth.AuthMode
+import com.struva.map.ui.settings.SettingsScreen
 import com.struva.map.ui.common.ClearFocusOnTapOutside
 import com.struva.map.ui.auth.AuthScreen
 import com.struva.map.ui.auth.AuthViewModel
@@ -249,6 +251,7 @@ private val TAB_ITEMS = listOf(
     TabItem("map", "Harita", R.drawable.ic_tab_map),
     TabItem("history", "Geçmiş", R.drawable.ic_tab_history),
     TabItem("profile", "Profil", R.drawable.ic_tab_profile),
+    TabItem("settings", "Ayarlar", R.drawable.ic_tab_settings),
 )
 
 // Sekme çubuğu bu ekranlar dışında her yerde görünür: test çözerken ya da
@@ -310,9 +313,14 @@ private fun AppNavHost(
                             },
                             icon = { Icon(painterResource(tab.icon), contentDescription = null) },
                             label = {
+                                // Beş sekmede dar ekranlarda (360 dp) "Anasayfa" iki
+                                // satıra bölünüyordu; etiket tek satır ve biraz küçük.
                                 Text(
                                     tab.label,
                                     fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
+                                    fontSize = 11.sp,
+                                    maxLines = 1,
+                                    softWrap = false,
                                 )
                             },
                             alwaysShowLabel = true,
@@ -369,11 +377,13 @@ private fun AppNavHost(
             }
             composable("profile") {
                 ProfileScreen(
-                    onOpenPrivacy = { navController.navigate("privacy") },
                     onOpenPulsePairing = { navController.navigate("pulsePairing") },
                     onOpenLogin = { navController.navigate("completeProfile/login") },
                     onOpenRegister = { navController.navigate("completeProfile/register") },
                 )
+            }
+            composable("settings") {
+                SettingsScreen(onOpenPrivacy = { navController.navigate("privacy") })
             }
             composable("privacy") {
                 PrivacyScreen(onBack = { navController.popBackStack() })
