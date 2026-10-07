@@ -127,14 +127,16 @@ class AuthViewModel @Inject constructor(
     // signInAnonymously() çağırdığı için buraya gelindiğinde oturum daima
     // authlı (anonim) — /auth/register (admin.createUser, YENİ kullanıcı)
     // yerine /auth/complete-profile (admin.updateUserById, AYNI kullanıcıyı
-    // yerinde günceller) çağrılıyor. signIn() gerekmiyor: user_id hiç
-    // değişmedi, yalnızca yerel oturumun e-posta/metadata'yı görmesi için
-    // refreshCurrentSession yeterli (ProfileViewModel.changeUsername ile
-    // aynı desen).
+    // yerinde günceller) çağrılıyor. Ardından yeni şifreyle giriş yapılır:
+    // Supabase, admin API ile şifre konunca kullanıcının bütün oturumlarını
+    // kapatıyor (auth sunucusunda User.UpdatePassword, sessionID nil ise
+    // Logout). Anonim oturumun refresh token'ı bu yüzden geçersiz kalıyor;
+    // refreshCurrentSession "Invalid Refresh Token" hatası veriyordu.
+    // user_id değişmez, yalnızca oturum yenilenir.
     fun register(username: String, password: String, securityQuestion: String?, securityAnswer: String?) =
         runAuthAction {
             api.completeProfile(RegisterRequest(username, password, securityQuestion?.trim(), securityAnswer))
-            supabase.auth.refreshCurrentSession()
+            signIn(username, password)
         }
 
     fun login(username: String, password: String) = runAuthAction {
