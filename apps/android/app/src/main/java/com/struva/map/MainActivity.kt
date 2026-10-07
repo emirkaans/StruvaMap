@@ -17,6 +17,8 @@ import androidx.annotation.DrawableRes
 import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.CircularProgressIndicator
@@ -283,7 +285,13 @@ private fun AppNavHost(
         }
     }
 
+    // Sistem çubuklarının boşluğunu her ekran kendi Scaffold'unda veriyor
+    // (üst çubuk durum çubuğunun altına kendi renginde uzanır). Dış Scaffold
+    // yalnızca sekme çubuğunun yüksekliği kadar boşluk bırakır ve bu boşluğu
+    // tüketilmiş sayar; yoksa durum çubuğu ve gezinme çubuğu boşluğu iki kez
+    // ekleniyor, başlıkların üstünde fazladan koyu bir şerit kalıyordu.
     Scaffold(
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         bottomBar = {
             if (showTabBar) {
                 NavigationBar(containerColor = StruvaColors.Surface) {
@@ -323,7 +331,7 @@ private fun AppNavHost(
         NavHost(
             navController = navController,
             startDestination = "home",
-            modifier = Modifier.padding(padding),
+            modifier = Modifier.padding(padding).consumeWindowInsets(padding),
         ) {
             composable("home") {
                 HomeScreen(
