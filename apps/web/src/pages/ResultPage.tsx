@@ -4,6 +4,7 @@ import { Link, useParams, useSearchParams } from "react-router-dom";
 import { composeProfileStory, computeProfileLabel, type ScoreResult, type TestDefinition } from "@struva/shared";
 import { fetchComparisonByResultId, fetchResult, fetchResultHistory, fetchTest, type ResultRow } from "../lib/api";
 import { track } from "../lib/analytics";
+import { getOrCreateSessionId } from "../lib/session";
 import { shareOrCopy } from "../lib/share";
 import { toTurkishUpper } from "../lib/text";
 import { useCountUp } from "../lib/useCountUp";
@@ -190,8 +191,10 @@ export function ResultPage() {
         setResult(row);
         track("result_view", { testId: row.test_id });
         setInvited(localStorage.getItem(invitedStorageKey(row.id)) === "1");
-        fetchResultHistory(row.session_id, row.test_id)
-          .then(setHistory)
+        // Geçmiş yalnızca bu tarayıcının kendi sonuçlarından gelir. Paylaşılan
+        // linki açan biri sonucu görür ama sahibinin diğer sonuçlarını görmez.
+        fetchResultHistory(getOrCreateSessionId(), row.test_id)
+          .then((rows) => setHistory(rows.some((r) => r.id === row.id) ? rows : []))
           .catch(() => setHistory([]));
         return fetchTest(row.test_id);
       })

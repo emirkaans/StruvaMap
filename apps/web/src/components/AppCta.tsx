@@ -1,6 +1,7 @@
 import { PLAY_STORE_URL } from "../lib/config";
 import { track } from "../lib/analytics";
 import { createClaim } from "../lib/api";
+import { getOrCreateSessionId } from "../lib/session";
 import { toTurkishUpper } from "../lib/text";
 import { Reveal } from "./Reveal";
 
@@ -38,7 +39,7 @@ function AppCtaButton({ resultId }: { resultId?: string }) {
         // da başarısız olursa (pano izni yok, ağ hatası) indirmeyi bloklamaz,
         // sessizce yutulur (bkz. plan: claim bir bonus, akışı bozmamalı).
         if (resultId) {
-          createClaim(resultId)
+          createClaim(resultId, getOrCreateSessionId())
             .then(({ token }) => navigator.clipboard.writeText(`${CLAIM_CLIPBOARD_PREFIX}${token}`))
             .catch(() => {});
         }

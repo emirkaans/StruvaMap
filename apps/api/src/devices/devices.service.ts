@@ -1,4 +1,8 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { SupabaseService } from '../supabase/supabase.service';
 import { RegisterDeviceDto } from './register-device.dto';
 
@@ -6,7 +10,16 @@ import { RegisterDeviceDto } from './register-device.dto';
 export class DevicesService {
   constructor(private readonly supabase: SupabaseService) {}
 
-  async register(dto: RegisterDeviceDto): Promise<void> {
+  async register(userId: string, dto: RegisterDeviceDto): Promise<void> {
+    const { data: result, error: ownerError } = await this.supabase.client
+      .from('results')
+      .select('id')
+      .eq('id', dto.resultId)
+      .eq('user_id', userId)
+      .maybeSingle();
+    if (ownerError) throw new InternalServerErrorException(ownerError.message);
+    if (!result) throw new NotFoundException('Sonuç bulunamadı.');
+
     const { error } = await this.supabase.client
       .from('push_tokens')
       .upsert({ result_id: dto.resultId, fcm_token: dto.fcmToken });
@@ -29,7 +42,11 @@ export class DevicesService {
   async registerForUser(userId: string, fcmToken: string): Promise<void> {
     const { error } = await this.supabase.client
       .from('user_push_tokens')
-      .upsert({ user_id: userId, fcm_token: fcmToken, updated_at: new Date().toISOString() });
+      .upsert({
+        user_id: userId,
+        fcm_token: fcmToken,
+        updated_at: new Date().toISOString(),
+      });
     if (error) throw new InternalServerErrorException(error.message);
   }
 

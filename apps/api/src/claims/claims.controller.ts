@@ -10,13 +10,13 @@ import { RedeemClaimDto } from './redeem-claim.dto';
 export class ClaimsController {
   constructor(private readonly claimsService: ClaimsService) {}
 
-  // Anonim/kimliksiz — web'in tıklama anında çağırdığı uç, sonuç sayfasını
-  // görebilen herkes zaten sonucu görebiliyor (bkz. results.controller.ts
-  // GET /results/:id de authsız), token üretmek ek bir yetki açmıyor.
+  // Kimliksiz: web'in tıklama anında çağırdığı uç. Sonuç id'si paylaşılan
+  // linklerde göründüğü için tek başına yetki sayılmaz; kodu yalnızca sonucu
+  // çözen tarayıcı (aynı sessionId) alabilir, bkz. claims.service.ts create().
   @Post()
   @Throttle({ default: { ttl: 60000, limit: 10 } })
   create(@Body() dto: CreateClaimDto) {
-    return this.claimsService.create(dto.resultId);
+    return this.claimsService.create(dto.resultId, dto.sessionId);
   }
 
   @Post('redeem')

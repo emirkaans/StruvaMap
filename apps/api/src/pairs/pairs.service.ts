@@ -5,6 +5,7 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
+import { randomInt } from 'crypto';
 import { PULSE_QUESTIONS } from '@struva/shared';
 import { SupabaseService } from '../supabase/supabase.service';
 
@@ -39,7 +40,7 @@ const MAX_CODE_ATTEMPTS = 5;
 function generateInviteCode(): string {
   let code = '';
   for (let i = 0; i < CODE_LENGTH; i++) {
-    code += CODE_CHARS[Math.floor(Math.random() * CODE_CHARS.length)];
+    code += CODE_CHARS[randomInt(CODE_CHARS.length)];
   }
   return code;
 }

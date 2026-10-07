@@ -2,9 +2,10 @@ import { Module } from '@nestjs/common';
 import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { ConfigModule } from '@nestjs/config';
 import { ScheduleModule } from '@nestjs/schedule';
-import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { ThrottlerModule } from '@nestjs/throttler';
 import { SentryGlobalFilter, SentryModule } from '@sentry/nestjs/setup';
 import { SupabaseModule } from './supabase/supabase.module';
+import { ClientIpThrottlerGuard } from './common/client-ip-throttler.guard';
 import { AuthModule } from './auth/auth.module';
 import { TestsModule } from './tests/tests.module';
 import { ResultsModule } from './results/results.module';
@@ -52,7 +53,7 @@ import { RelationshipsModule } from './relationships/relationships.module';
     // SENTRY_DSN yoksa Sentry.init hiç çalışmadığı için bu filtre de sessiz kalır;
     // yakaladığı hatayı her koşulda normal Nest yanıtına çevirmeye devam eder.
     { provide: APP_FILTER, useClass: SentryGlobalFilter },
-    { provide: APP_GUARD, useClass: ThrottlerGuard },
+    { provide: APP_GUARD, useClass: ClientIpThrottlerGuard },
   ],
 })
 export class AppModule {}

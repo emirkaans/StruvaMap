@@ -6,6 +6,7 @@ import { ResultsService } from './results.service';
 import { SubmitResultDto } from './submit-result.dto';
 import { ListResultsDto } from './list-results.dto';
 import { ListMyResultsDto } from './list-my-results.dto';
+import { toPublicResult } from './public-result';
 
 @Controller('results')
 export class ResultsController {
@@ -25,7 +26,9 @@ export class ResultsController {
 
   @Get()
   list(@Query() query: ListResultsDto) {
-    return this.resultsService.findBySession(query.sessionId, query.testId);
+    return this.resultsService
+      .findBySession(query.sessionId, query.testId)
+      .then((rows) => rows.map(toPublicResult));
   }
 
   // Anasayfadaki "bugüne kadar" sayısı; yalnızca toplam, kişisel veri yok.
@@ -37,6 +40,6 @@ export class ResultsController {
 
   @Get(':id')
   getOne(@Param('id') id: string) {
-    return this.resultsService.findById(id);
+    return this.resultsService.findById(id).then(toPublicResult);
   }
 }

@@ -2,10 +2,10 @@ import type { Answers, ScoreResult, TestDefinition } from "@struva/shared";
 
 export const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
 
+// Herkese açık uçlar session_id döndürmez (bkz. api results/public-result.ts).
 export interface ResultRow {
   id: string;
   test_id: string;
-  session_id: string;
   answers: Answers;
   score: ScoreResult;
   created_at: string;
@@ -121,8 +121,8 @@ export function fetchComparisonByResultId(resultId: string): Promise<ComparisonR
   return request(`/comparisons/by-result/${resultId}`);
 }
 
-export function createClaim(resultId: string): Promise<{ token: string; expiresAt: string }> {
-  return request("/claims", { method: "POST", body: JSON.stringify({ resultId }) });
+export function createClaim(resultId: string, sessionId: string): Promise<{ token: string; expiresAt: string }> {
+  return request("/claims", { method: "POST", body: JSON.stringify({ resultId, sessionId }) });
 }
 
 /* Admin uçları oturum gerektirir. supabase istemcisi burada dinamik import
@@ -372,7 +372,9 @@ export function fetchAdminComparisonsDailyTotal(from?: string, to?: string): Pro
   return adminRequest(`/admin/comparisons/daily-total${toQuery({ from, to })}`);
 }
 
-export function fetchAdminResults(params: AdminListParams): Promise<AdminPaginated<ResultRow>> {
+export type AdminResultRow = ResultRow & { session_id: string };
+
+export function fetchAdminResults(params: AdminListParams): Promise<AdminPaginated<AdminResultRow>> {
   return adminRequest(`/admin/results${toQuery({ ...params })}`);
 }
 

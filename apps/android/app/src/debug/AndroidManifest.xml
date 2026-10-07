@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Debug sürümü yerel API'ye (http://127.0.0.1:3000) şifresiz bağlanıyor.
+     Şifresiz trafik izni yalnızca burada; yayın sürümü HTTPS dışına çıkamaz. -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <application android:usesCleartextTraffic="true" />
+</manifest>

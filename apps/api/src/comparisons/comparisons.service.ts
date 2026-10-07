@@ -9,6 +9,7 @@ import { SupabaseService } from '../supabase/supabase.service';
 import { fetchAll } from '../common/fetch-all';
 import { bucketByDay, DailyCount } from '../common/bucket-by-day';
 import { ResultsService } from '../results/results.service';
+import { toPublicResult } from '../results/public-result';
 import { DevicesService } from '../devices/devices.service';
 import { PushService } from '../push/push.service';
 import { CreateComparisonDto } from './create-comparison.dto';
@@ -131,8 +132,8 @@ export class ComparisonsService {
     return {
       id: row.id,
       testId: row.test_id,
-      a,
-      b,
+      a: toPublicResult(a),
+      b: toPublicResult(b),
       predictions: {
         a: evaluate(a.id, a.score.dimensions, b.score.dimensions),
         b: evaluate(b.id, b.score.dimensions, a.score.dimensions),

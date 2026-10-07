@@ -10,10 +10,13 @@ import { RegisterUserDeviceDto } from './register-user-device.dto';
 export class DevicesController {
   constructor(private readonly devicesService: DevicesService) {}
 
+  // Kıyaslama hazır bildirimi bu token'a gider; başkası kendi token'ını
+  // yazıp bildirimi üstlenemesin diye yalnızca sonucun sahibi kaydedebilir.
   @Post('register')
+  @UseGuards(UserGuard)
   @Throttle({ default: { ttl: 60000, limit: 10 } })
-  register(@Body() dto: RegisterDeviceDto) {
-    return this.devicesService.register(dto);
+  register(@Body() dto: RegisterDeviceDto, @Req() req: AuthedRequest) {
+    return this.devicesService.register(req.user.id, dto);
   }
 
   // Kalıcı, kullanıcı bazlı token kaydı — nabız check-in bildirimleri için.

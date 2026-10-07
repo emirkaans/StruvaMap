@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import type { TestDefinition } from "@struva/shared";
 import { AdminNav } from "../../components/AdminRoute";
-import { fetchAdminResults, fetchTests, type ResultRow } from "../../lib/api";
+import { fetchAdminResults, fetchTests, type AdminResultRow } from "../../lib/api";
 
 const PAGE_SIZE = 20;
 
@@ -14,7 +14,7 @@ export function AdminResultsPage() {
   const [tests, setTests] = useState<TestDefinition[]>([]);
   const [testId, setTestId] = useState("");
   const [page, setPage] = useState(1);
-  const [rows, setRows] = useState<ResultRow[]>([]);
+  const [rows, setRows] = useState<AdminResultRow[]>([]);
   const [total, setTotal] = useState(0);
 
   useEffect(() => {
