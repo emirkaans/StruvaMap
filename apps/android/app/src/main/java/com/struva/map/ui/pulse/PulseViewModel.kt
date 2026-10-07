@@ -35,7 +35,8 @@ sealed interface PulseUiState {
     data class Error(val message: String) : PulseUiState
     data object NoPair : PulseUiState
     data class PendingInvite(val inviteCode: String) : PulseUiState
-    data class Unanswered(val checkinId: String, val questionText: String) : PulseUiState
+    // submitting: cevap gönderiliyor; buton yükleniyor gösterir, ikinci gönderim engellenir.
+    data class Unanswered(val checkinId: String, val questionText: String, val submitting: Boolean = false) : PulseUiState
     data class WaitingForPartner(val myAnswer: Int) : PulseUiState
     data class BothAnswered(val myAnswer: Int, val partnerAnswer: Int) : PulseUiState
 }
@@ -120,7 +121,10 @@ class PulseViewModel @Inject constructor(
     }
 
     fun submitAnswer(answer: Int) {
-        val checkinId = (_state.value as? PulseUiState.Unanswered)?.checkinId ?: return
+        val current = _state.value as? PulseUiState.Unanswered ?: return
+        if (current.submitting) return
+        val checkinId = current.checkinId
+        _state.value = current.copy(submitting = true)
         viewModelScope.launch {
             _state.value = try {
                 applyToday(answerSubmitter.submit(checkinId, answer, PulseAnswerSource.APP))

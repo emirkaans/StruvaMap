@@ -3,7 +3,8 @@ package com.struva.map.ui.pulse
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -27,10 +28,12 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -39,6 +42,7 @@ import com.struva.map.ui.common.StruvaCard
 import com.struva.map.ui.common.StruvaOutlinedButton
 import com.struva.map.ui.theme.IBMPlexMono
 import com.struva.map.ui.theme.StruvaColors
+import kotlin.math.roundToInt
 
 private val TrackHeight = 6.dp
 private val PartnerTrackHeight = 4.dp
@@ -115,7 +119,7 @@ fun PulseCard(
             is PulseUiState.Unanswered -> {
                 Text(s.questionText, style = MaterialTheme.typography.titleSmall)
                 Spacer(Modifier.height(16.dp))
-                UnansweredGauge(checkinId = s.checkinId, onSubmit = viewModel::submitAnswer)
+                UnansweredGauge(checkinId = s.checkinId, submitting = s.submitting, onSubmit = viewModel::submitAnswer)
                 PulseLinks(onOpenHistory)
             }
 
@@ -154,23 +158,35 @@ fun PulseCard(
 // yalnızca "Gönder"e basınca kesinleşiyor. checkinId'yi remember anahtarı
 // yapıyoruz ki yeni bir güne geçildiğinde (yeni checkinId) seçim sıfırlansın.
 @Composable
-private fun UnansweredGauge(checkinId: String, onSubmit: (Int) -> Unit) {
+private fun UnansweredGauge(checkinId: String, submitting: Boolean, onSubmit: (Int) -> Unit) {
     var selected by remember(checkinId) { mutableStateOf<Int?>(null) }
 
-    PulseGaugeTrack(value = selected, onTap = { selected = it })
+    // Gönderilirken seçim kilitlenir; gönderilen değerle ekrandaki aynı kalır.
+    PulseGaugeTrack(value = selected, onTap = if (submitting) null else { v -> selected = v })
     Spacer(Modifier.height(4.dp))
     GaugeEndLabels()
     Spacer(Modifier.height(12.dp))
     StruvaButton(
         onClick = { selected?.let(onSubmit) },
-        enabled = selected != null,
+        enabled = selected != null && !submitting,
         modifier = Modifier.fillMaxWidth(),
-    ) { Text("Gönder") }
+    ) {
+        if (submitting) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(18.dp),
+                strokeWidth = 2.dp,
+                color = StruvaColors.Muted,
+            )
+        } else {
+            Text("Gönder")
+        }
+    }
 }
 
-// Tek gösterge hem girdi hem gösterim için: onTap verilirse 1-5 arası 5 eşit
-// dokunma alanı aktif olur (değer her dokunuşta değişir, "geri alma" budur),
-// verilmezse salt-okunur (WaitingForPartner/BothAnswered). Top'un yatay
+// Tek gösterge hem girdi hem gösterim için: onTap verilirse çizgiye dokunmak
+// ya da parmağı üzerinde kaydırmak topu en yakın değere (1-5) taşır; değer her
+// harekette değişir, "geri alma" budur. Verilmezse salt-okunur
+// (WaitingForPartner/BothAnswered). Top'un yatay
 // konumu iç içe fillMaxWidth(fraction) + CenterEnd hizalama ile piksel
 // hesaplamadan elde ediliyor; animateFloatAsState topu bir değerden diğerine
 // kaydırarak taşıyor, ani zıplama yerine "dinamik" hissettiriyor.
@@ -215,16 +231,27 @@ private fun PulseGaugeTrack(value: Int?, onTap: ((Int) -> Unit)? = null) {
             }
         }
         if (onTap != null) {
-            Row(Modifier.fillMaxWidth().fillMaxHeight()) {
-                for (v in 1..5) {
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .fillMaxHeight()
-                            .clickable { onTap(v) },
-                    )
-                }
-            }
+            val currentOnTap by rememberUpdatedState(onTap)
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight()
+                    .pointerInput(Unit) {
+                        fun valueAt(x: Float): Int =
+                            ((x / size.width.coerceAtLeast(1)) * 4).roundToInt().coerceIn(0, 4) + 1
+                        detectTapGestures { currentOnTap(valueAt(it.x)) }
+                    }
+                    .pointerInput(Unit) {
+                        fun valueAt(x: Float): Int =
+                            ((x / size.width.coerceAtLeast(1)) * 4).roundToInt().coerceIn(0, 4) + 1
+                        detectHorizontalDragGestures(
+                            onDragStart = { currentOnTap(valueAt(it.x)) },
+                        ) { change, _ ->
+                            change.consume()
+                            currentOnTap(valueAt(change.position.x))
+                        }
+                    },
+            )
         }
     }
 }
