@@ -50,6 +50,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.struva.map.ui.auth.AuthMode
+import com.struva.map.ui.common.ClearFocusOnTapOutside
 import com.struva.map.ui.auth.AuthScreen
 import com.struva.map.ui.auth.AuthViewModel
 import com.struva.map.ui.auth.CompleteProfileScreen
@@ -132,7 +133,7 @@ class MainActivity : ComponentActivity() {
         }
         pendingDeepLink = routeFromIntent(intent)
         setContent {
-            StruvaMapTheme {
+            StruvaMapTheme { ClearFocusOnTapOutside {
                 val sessionStatus by authViewModel.sessionStatus.collectAsState()
                 when (sessionStatus) {
                     is SessionStatus.Authenticated -> {
@@ -149,7 +150,7 @@ class MainActivity : ComponentActivity() {
                             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                                 CircularProgressIndicator()
                             }
-                            return@StruvaMapTheme
+                            return@ClearFocusOnTapOutside
                         }
                         // Oturum açıkken başka hesaba geçilirse (misafirken var olan
                         // hesaba giriş) gezinme ve ekranların ViewModel'leri de sıfırlanır.
@@ -192,7 +193,7 @@ class MainActivity : ComponentActivity() {
                         CircularProgressIndicator()
                     }
                 }
-            }
+            } }
         }
     }
 

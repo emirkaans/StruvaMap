@@ -22,9 +22,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.struva.map.ui.common.PasswordVisibilityToggle
+import com.struva.map.ui.common.passwordTransformation
 import com.struva.map.ui.common.StruvaButton
 import com.struva.map.ui.common.StruvaLogo
 import com.struva.map.ui.theme.StruvaColors
@@ -97,6 +98,7 @@ private fun LoginOrRegisterForm(
 ) {
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var showPassword by remember { mutableStateOf(false) }
     var securityQuestion by remember { mutableStateOf("") }
     var securityAnswer by remember { mutableStateOf("") }
     val formState by viewModel.formState.collectAsState()
@@ -122,7 +124,8 @@ private fun LoginOrRegisterForm(
         onValueChange = { password = it },
         label = { Text("Şifre") },
         singleLine = true,
-        visualTransformation = PasswordVisualTransformation(),
+        visualTransformation = passwordTransformation(showPassword),
+        trailingIcon = { PasswordVisibilityToggle(showPassword) { showPassword = !showPassword } },
         shape = FieldShape,
         colors = fieldColors,
         modifier = Modifier.fillMaxWidth(),
@@ -226,7 +229,9 @@ private fun ForgotPasswordForm(viewModel: AuthViewModel, onBackToLogin: () -> Un
         is ForgotPasswordState.AnswerQuestion -> {
             var answer by remember { mutableStateOf("") }
             var newPassword by remember { mutableStateOf("") }
+            var showNewPassword by remember { mutableStateOf(false) }
             var confirmPassword by remember { mutableStateOf("") }
+            var showConfirmPassword by remember { mutableStateOf(false) }
             Text(s.question, style = MaterialTheme.typography.bodyLarge)
             Spacer(Modifier.height(16.dp))
             OutlinedTextField(
@@ -244,7 +249,8 @@ private fun ForgotPasswordForm(viewModel: AuthViewModel, onBackToLogin: () -> Un
                 onValueChange = { newPassword = it },
                 label = { Text("Yeni şifre") },
                 singleLine = true,
-                visualTransformation = PasswordVisualTransformation(),
+                visualTransformation = passwordTransformation(showNewPassword),
+                trailingIcon = { PasswordVisibilityToggle(showNewPassword) { showNewPassword = !showNewPassword } },
                 shape = FieldShape,
                 colors = fieldColors,
                 modifier = Modifier.fillMaxWidth(),
@@ -255,7 +261,8 @@ private fun ForgotPasswordForm(viewModel: AuthViewModel, onBackToLogin: () -> Un
                 onValueChange = { confirmPassword = it },
                 label = { Text("Yeni şifre (tekrar)") },
                 singleLine = true,
-                visualTransformation = PasswordVisualTransformation(),
+                visualTransformation = passwordTransformation(showConfirmPassword),
+                trailingIcon = { PasswordVisibilityToggle(showConfirmPassword) { showConfirmPassword = !showConfirmPassword } },
                 shape = FieldShape,
                 colors = fieldColors,
                 modifier = Modifier.fillMaxWidth(),

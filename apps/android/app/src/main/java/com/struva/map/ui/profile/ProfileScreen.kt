@@ -29,9 +29,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.struva.map.ui.common.PasswordVisibilityToggle
+import com.struva.map.ui.common.passwordTransformation
 import com.struva.map.ui.common.StruvaButton
 import com.struva.map.ui.common.StruvaOutlinedButton
 import com.struva.map.ui.theme.StruvaColors
@@ -222,8 +223,11 @@ private fun ChangeUsernameSection(isLoading: Boolean, resetKey: Int, onSubmit: (
 @Composable
 private fun ChangePasswordSection(isLoading: Boolean, resetKey: Int, onSubmit: (String, String) -> Unit) {
     var currentPassword by remember(resetKey) { mutableStateOf("") }
+    var showCurrentPassword by remember(resetKey) { mutableStateOf(false) }
     var newPassword by remember(resetKey) { mutableStateOf("") }
+    var showNewPassword by remember(resetKey) { mutableStateOf(false) }
     var confirmPassword by remember(resetKey) { mutableStateOf("") }
+    var showConfirmPassword by remember(resetKey) { mutableStateOf(false) }
 
     Text("Şifreyi değiştir", style = MaterialTheme.typography.titleSmall)
     Spacer(Modifier.height(12.dp))
@@ -232,7 +236,8 @@ private fun ChangePasswordSection(isLoading: Boolean, resetKey: Int, onSubmit: (
         onValueChange = { currentPassword = it },
         label = { Text("Mevcut şifre") },
         singleLine = true,
-        visualTransformation = PasswordVisualTransformation(),
+        visualTransformation = passwordTransformation(showCurrentPassword),
+        trailingIcon = { PasswordVisibilityToggle(showCurrentPassword) { showCurrentPassword = !showCurrentPassword } },
         shape = FieldShape,
         colors = fieldColors,
         modifier = Modifier.fillMaxWidth(),
@@ -243,7 +248,8 @@ private fun ChangePasswordSection(isLoading: Boolean, resetKey: Int, onSubmit: (
         onValueChange = { newPassword = it },
         label = { Text("Yeni şifre") },
         singleLine = true,
-        visualTransformation = PasswordVisualTransformation(),
+        visualTransformation = passwordTransformation(showNewPassword),
+        trailingIcon = { PasswordVisibilityToggle(showNewPassword) { showNewPassword = !showNewPassword } },
         shape = FieldShape,
         colors = fieldColors,
         modifier = Modifier.fillMaxWidth(),
@@ -254,7 +260,8 @@ private fun ChangePasswordSection(isLoading: Boolean, resetKey: Int, onSubmit: (
         onValueChange = { confirmPassword = it },
         label = { Text("Yeni şifre (tekrar)") },
         singleLine = true,
-        visualTransformation = PasswordVisualTransformation(),
+        visualTransformation = passwordTransformation(showConfirmPassword),
+        trailingIcon = { PasswordVisibilityToggle(showConfirmPassword) { showConfirmPassword = !showConfirmPassword } },
         shape = FieldShape,
         colors = fieldColors,
         modifier = Modifier.fillMaxWidth(),
