@@ -58,6 +58,16 @@ android {
             // yenilendiğinde silindiği için emulator ona güvenmez.
             buildConfigField("String", "API_BASE_URL", "\"http://127.0.0.1:3000/\"")
         }
+        // Gerçek telefonda PC'ye bağlı olmadan denemek için: debug anahtarıyla
+        // imzalanır (yayın anahtarı gerekmez) ama canlı API'ye HTTPS ile
+        // bağlanır. Aynı applicationId'yi kullanır, çünkü google-services.json
+        // yalnızca com.struva.map için tanımlı; debug sürümünün üstüne kurulur.
+        // Kurulum: gradlew installPreview
+        create("preview") {
+            initWith(getByName("debug"))
+            buildConfigField("String", "API_BASE_URL", "\"https://struvamap.onrender.com/\"")
+            matchingFallbacks += listOf("debug")
+        }
         release {
             isMinifyEnabled = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
