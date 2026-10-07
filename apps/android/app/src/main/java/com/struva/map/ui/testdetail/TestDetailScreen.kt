@@ -11,7 +11,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -21,6 +23,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -29,7 +33,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalDensity
+import androidx.annotation.DrawableRes
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.struva.map.network.dto.DimensionDefDto
 import com.struva.map.ui.common.BackIconButton
@@ -94,8 +101,21 @@ fun TestDetailScreen(
                 }
                 is TestDetailUiState.Loaded -> {
                     val test = s.test
-                    LazyColumn(modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
-                        item { TestCover(test.id, test.name) }
+                    val listState = rememberLazyListState()
+                    val statue = statueFor(test.id)
+                    val coverHeight = if (statue != null) CoverHeight else 96.dp
+                    val coverHeightPx = with(LocalDensity.current) { coverHeight.toPx() }
+                    // Kaydırdıkça heykel yerinde kalır, yazılar üstünden akar;
+                    // yazı okunur kalsın diye heykel kaydırma ilerledikçe soluklaşır.
+                    val scrolled by remember {
+                        derivedStateOf {
+                            if (listState.firstVisibleItemIndex > 0) 1f
+                            else (listState.firstVisibleItemScrollOffset / coverHeightPx).coerceIn(0f, 1f)
+                        }
+                    }
+                    if (statue != null) StatueBackdrop(statue, alpha = 0.62f - 0.42f * scrolled)
+                    LazyColumn(state = listState, modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
+                        item { CoverTitle(test.id, test.name, coverHeight) }
                         item {
                             Spacer(Modifier.height(8.dp))
                             Text(test.subtitle, style = MaterialTheme.typography.bodyMedium)
@@ -155,33 +175,40 @@ fun TestDetailScreen(
     }
 }
 
-// Testin heykeli sayfanın üstünü kaplar, alta doğru zemine karışır; test adı
-// heykelin alt kısmına yerleşir. Görseli olmayan testte yalnızca başlık kalır.
+private val CoverHeight = 300.dp
+
+// Testin heykeli sayfanın üstünde sabit durur, alta doğru zemine karışır.
+// Liste bunun üstünde kayar (bkz. CoverTitle).
 @Composable
-private fun TestCover(testId: String, name: String) {
-    val statue = statueFor(testId)
-    Box(Modifier.fillMaxWidth().height(if (statue != null) 300.dp else 96.dp)) {
-        if (statue != null) {
-            Image(
-                painter = painterResource(statue),
-                contentDescription = null,
-                contentScale = ContentScale.FillWidth,
-                alignment = Alignment.TopCenter,
-                alpha = 0.62f,
-                modifier = Modifier.align(Alignment.TopCenter).width(280.dp),
-            )
-            Box(
-                Modifier
-                    .matchParentSize()
-                    .background(
-                        Brush.verticalGradient(
-                            0.3f to Color.Transparent,
-                            0.68f to StruvaColors.Background.copy(alpha = 0.55f),
-                            1f to StruvaColors.Background,
-                        ),
+private fun BoxScope.StatueBackdrop(@DrawableRes statue: Int, alpha: Float) {
+    Box(Modifier.align(Alignment.TopCenter).fillMaxWidth().height(CoverHeight)) {
+        Image(
+            painter = painterResource(statue),
+            contentDescription = null,
+            contentScale = ContentScale.FillWidth,
+            alignment = Alignment.TopCenter,
+            alpha = alpha,
+            modifier = Modifier.align(Alignment.TopCenter).width(280.dp),
+        )
+        Box(
+            Modifier
+                .matchParentSize()
+                .background(
+                    Brush.verticalGradient(
+                        0.3f to Color.Transparent,
+                        0.68f to StruvaColors.Background.copy(alpha = 0.55f),
+                        1f to StruvaColors.Background,
                     ),
-            )
-        }
+                ),
+        )
+    }
+}
+
+// Listenin ilk öğesi: heykelin boyu kadar şeffaf alan, test adı altında.
+// Görseli olmayan testte yalnızca başlık kalır.
+@Composable
+private fun CoverTitle(testId: String, name: String, height: Dp) {
+    Box(Modifier.fillMaxWidth().height(height)) {
         Column(Modifier.align(Alignment.BottomStart).padding(bottom = 8.dp)) {
             Text(relationshipTypeLabel(testId, name).uppercase(Locale.forLanguageTag("tr")), style = EyebrowStyle)
             Spacer(Modifier.height(4.dp))

@@ -251,9 +251,10 @@ private val TAB_ITEMS = listOf(
     TabItem("profile", "Profil", R.drawable.ic_tab_profile),
 )
 
-// Sekme çubuğu bu odak akışları dışında her ekranda görünür: test çözerken
-// ya da tahmin yaparken yanlışlıkla bir sekmeye dokunmak ilerlemeyi kaybettirir.
-private val FOCUS_ROUTE_PREFIXES = listOf("solve/", "predict/")
+// Sekme çubuğu bu ekranlar dışında her yerde görünür: test çözerken ya da
+// tahmin yaparken yanlışlıkla bir sekmeye dokunmak ilerlemeyi kaybettirir;
+// test bilgi sayfası da teste giriş kapısı olduğu için tam ekran açılır.
+private val FOCUS_ROUTE_PREFIXES = listOf("solve/", "predict/", "testDetail/")
 
 // Sekme çubuğu: ince çizgili ikon + küçük etiket. Her sekme kendi gezinme
 // geçmişini saveState/restoreState ile korur (ör. Harita → ilişki → sonuç
