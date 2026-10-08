@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.struva.map.network.Analytics
 import com.struva.map.network.ApiService
+import com.struva.map.network.TestDefinitionCache
 import com.struva.map.network.apiErrorMessage
 import com.struva.map.network.getComparisonByResult
 import com.struva.map.network.getMyPrediction
@@ -49,6 +50,7 @@ sealed interface PredictionUiState {
 @HiltViewModel
 class PredictionViewModel @Inject constructor(
     private val api: ApiService,
+    private val testCache: TestDefinitionCache,
     private val analytics: Analytics,
     private val json: Json,
     savedStateHandle: SavedStateHandle,
@@ -73,7 +75,7 @@ class PredictionViewModel @Inject constructor(
                 } else {
                     val result = api.getResult(resultId)
                     testId = result.score.testId
-                    val test = api.getTest(result.score.testId)
+                    val test = testCache.get(result.score.testId)
                     val existing = api.getMyPrediction(resultId)
                     // Sıra sonuç ekranıyla aynı (score.interpretation test tanımındaki sırayı taşır).
                     val dimensions = result.score.interpretation.map { interp ->

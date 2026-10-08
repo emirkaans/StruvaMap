@@ -21,6 +21,7 @@ import javax.inject.Singleton
 @Singleton
 class ArchiveContextRepository @Inject constructor(
     private val api: ApiService,
+    private val testCache: TestDefinitionCache,
     private val results: ResultsRepository,
 ) {
     private val _tests = MutableStateFlow<Map<String, TestDetailDto>>(emptyMap())
@@ -90,7 +91,7 @@ class ArchiveContextRepository @Inject constructor(
 
     private suspend fun ensureTest(testId: String) {
         if (testId in _tests.value) return
-        attempt { api.getTest(testId) }?.let { rememberTest(it) }
+        attempt { testCache.get(testId) }?.let { rememberTest(it) }
     }
 
     private suspend fun ensureTests(ids: Set<String>) {

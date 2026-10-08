@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.struva.map.network.Analytics
 import com.struva.map.network.ApiService
+import com.struva.map.network.TestDefinitionCache
 import com.struva.map.network.SessionIdProvider
 import com.struva.map.network.dto.AssignResultRequest
 import com.struva.map.network.dto.ContextQuestionDto
@@ -47,6 +48,7 @@ sealed interface SolveUiState {
 @HiltViewModel
 class SolveViewModel @Inject constructor(
     private val api: ApiService,
+    private val testCache: TestDefinitionCache,
     private val sessionIdProvider: SessionIdProvider,
     private val analytics: Analytics,
     savedStateHandle: SavedStateHandle,
@@ -82,7 +84,7 @@ class SolveViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = SolveUiState.Loading
             try {
-                val t = api.getTest(testId)
+                val t = testCache.get(testId)
                 test = t
                 shuffledQuestions = t.questions.shuffled()
                 answers.clear()

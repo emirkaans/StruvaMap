@@ -3,7 +3,7 @@ package com.struva.map.ui.testdetail
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.struva.map.network.ApiService
+import com.struva.map.network.TestDefinitionCache
 import com.struva.map.network.ArchiveContextRepository
 import com.struva.map.network.dto.TestDetailDto
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -22,13 +22,16 @@ sealed interface TestDetailUiState {
 
 @HiltViewModel
 class TestDetailViewModel @Inject constructor(
-    private val api: ApiService,
+    private val testCache: TestDefinitionCache,
     private val archiveContext: ArchiveContextRepository,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
     private val testId: String = checkNotNull(savedStateHandle["testId"])
 
-    private val _uiState = MutableStateFlow<TestDetailUiState>(TestDetailUiState.Loading)
+    // Test daha önce açıldıysa sayfa yükleniyor göstermeden dolu açılır.
+    private val _uiState = MutableStateFlow<TestDetailUiState>(
+        testCache.peek(testId)?.let { TestDetailUiState.Loaded(it) } ?: TestDetailUiState.Loading,
+    )
     val uiState: StateFlow<TestDetailUiState> = _uiState.asStateFlow()
 
     init {
@@ -40,9 +43,9 @@ class TestDetailViewModel @Inject constructor(
 
     fun load() {
         viewModelScope.launch {
-            _uiState.value = TestDetailUiState.Loading
+            if (_uiState.value !is TestDetailUiState.Loaded) _uiState.value = TestDetailUiState.Loading
             _uiState.value = try {
-                TestDetailUiState.Loaded(api.getTest(testId).also(archiveContext::rememberTest))
+                TestDetailUiState.Loaded(testCache.get(testId).also(archiveContext::rememberTest))
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {

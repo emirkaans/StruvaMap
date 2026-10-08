@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.struva.map.network.Analytics
 import com.struva.map.network.ApiService
+import com.struva.map.network.TestDefinitionCache
 import com.struva.map.network.InvitedResultStore
 import com.struva.map.network.ResultsRepository
 import com.struva.map.network.dto.ComparisonDto
@@ -34,6 +35,7 @@ sealed interface ComparisonUiState {
 @HiltViewModel
 class ComparisonViewModel @Inject constructor(
     private val api: ApiService,
+    private val testCache: TestDefinitionCache,
     private val analytics: Analytics,
     private val invitedStore: InvitedResultStore,
     private val resultsRepository: ResultsRepository,
@@ -53,7 +55,7 @@ class ComparisonViewModel @Inject constructor(
             _uiState.value = ComparisonUiState.Loading
             _uiState.value = try {
                 val comparison = api.getComparison(comparisonId)
-                val test = api.getTest(comparison.testId)
+                val test = testCache.get(comparison.testId)
                 analytics.track("comparison_view", testId = comparison.testId)
                 invitedStore.markComparisonSeen(comparison.id)
                 ComparisonUiState.Loaded(

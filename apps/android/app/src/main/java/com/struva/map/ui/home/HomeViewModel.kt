@@ -3,6 +3,7 @@ package com.struva.map.ui.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.struva.map.network.ApiService
+import com.struva.map.network.TestDefinitionCache
 import com.struva.map.network.InvitedResultStore
 import com.struva.map.network.ResultsRepository
 import com.struva.map.network.TestsRepository
@@ -49,6 +50,7 @@ class HomeViewModel @Inject constructor(
     private val resultsRepository: ResultsRepository,
     private val invitedStore: InvitedResultStore,
     private val api: ApiService,
+    private val testCache: TestDefinitionCache,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow<HomeUiState>(HomeUiState.Loading)
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
@@ -156,7 +158,7 @@ class HomeViewModel @Inject constructor(
             missing.map { id ->
                 async {
                     try {
-                        id to api.getTest(id).indices.mapValues { it.value.name }
+                        id to testCache.get(id).indices.mapValues { it.value.name }
                     } catch (e: CancellationException) {
                         throw e
                     } catch (e: Exception) {

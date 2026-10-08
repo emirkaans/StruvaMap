@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.struva.map.network.Analytics
 import com.struva.map.network.ApiService
+import com.struva.map.network.TestDefinitionCache
 import com.struva.map.network.ResultsRepository
 import com.struva.map.network.dto.TestDetailDto
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -33,6 +34,7 @@ data class ScoreDetailState(
 @HiltViewModel
 class ScoreDetailViewModel @Inject constructor(
     private val api: ApiService,
+    private val testCache: TestDefinitionCache,
     private val resultsRepository: ResultsRepository,
     private val analytics: Analytics,
 ) : ViewModel() {
@@ -65,7 +67,7 @@ class ScoreDetailViewModel @Inject constructor(
             coroutineScope {
                 launch {
                     try {
-                        val test = api.getTest(testId)
+                        val test = testCache.get(testId)
                         _state.value = _state.value.copy(test = test)
                     } catch (e: CancellationException) {
                         throw e
