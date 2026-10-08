@@ -10,6 +10,7 @@ import com.struva.map.network.InvitedResultStore
 import com.struva.map.network.getComparisonByResult
 import com.struva.map.network.dto.RegisterDeviceRequest
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,7 +20,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
-data class InviteState(val invited: Boolean = false, val comparisonId: String? = null)
+// checked: bu sonuç için kıyaslama olup olmadığı sunucuya en az bir kez soruldu.
+data class InviteState(val invited: Boolean = false, val comparisonId: String? = null, val checked: Boolean = false)
 
 private const val POLL_INTERVAL_MS = 6000L
 
@@ -42,7 +44,21 @@ class InviteViewModel @Inject constructor(
         initializedFor = resultId
         val invited = invitedStore.isInvited(resultId)
         _state.value = InviteState(invited = invited)
-        if (invited) startPolling(resultId)
+        // Kıyaslama, davet bu cihazdan gönderilmemiş olsa da var olabilir:
+        // davet web'den ya da başka bir cihazdan gitmiş, ya da bu sonuç
+        // başkasının davetiyle çözülmüş olabilir. Bu yüzden her açılışta bir
+        // kez sorulur; yoksa ve davet gönderildiyse beklemeye geçilir.
+        viewModelScope.launch {
+            val comparisonId = try {
+                api.getComparisonByResult(resultId)?.id
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                null
+            }
+            _state.value = _state.value.copy(comparisonId = comparisonId, checked = true)
+            if (comparisonId == null && _state.value.invited) startPolling(resultId)
+        }
     }
 
     fun invite(resultId: String, testId: String) {

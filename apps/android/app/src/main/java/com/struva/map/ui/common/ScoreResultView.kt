@@ -52,9 +52,11 @@ fun ScoreResultView(
     onOpenPrediction: ((String) -> Unit)? = null,
     detailViewModel: ScoreDetailViewModel = hiltViewModel(),
     relationshipViewModel: RelationshipAssignViewModel = hiltViewModel(),
+    inviteViewModel: InviteViewModel = hiltViewModel(),
 ) {
     val detail by detailViewModel.state.collectAsState()
     val relationship by relationshipViewModel.state.collectAsState()
+    val invite by inviteViewModel.state.collectAsState()
     val test = detail.test
     val context = LocalContext.current
 
@@ -63,10 +65,11 @@ fun ScoreResultView(
     // İlişki kartı da burada başlatılır: ekran hazır olana kadar kart
     // çizilmediği için kendi LaunchedEffect'i yüklemeyi tetikleyemez.
     LaunchedEffect(resultId) { relationshipViewModel.init(resultId, score.testId) }
+    LaunchedEffect(resultId) { inviteViewModel.init(resultId) }
 
     // Başlık, endeks halkaları, konuşma kartları ve ilişki kartı ayrı
     // isteklerden geliyor; hepsi gelene kadar beklenir, ekran kaymadan açılır.
-    val ready = detail.ready && (relationship.loaded || relationship.loadError != null)
+    val ready = detail.ready && (relationship.loaded || relationship.loadError != null) && invite.checked
     if (!ready) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
         return
@@ -111,7 +114,7 @@ fun ScoreResultView(
             }
             Spacer(Modifier.height(24.dp))
 
-            InviteAndCompareSection(resultId, score.testId, onOpenComparison, onOpenPrediction)
+            InviteAndCompareSection(resultId, score.testId, onOpenComparison, onOpenPrediction, viewModel = inviteViewModel)
             Spacer(Modifier.height(8.dp))
             StruvaOutlinedButton(
                 onClick = {
