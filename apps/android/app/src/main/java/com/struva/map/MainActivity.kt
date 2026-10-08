@@ -17,6 +17,12 @@ import androidx.annotation.DrawableRes
 import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.runtime.CompositionLocalProvider
+import com.struva.map.network.ConnectivityObserver
+import com.struva.map.ui.common.LocalOnline
+import com.struva.map.ui.common.OfflineBanner
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -91,6 +97,9 @@ class MainActivity : ComponentActivity() {
 
     @Inject
     lateinit var userDataGuard: UserDataGuard
+
+    @Inject
+    lateinit var connectivity: ConnectivityObserver
     private val requestNotificationPermission =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) {}
 
@@ -169,10 +178,13 @@ class MainActivity : ComponentActivity() {
                             // zararsız — token zaten sunucu tarafında tek kullanımlık.
                             val context = LocalContext.current
                             LaunchedEffect(Unit) { checkClipboardForClaim(context, authViewModel) }
-                            AppNavHost(
-                                pendingDeepLink = pendingDeepLink,
-                                onDeepLinkConsumed = { pendingDeepLink = null },
-                            )
+                            val online by connectivity.online.collectAsState()
+                            CompositionLocalProvider(LocalOnline provides online) {
+                                AppNavHost(
+                                    pendingDeepLink = pendingDeepLink,
+                                    onDeepLinkConsumed = { pendingDeepLink = null },
+                                )
+                            }
                         }
                     }
                     is SessionStatus.NotAuthenticated -> {
@@ -296,40 +308,46 @@ private fun AppNavHost(
     Scaffold(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         bottomBar = {
-            if (showTabBar) {
-                NavigationBar(containerColor = StruvaColors.Surface) {
-                    TAB_ITEMS.forEach { tab ->
-                        val selected = selectedTab == tab.route
-                        NavigationBarItem(
-                            selected = selected,
-                            onClick = {
-                                selectedTab = tab.route
-                                navController.navigate(tab.route) {
-                                    popUpTo(navController.graph.findStartDestination().id) { saveState = true }
-                                    launchSingleTop = true
-                                    restoreState = true
-                                }
-                            },
-                            icon = { Icon(painterResource(tab.icon), contentDescription = null) },
-                            label = {
-                                // Dar ekranlarda (360 dp) etiket iki satıra bölünmesin.
-                                Text(
-                                    tab.label,
-                                    fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
-                                    fontSize = 11.sp,
-                                    maxLines = 1,
-                                    softWrap = false,
-                                )
-                            },
-                            alwaysShowLabel = true,
-                            colors = NavigationBarItemDefaults.colors(
-                                selectedIconColor = StruvaColors.Accent,
-                                unselectedIconColor = StruvaColors.Muted,
-                                selectedTextColor = StruvaColors.Accent,
-                                unselectedTextColor = StruvaColors.Muted,
-                                indicatorColor = StruvaColors.AccentSoft,
-                            ),
-                        )
+            Column {
+                if (!LocalOnline.current) {
+                    // Sekme çubuğu gizliyken şerit gezinme çubuğunun altında kalmasın.
+                    OfflineBanner(if (showTabBar) Modifier else Modifier.navigationBarsPadding())
+                }
+                if (showTabBar) {
+                    NavigationBar(containerColor = StruvaColors.Surface) {
+                        TAB_ITEMS.forEach { tab ->
+                            val selected = selectedTab == tab.route
+                            NavigationBarItem(
+                                selected = selected,
+                                onClick = {
+                                    selectedTab = tab.route
+                                    navController.navigate(tab.route) {
+                                        popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                                        launchSingleTop = true
+                                        restoreState = true
+                                    }
+                                },
+                                icon = { Icon(painterResource(tab.icon), contentDescription = null) },
+                                label = {
+                                    // Dar ekranlarda (360 dp) etiket iki satıra bölünmesin.
+                                    Text(
+                                        tab.label,
+                                        fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
+                                        fontSize = 11.sp,
+                                        maxLines = 1,
+                                        softWrap = false,
+                                    )
+                                },
+                                alwaysShowLabel = true,
+                                colors = NavigationBarItemDefaults.colors(
+                                    selectedIconColor = StruvaColors.Accent,
+                                    unselectedIconColor = StruvaColors.Muted,
+                                    selectedTextColor = StruvaColors.Accent,
+                                    unselectedTextColor = StruvaColors.Muted,
+                                    indicatorColor = StruvaColors.AccentSoft,
+                                ),
+                            )
+                        }
                     }
                 }
             }

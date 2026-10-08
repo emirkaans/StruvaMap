@@ -5,6 +5,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.struva.map.network.ApiService
+import com.struva.map.network.ResultsRepository
 import com.struva.map.network.dto.ScoreResultDto
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
@@ -23,6 +24,7 @@ sealed interface ResultDetailUiState {
 @HiltViewModel
 class ResultDetailViewModel @Inject constructor(
     private val api: ApiService,
+    private val resultsRepository: ResultsRepository,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
     val resultId: String = checkNotNull(savedStateHandle["resultId"])
@@ -42,7 +44,11 @@ class ResultDetailViewModel @Inject constructor(
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                ResultDetailUiState.Error(e.userMessage())
+                // İnternetsizken Geçmiş'ten açılan sonuç telefonda kayıtlı
+                // kopyasından gösterilir.
+                resultsRepository.cachedAll().firstOrNull { it.id == resultId }
+                    ?.let { ResultDetailUiState.Loaded(it.score) }
+                    ?: ResultDetailUiState.Error(e.userMessage())
             }
         }
     }

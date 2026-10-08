@@ -9,7 +9,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
@@ -27,6 +31,18 @@ fun ErrorState(
     onRetry: (() -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
+    // İnternet yüzünden açılamayan ekran, bağlantı geri gelince kendiliğinden
+    // yeniden denenir; kullanıcının "Tekrar dene"ye basması gerekmez.
+    val online = LocalOnline.current
+    var sawOffline by remember { mutableStateOf(!online) }
+    LaunchedEffect(online) {
+        if (!online) {
+            sawOffline = true
+        } else if (sawOffline && onRetry != null) {
+            sawOffline = false
+            onRetry()
+        }
+    }
     Column(
         modifier = modifier.fillMaxWidth().padding(horizontal = 32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
