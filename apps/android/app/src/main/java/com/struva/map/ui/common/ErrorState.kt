@@ -9,10 +9,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.struva.map.BuildConfig
+import com.struva.map.network.ErrorReporting
 import com.struva.map.ui.theme.StruvaColors
 
 // Bir ekranın içeriği yüklenemediğinde gösterilen ortak durum: ne olmadığını
@@ -40,6 +43,18 @@ fun ErrorState(
         if (onRetry != null) {
             Spacer(Modifier.height(20.dp))
             StruvaButton(onClick = onRetry) { Text("Tekrar dene") }
+        }
+        // Geliştirme sürümlerinde (debug, preview) test ederken sebebi görmek
+        // için son hatanın teknik özeti; yayın sürümünde hiç görünmez.
+        val detail = remember(message) { ErrorReporting.latestDetail }
+        if (BuildConfig.DEBUG && detail != null) {
+            Spacer(Modifier.height(24.dp))
+            Text(
+                detail,
+                style = MaterialTheme.typography.labelSmall,
+                color = StruvaColors.Muted.copy(alpha = 0.6f),
+                textAlign = TextAlign.Center,
+            )
         }
     }
 }

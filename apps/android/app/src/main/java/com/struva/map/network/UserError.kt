@@ -23,11 +23,31 @@ object ErrorText {
 
 private val errorJson = Json { ignoreUnknownKeys = true }
 
+// Arayüze çıkmayan teknik ayrıntının gittiği yer. Uygulama açılışta Logcat'e
+// yazan bir raporlayıcı bağlar (bkz. StruvaApp); birim testlerde boş kalır.
+// İleride bir hata raporlama servisi de buraya bağlanır.
+object ErrorReporting {
+    @Volatile
+    var reporter: (Throwable) -> Unit = {}
+
+    // Son hatanın teknik özeti; yalnızca geliştirme sürümlerinde hata
+    // ekranının altında gösterilir (bkz. ErrorState).
+    @Volatile
+    var latestDetail: String? = null
+        private set
+
+    fun report(e: Throwable) {
+        latestDetail = "${e.javaClass.simpleName}: ${e.message.orEmpty()}".take(300)
+        reporter(e)
+    }
+}
+
 // İstisnayı kullanıcının anlayacağı tek cümleye çevirir. Sunucunun kendi
 // açıklaması olan 4xx hataları ("Bu kullanıcı adı zaten alınmış.") olduğu gibi
 // gösterilir, çünkü onlar zaten kullanıcıya yazıldı. Tanınmayan her şey
 // fallback'e (verilmezse genel mesaja) düşer.
 fun Throwable.userMessage(fallback: String = ErrorText.GENERIC): String {
+    ErrorReporting.report(this)
     val http = this as? HttpException
     if (http != null) {
         val code = http.code()
