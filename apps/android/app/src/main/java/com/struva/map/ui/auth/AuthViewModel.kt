@@ -1,5 +1,6 @@
 package com.struva.map.ui.auth
 
+import com.struva.map.network.userMessage
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -169,7 +170,7 @@ class AuthViewModel @Inject constructor(
                     e.apiErrorMessage(json) ?: "Kullanıcı bulunamadı.",
                 )
             } catch (e: Exception) {
-                ForgotPasswordState.Error(ForgotPasswordState.EnterUsername, e.message ?: "Bir hata oluştu.")
+                ForgotPasswordState.Error(ForgotPasswordState.EnterUsername, e.userMessage())
             }
         }
     }
@@ -190,7 +191,7 @@ class AuthViewModel @Inject constructor(
             } catch (e: Exception) {
                 ForgotPasswordState.Error(
                     ForgotPasswordState.AnswerQuestion(username, question),
-                    e.message ?: "Bir hata oluştu.",
+                    e.userMessage(),
                 )
             }
         }
@@ -214,7 +215,7 @@ class AuthViewModel @Inject constructor(
             } catch (e: HttpException) {
                 _formState.value = AuthFormState.Error(e.apiErrorMessage(json) ?: "Bir hata oluştu.")
             } catch (e: Exception) {
-                _formState.value = AuthFormState.Error(e.message ?: "Bir hata oluştu.")
+                _formState.value = AuthFormState.Error(e.userMessage())
             }
         }
     }

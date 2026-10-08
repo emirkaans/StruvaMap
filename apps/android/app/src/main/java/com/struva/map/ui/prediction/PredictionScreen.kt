@@ -1,5 +1,6 @@
 package com.struva.map.ui.prediction
 
+import com.struva.map.ui.common.ErrorState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -64,11 +65,7 @@ fun PredictionScreen(
         Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
             when (val s = state) {
                 is PredictionUiState.Loading -> CircularProgressIndicator()
-                is PredictionUiState.Error -> Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(s.message)
-                    Spacer(Modifier.height(12.dp))
-                    StruvaButton(onClick = viewModel::load) { Text("Tekrar dene") }
-                }
+                is PredictionUiState.Error -> ErrorState(title = "Tahmin ekranı açılamadı", message = s.message, onRetry = viewModel::load)
                 is PredictionUiState.ComparisonReady -> Column(
                     modifier = Modifier.padding(24.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,

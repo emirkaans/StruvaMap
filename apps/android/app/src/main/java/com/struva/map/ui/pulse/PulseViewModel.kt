@@ -1,5 +1,6 @@
 package com.struva.map.ui.pulse
 
+import com.struva.map.network.userMessage
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.struva.map.network.PulseRepository
@@ -80,7 +81,7 @@ class PulseViewModel @Inject constructor(
             } catch (e: HttpException) {
                 PulseUiState.Error(e.apiErrorMessage(json) ?: "Nabız yüklenemedi.")
             } catch (e: Exception) {
-                PulseUiState.Error(e.message ?: "Bir hata oluştu.")
+                PulseUiState.Error(e.userMessage())
             }
         }
     }
@@ -98,7 +99,7 @@ class PulseViewModel @Inject constructor(
             } catch (e: HttpException) {
                 PulseUiState.Error(e.apiErrorMessage(json) ?: "Davet oluşturulamadı.")
             } catch (e: Exception) {
-                PulseUiState.Error(e.message ?: "Bir hata oluştu.")
+                PulseUiState.Error(e.userMessage())
             }
         }
     }
@@ -115,7 +116,7 @@ class PulseViewModel @Inject constructor(
             } catch (e: HttpException) {
                 PulseUiState.Error(e.apiErrorMessage(json) ?: "Kod kabul edilemedi.")
             } catch (e: Exception) {
-                PulseUiState.Error(e.message ?: "Bir hata oluştu.")
+                PulseUiState.Error(e.userMessage())
             }
         }
     }
@@ -133,7 +134,7 @@ class PulseViewModel @Inject constructor(
             } catch (e: HttpException) {
                 PulseUiState.Error(e.apiErrorMessage(json) ?: "Cevap gönderilemedi.")
             } catch (e: Exception) {
-                PulseUiState.Error(e.message ?: "Bir hata oluştu.")
+                PulseUiState.Error(e.userMessage())
             }
         }
     }

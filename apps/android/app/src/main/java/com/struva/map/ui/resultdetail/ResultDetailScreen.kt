@@ -1,5 +1,6 @@
 package com.struva.map.ui.resultdetail
 
+import com.struva.map.ui.common.ErrorState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -48,11 +49,7 @@ fun ResultDetailScreen(
         ) {
             when (val s = state) {
                 is ResultDetailUiState.Loading -> CircularProgressIndicator()
-                is ResultDetailUiState.Error -> Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("Sonuç yüklenemedi: ${s.message}")
-                    Spacer(Modifier.height(12.dp))
-                    StruvaButton(onClick = viewModel::load) { Text("Tekrar dene") }
-                }
+                is ResultDetailUiState.Error -> ErrorState(title = "Sonuç yüklenemedi", message = s.message, onRetry = viewModel::load)
                 is ResultDetailUiState.Loaded -> ScoreResultView(
                     s.score,
                     resultId = viewModel.resultId,

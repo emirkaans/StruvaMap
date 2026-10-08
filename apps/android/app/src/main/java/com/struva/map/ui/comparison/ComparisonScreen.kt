@@ -1,5 +1,6 @@
 package com.struva.map.ui.comparison
 
+import com.struva.map.ui.common.ErrorState
 import android.content.Intent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -76,11 +77,7 @@ fun ComparisonScreen(
         ) {
             when (val s = state) {
                 is ComparisonUiState.Loading -> CircularProgressIndicator()
-                is ComparisonUiState.Error -> Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("Kıyaslama yüklenemedi: ${s.message}")
-                    Spacer(Modifier.height(12.dp))
-                    StruvaButton(onClick = viewModel::load) { Text("Tekrar dene") }
-                }
+                is ComparisonUiState.Error -> ErrorState(title = "Kıyaslama yüklenemedi", message = s.message, onRetry = viewModel::load)
                 is ComparisonUiState.Loaded -> ComparisonView(s.comparison, s.test, s.prompts, s.viewerIsA, onHome)
             }
         }

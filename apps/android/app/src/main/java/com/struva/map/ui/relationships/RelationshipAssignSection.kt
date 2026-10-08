@@ -53,7 +53,7 @@ fun RelationshipAssignSection(
             Text("İLİŞKİ", style = EyebrowStyle)
             Spacer(Modifier.height(6.dp))
             Text(
-                "İlişki bilgisi yüklenemedi: $loadError",
+                "İlişki bilgisi yüklenemedi. $loadError",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.error,
             )

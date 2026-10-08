@@ -1,5 +1,6 @@
 package com.struva.map.ui.pulse
 
+import com.struva.map.network.userMessage
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.struva.map.network.PulseRepository
@@ -68,5 +69,5 @@ class PairManagementViewModel @Inject constructor(
     }
 
     private fun errorText(e: Exception): String =
-        (e as? HttpException)?.apiErrorMessage(json) ?: e.message ?: "Bir hata oluştu."
+        (e as? HttpException)?.apiErrorMessage(json) ?: e.userMessage()
 }

@@ -1,5 +1,6 @@
 package com.struva.map.ui.home
 
+import com.struva.map.network.userMessage
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.struva.map.network.ApiService
@@ -109,7 +110,7 @@ class HomeViewModel @Inject constructor(
                 // Cache'ten gösterilecek bir şey varsa sessizce kalsın,
                 // yoksa hata göster.
                 if (_uiState.value !is HomeUiState.Loaded) {
-                    _uiState.value = HomeUiState.Error(e.message ?: "Bilinmeyen hata")
+                    _uiState.value = HomeUiState.Error(e.userMessage())
                 }
             }
         }

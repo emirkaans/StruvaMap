@@ -1,5 +1,6 @@
 package com.struva.map.ui.testdetail
 
+import com.struva.map.ui.common.ErrorState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -94,11 +95,7 @@ fun TestDetailScreen(
         ) {
             when (val s = state) {
                 is TestDetailUiState.Loading -> CircularProgressIndicator()
-                is TestDetailUiState.Error -> Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("Test yüklenemedi: ${s.message}")
-                    Spacer(Modifier.height(12.dp))
-                    StruvaButton(onClick = viewModel::load) { Text("Tekrar dene") }
-                }
+                is TestDetailUiState.Error -> ErrorState(title = "Test yüklenemedi", message = s.message, onRetry = viewModel::load)
                 is TestDetailUiState.Loaded -> {
                     val test = s.test
                     val listState = rememberLazyListState()

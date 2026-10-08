@@ -1,5 +1,7 @@
 package com.struva.map.ui.profile
 
+import com.struva.map.network.ErrorText
+import com.struva.map.network.userMessage
 import com.struva.map.network.ApiService
 import com.struva.map.network.apiErrorMessage
 import com.struva.map.network.dto.ChangeUsernameRequest
@@ -85,7 +87,7 @@ class ProfileViewModel @Inject constructor(
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                ProfileActionState.Error("Mevcut şifre yanlış olabilir: ${e.message ?: "bir hata oluştu"}")
+                ProfileActionState.Error(e.userMessage("Mevcut şifre yanlış olabilir.").let { if (it == ErrorText.WRONG_CREDENTIALS) "Mevcut şifre yanlış." else it })
             }
         }
     }
@@ -104,7 +106,7 @@ class ProfileViewModel @Inject constructor(
             } catch (e: HttpException) {
                 ProfileActionState.Error(e.apiErrorMessage(json) ?: "Kullanıcı adı değiştirilemedi.")
             } catch (e: Exception) {
-                ProfileActionState.Error(e.message ?: "Bir hata oluştu.")
+                ProfileActionState.Error(e.userMessage())
             }
         }
     }
@@ -124,7 +126,7 @@ class ProfileViewModel @Inject constructor(
             } catch (e: HttpException) {
                 ProfileActionState.Error(e.apiErrorMessage(json) ?: "Hesap silinemedi.")
             } catch (e: Exception) {
-                ProfileActionState.Error(e.message ?: "Bir hata oluştu.")
+                ProfileActionState.Error(e.userMessage())
             }
         }
     }

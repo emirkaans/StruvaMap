@@ -1,5 +1,6 @@
 package com.struva.map.ui.home
 
+import com.struva.map.ui.common.ErrorState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -86,11 +87,7 @@ fun HomeScreen(
         ) {
             when (val s = state) {
                 is HomeUiState.Loading -> CircularProgressIndicator()
-                is HomeUiState.Error -> Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("Testler yüklenemedi: ${s.message}")
-                    Spacer(Modifier.height(12.dp))
-                    StruvaButton(onClick = viewModel::load) { Text("Tekrar dene") }
-                }
+                is HomeUiState.Error -> ErrorState(title = "Testler yüklenemedi", message = s.message, onRetry = viewModel::load)
                 is HomeUiState.Loaded -> LazyColumn(modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
                     item { TodayHeader() }
 

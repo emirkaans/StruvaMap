@@ -1,5 +1,6 @@
 package com.struva.map.ui.pulse
 
+import com.struva.map.ui.common.ErrorState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -83,11 +84,7 @@ fun PulseHistoryScreen(
         Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
             when (val s = state) {
                 is PulseHistoryUiState.Loading -> CircularProgressIndicator()
-                is PulseHistoryUiState.Error -> Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(s.message)
-                    Spacer(Modifier.height(12.dp))
-                    StruvaButton(onClick = viewModel::load) { Text("Tekrar dene") }
-                }
+                is PulseHistoryUiState.Error -> ErrorState(title = "Nabız geçmişi yüklenemedi", message = s.message, onRetry = viewModel::load)
                 is PulseHistoryUiState.NoPair -> Column(
                     modifier = Modifier.padding(24.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,

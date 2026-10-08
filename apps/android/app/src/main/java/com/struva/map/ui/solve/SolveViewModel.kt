@@ -1,5 +1,6 @@
 package com.struva.map.ui.solve
 
+import com.struva.map.network.userMessage
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -97,7 +98,7 @@ class SolveViewModel @Inject constructor(
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                _uiState.value = SolveUiState.Error(e.message ?: "Bilinmeyen hata")
+                _uiState.value = SolveUiState.Error(e.userMessage())
             }
         }
     }
@@ -237,7 +238,7 @@ class SolveViewModel @Inject constructor(
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                SolveUiState.SubmitFailed(e.message ?: "Sonuç gönderilemedi, bağlantını kontrol et.")
+                SolveUiState.SubmitFailed(e.userMessage("Sonuç gönderilemedi. Tekrar dene."))
             }
         }
     }

@@ -1,5 +1,6 @@
 package com.struva.map.ui.testdetail
 
+import com.struva.map.network.userMessage
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -49,7 +50,7 @@ class TestDetailViewModel @Inject constructor(
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                TestDetailUiState.Error(e.message ?: "Bilinmeyen hata")
+                TestDetailUiState.Error(e.userMessage())
             }
         }
     }

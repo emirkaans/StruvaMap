@@ -1,5 +1,6 @@
 package com.struva.map.ui.relationships
 
+import com.struva.map.network.userMessage
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.struva.map.network.ApiService
@@ -66,7 +67,7 @@ class RelationshipAssignViewModel @Inject constructor(
             } catch (e: HttpException) {
                 RelationshipAssignState(loadError = e.apiErrorMessage(json) ?: "HTTP ${e.code()}")
             } catch (e: Exception) {
-                RelationshipAssignState(loadError = e.message ?: "Bağlantı hatası")
+                RelationshipAssignState(loadError = e.userMessage())
             }
         }
     }
@@ -95,7 +96,7 @@ class RelationshipAssignViewModel @Inject constructor(
             } catch (e: HttpException) {
                 current.copy(saving = false, errorMessage = e.apiErrorMessage(json) ?: "İlişki kaydedilemedi.")
             } catch (e: Exception) {
-                current.copy(saving = false, errorMessage = e.message ?: "İlişki kaydedilemedi.")
+                current.copy(saving = false, errorMessage = e.userMessage("İlişki kaydedilemedi. Tekrar dene."))
             }
         }
     }

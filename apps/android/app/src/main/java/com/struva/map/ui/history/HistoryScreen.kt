@@ -1,5 +1,6 @@
 package com.struva.map.ui.history
 
+import com.struva.map.ui.common.ErrorState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -62,11 +63,7 @@ fun HistoryScreen(
         ) {
             when (val s = state) {
                 is HistoryUiState.Loading -> CircularProgressIndicator()
-                is HistoryUiState.Error -> Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("Geçmiş yüklenemedi. ${s.message}")
-                    Spacer(Modifier.height(12.dp))
-                    StruvaButton(onClick = viewModel::load) { Text("Tekrar dene") }
-                }
+                is HistoryUiState.Error -> ErrorState(title = "Geçmiş yüklenemedi", message = s.message, onRetry = viewModel::load)
                 is HistoryUiState.Loaded -> {
                     if (s.total == 0) {
                         Text(

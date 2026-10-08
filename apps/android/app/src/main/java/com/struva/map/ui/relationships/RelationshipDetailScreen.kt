@@ -1,5 +1,6 @@
 package com.struva.map.ui.relationships
 
+import com.struva.map.ui.common.ErrorState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -136,11 +137,7 @@ fun RelationshipDetailScreen(
         Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
             when (val s = state) {
                 is RelationshipDetailUiState.Loading, RelationshipDetailUiState.Deleted -> CircularProgressIndicator()
-                is RelationshipDetailUiState.Error -> Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(s.message)
-                    Spacer(Modifier.height(12.dp))
-                    StruvaButton(onClick = viewModel::load) { Text("Tekrar dene") }
-                }
+                is RelationshipDetailUiState.Error -> ErrorState(title = "İlişki yüklenemedi", message = s.message, onRetry = viewModel::load)
                 is RelationshipDetailUiState.Loaded -> DetailContent(
                     detail = s.detail,
                     prompts = s.prompts,

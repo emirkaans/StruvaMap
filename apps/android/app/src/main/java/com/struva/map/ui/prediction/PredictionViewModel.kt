@@ -1,5 +1,6 @@
 package com.struva.map.ui.prediction
 
+import com.struva.map.network.userMessage
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -98,7 +99,7 @@ class PredictionViewModel @Inject constructor(
             } catch (e: HttpException) {
                 PredictionUiState.Error(e.apiErrorMessage(json) ?: "Tahmin ekranı yüklenemedi.")
             } catch (e: Exception) {
-                PredictionUiState.Error(e.message ?: "Bir hata oluştu.")
+                PredictionUiState.Error(e.userMessage())
             }
         }
     }
@@ -135,7 +136,7 @@ class PredictionViewModel @Inject constructor(
                     current.copy(saving = false, errorMessage = e.apiErrorMessage(json) ?: "Tahmin kaydedilemedi.")
                 }
             } catch (e: Exception) {
-                current.copy(saving = false, errorMessage = e.message ?: "Tahmin kaydedilemedi.")
+                current.copy(saving = false, errorMessage = e.userMessage("Tahmin kaydedilemedi. Tekrar dene."))
             }
         }
     }

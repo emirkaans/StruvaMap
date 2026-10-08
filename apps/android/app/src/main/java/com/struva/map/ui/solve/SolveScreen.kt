@@ -1,5 +1,6 @@
 package com.struva.map.ui.solve
 
+import com.struva.map.ui.common.ErrorState
 import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -80,11 +81,7 @@ fun SolveScreen(
             when (val s = state) {
                 is SolveUiState.Loading -> CircularProgressIndicator()
 
-                is SolveUiState.Error -> Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(s.message)
-                    Spacer(Modifier.height(12.dp))
-                    StruvaButton(onClick = viewModel::load) { Text("Tekrar dene") }
-                }
+                is SolveUiState.Error -> ErrorState(title = "Test açılamadı", message = s.message, onRetry = viewModel::load)
 
                 is SolveUiState.SubmitFailed -> Column(
                     horizontalAlignment = Alignment.CenterHorizontally,

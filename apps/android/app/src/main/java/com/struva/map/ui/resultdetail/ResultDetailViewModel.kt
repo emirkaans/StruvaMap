@@ -1,5 +1,6 @@
 package com.struva.map.ui.resultdetail
 
+import com.struva.map.network.userMessage
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -41,7 +42,7 @@ class ResultDetailViewModel @Inject constructor(
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                ResultDetailUiState.Error(e.message ?: "Bilinmeyen hata")
+                ResultDetailUiState.Error(e.userMessage())
             }
         }
     }

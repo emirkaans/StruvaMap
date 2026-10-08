@@ -1,5 +1,6 @@
 package com.struva.map.ui.pulse
 
+import com.struva.map.network.userMessage
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.struva.map.network.PulseRepository
@@ -49,7 +50,7 @@ class PulseHistoryViewModel @Inject constructor(
             } catch (e: HttpException) {
                 PulseHistoryUiState.Error(e.apiErrorMessage(json) ?: "Geçmiş yüklenemedi.")
             } catch (e: Exception) {
-                PulseHistoryUiState.Error(e.message ?: "Bir hata oluştu.")
+                PulseHistoryUiState.Error(e.userMessage())
             }
         }
     }

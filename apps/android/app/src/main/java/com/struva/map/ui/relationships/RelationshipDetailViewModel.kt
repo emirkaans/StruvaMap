@@ -1,5 +1,6 @@
 package com.struva.map.ui.relationships
 
+import com.struva.map.network.userMessage
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -154,5 +155,5 @@ class RelationshipDetailViewModel @Inject constructor(
     }
 
     private fun errorText(e: Exception, fallback: String): String =
-        (e as? HttpException)?.apiErrorMessage(json) ?: e.message ?: fallback
+        e.userMessage(fallback)
 }

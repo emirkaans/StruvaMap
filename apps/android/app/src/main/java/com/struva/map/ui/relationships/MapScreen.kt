@@ -1,5 +1,6 @@
 package com.struva.map.ui.relationships
 
+import com.struva.map.ui.common.ErrorState
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -111,11 +112,7 @@ fun MapScreen(
         Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
             when (val s = state) {
                 is MapUiState.Loading -> CircularProgressIndicator()
-                is MapUiState.Error -> Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(s.message)
-                    Spacer(Modifier.height(12.dp))
-                    StruvaButton(onClick = viewModel::load) { Text("Tekrar dene") }
-                }
+                is MapUiState.Error -> ErrorState(title = "Harita yüklenemedi", message = s.message, onRetry = viewModel::load)
                 is MapUiState.Loaded -> MapContent(
                     map = s.map,
                     onOpenRelationship = onOpenRelationship,
