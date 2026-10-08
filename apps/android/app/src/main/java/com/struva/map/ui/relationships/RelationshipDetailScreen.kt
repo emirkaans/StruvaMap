@@ -45,6 +45,8 @@ import com.struva.map.ui.common.ScoreDonut
 import com.struva.map.ui.common.StruvaButton
 import com.struva.map.ui.common.StruvaCard
 import com.struva.map.ui.common.TrendChart
+import com.struva.map.ui.common.TrendPoint
+import com.struva.map.ui.common.trendDateLabel
 import com.struva.map.ui.theme.EyebrowStyle
 import com.struva.map.ui.theme.IBMPlexMono
 import com.struva.map.ui.theme.StruvaColors
@@ -281,7 +283,7 @@ private fun DetailContent(
             item {
                 Section("Zaman İçinde")
                 StruvaCard(modifier = Modifier.fillMaxWidth()) {
-                    TrendChart(detail.results.map { it.rsi })
+                    TrendChart(detail.results.map { TrendPoint(it.rsi, trendDateLabel(it.createdAt)) })
                 }
                 Spacer(Modifier.height(12.dp))
                 IndexChanges(detail.results.first(), detail.results.last(), detail.indexNames)

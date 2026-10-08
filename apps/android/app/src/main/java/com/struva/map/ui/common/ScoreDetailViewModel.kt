@@ -18,7 +18,7 @@ import javax.inject.Inject
 
 data class ScoreDetailState(
     val test: TestDetailDto? = null,
-    val rsiHistory: List<Int> = emptyList(),
+    val rsiHistory: List<TrendPoint> = emptyList(),
     // boyut id → konuşma kartı soruları (gerilim alanları için).
     val prompts: Map<String, List<String>> = emptyMap(),
     // Test tanımı, konuşma soruları ve geçmiş ilk kez gelince (başarısız
@@ -100,7 +100,7 @@ class ScoreDetailViewModel @Inject constructor(
         }
         viewModelScope.launch {
             resultsRepository.observeByTest(testId).collect { rows ->
-                val ordered = rows.sortedBy { it.createdAt }.map { it.score.rsi }
+                val ordered = rows.sortedBy { it.createdAt }.map { TrendPoint(it.score.rsi, trendDateLabel(it.createdAt)) }
                 _state.value = _state.value.copy(rsiHistory = ordered)
             }
         }
