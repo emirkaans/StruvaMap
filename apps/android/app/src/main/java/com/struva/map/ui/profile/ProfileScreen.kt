@@ -29,11 +29,12 @@ import com.struva.map.ui.theme.StruvaColors
 import com.struva.map.ui.theme.struvaTopAppBarColors
 
 // Hesabın kim olduğu ve kiminle eşleştiği. Kullanıcı adı, şifre, gizlilik ve
-// hesap silme Ayarlar sekmesinde (bkz. SettingsScreen).
+// hesap silme buradan açılan Ayarlar ekranında (bkz. SettingsScreen).
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
     onOpenPulsePairing: () -> Unit,
+    onOpenSettings: () -> Unit,
     onOpenLogin: () -> Unit,
     onOpenRegister: () -> Unit,
     viewModel: ProfileViewModel = hiltViewModel(),
@@ -86,6 +87,8 @@ fun ProfileScreen(
             Spacer(Modifier.height(16.dp))
             HorizontalDivider(color = StruvaColors.Border)
             ListRow("Partner eşleştirme", onClick = onOpenPulsePairing)
+            HorizontalDivider(color = StruvaColors.Border)
+            ListRow("Ayarlar", onClick = onOpenSettings)
             HorizontalDivider(color = StruvaColors.Border)
 
             if (!isGuest) {

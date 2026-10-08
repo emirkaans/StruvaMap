@@ -251,7 +251,6 @@ private val TAB_ITEMS = listOf(
     TabItem("map", "Harita", R.drawable.ic_tab_map),
     TabItem("history", "Geçmiş", R.drawable.ic_tab_history),
     TabItem("profile", "Profil", R.drawable.ic_tab_profile),
-    TabItem("settings", "Ayarlar", R.drawable.ic_tab_settings),
 )
 
 // Sekme çubuğu bu ekranlar dışında her yerde görünür: test çözerken ya da
@@ -313,8 +312,7 @@ private fun AppNavHost(
                             },
                             icon = { Icon(painterResource(tab.icon), contentDescription = null) },
                             label = {
-                                // Beş sekmede dar ekranlarda (360 dp) "Anasayfa" iki
-                                // satıra bölünüyordu; etiket tek satır ve biraz küçük.
+                                // Dar ekranlarda (360 dp) etiket iki satıra bölünmesin.
                                 Text(
                                     tab.label,
                                     fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
@@ -378,12 +376,16 @@ private fun AppNavHost(
             composable("profile") {
                 ProfileScreen(
                     onOpenPulsePairing = { navController.navigate("pulsePairing") },
+                    onOpenSettings = { navController.navigate("settings") },
                     onOpenLogin = { navController.navigate("completeProfile/login") },
                     onOpenRegister = { navController.navigate("completeProfile/register") },
                 )
             }
             composable("settings") {
-                SettingsScreen(onOpenPrivacy = { navController.navigate("privacy") })
+                SettingsScreen(
+                    onBack = { navController.popBackStack() },
+                    onOpenPrivacy = { navController.navigate("privacy") },
+                )
             }
             composable("privacy") {
                 PrivacyScreen(onBack = { navController.popBackStack() })

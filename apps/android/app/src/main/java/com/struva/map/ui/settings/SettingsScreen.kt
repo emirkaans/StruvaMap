@@ -29,6 +29,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.struva.map.ui.common.BackIconButton
 import com.struva.map.ui.common.ListRow
 import com.struva.map.ui.common.PasswordVisibilityToggle
 import com.struva.map.ui.common.StruvaButton
@@ -44,6 +45,7 @@ import com.struva.map.ui.theme.struvaTopAppBarColors
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
+    onBack: () -> Unit,
     onOpenPrivacy: () -> Unit,
     viewModel: ProfileViewModel = hiltViewModel(),
 ) {
@@ -61,6 +63,7 @@ fun SettingsScreen(
         topBar = {
             TopAppBar(
                 title = { Text("Ayarlar") },
+                navigationIcon = { BackIconButton(onClick = onBack) },
                 colors = struvaTopAppBarColors(),
             )
         },
@@ -74,7 +77,7 @@ fun SettingsScreen(
         ) {
             if (isGuest) {
                 Text(
-                    "Kullanıcı adı ve şifre ayarları hesap oluşturunca burada açılır. Hesap oluşturmak için Profil sekmesine geç.",
+                    "Kullanıcı adı ve şifre ayarları hesap oluşturunca burada açılır. Hesap oluşturmak için Profil'e dön.",
                     style = MaterialTheme.typography.bodySmall,
                     color = StruvaColors.Muted,
                     modifier = Modifier.padding(horizontal = 16.dp),
