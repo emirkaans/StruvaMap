@@ -175,7 +175,7 @@ private fun UnansweredGauge(checkinId: String, submitting: Boolean, onSubmit: (I
             CircularProgressIndicator(
                 modifier = Modifier.size(18.dp),
                 strokeWidth = 2.dp,
-                color = StruvaColors.Muted,
+                color = StruvaColors.OnAccent,
             )
         } else {
             Text("Gönder")
